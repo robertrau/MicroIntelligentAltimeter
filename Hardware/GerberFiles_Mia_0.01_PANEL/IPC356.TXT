@@ -1,0 +1,1339 @@
+327[1]-RESET        C13   -2         UA01X   7220Y   7938X 250Y 200             
+327[1]-RESET        R9    -1         UA01X   7570Y   7878X 200Y 250             
+327[1]-RESET        SW3   -3         UA02X   3669Y   8248X 217Y 394             
+317[1]-RESET        TP6   -1    D 280PA00X  10006Y   8626X 400Y 400             
+327[1]-RESET        U2    -29        UA01X  10224Y   7728X  98Y 551             
+317[1]-RESET        VIA   -     D 120PA00X   7548Y   8322X 240Y 240             
+327[1]A0            C14   -2         UA01X  20799Y   5354X 250Y 200             
+327[1]A0            P3    -3         UA01X  20542Y   5857X 315Y 630             
+327[1]A0            R14   -1         UA01X  12430Y   7248X 200Y 250             
+327[1]A0            U2    -23        UA01X  11425Y   7118X 551Y  98             
+317[1]A0            VIA   -     D 120PA00X  20020Y   6608X 240Y 240             
+317[1]A0            VIA   -     D 120PA00X  19060Y   6608X 240Y 240             
+317[1]A0            VIA   -     D 120PA00X  19140Y   7448X 240Y 240             
+317[1]A0            VIA   -     D 120PA00X  12131Y   7348X 240Y 240             
+317[1]A0            VIA   -     D 120PA00X  15383Y   6139X 240Y 240             
+317[1]A0            VIA   -     D 120PA00X  19960Y   7568X 240Y 240             
+327[1]A1            C15   -2         UA02X  15490Y   8468X 250Y 200             
+327[1]A1            Q2    -C         UA01X  14199Y   7727X 394Y 551             
+327[1]A1            R15   -1         UA01X  12881Y   7248X 200Y 250             
+327[1]A1            U2    -24        UA01X  11425Y   7315X 551Y  98             
+317[1]A1            VIA   -     D 120PA00X  14430Y   7888X 240Y 240             
+317[1]A1            VIA   -     D 120PA00X  13951Y   7608X 240Y 240             
+327[1]A3            R10   -2         UA01X   7361Y   6628X 200Y 250             
+327[1]A3            R11   -1         UA01X   6966Y   6606X 200Y 250             
+327[1]A3            U2    -26        UA01X  10814Y   7728X  98Y 551             
+317[1]A3            VIA   -     D 120PA00X   7621Y   7068X 240Y 240             
+317[1]A3            VIA   -     D 120PA00X  10469Y   8688X 240Y 240             
+327[1]D0            R22   -2         UA02X   7778Y   8072X 250Y 200             
+327[1]D0            U2    -30        UA01X  10027Y   7728X  98Y 551             
+317[1]D0            VIA   -     D 120PA00X   9531Y   8528X 240Y 240             
+327[1]D1            R23   -2         UA01X   8088Y   8612X 250Y 200             
+327[1]D1            U2    -31        UA01X   9830Y   7728X  98Y 551             
+317[1]D1            VIA   -     D 120PA00X   7978Y   8342X 240Y 240             
+317[1]D1            VIA   -     D 120PA00X   8580Y   8458X 240Y 240             
+327[1]D2            SW2   -3         UA02X   2020Y   8248X 217Y 394             
+327[1]D2            U2    -32        UA01X   9633Y   7728X  98Y 551             
+317[1]D2            VIA   -     D 120PA00X   9025Y   8403X 240Y 240             
+327[1]Ground        C1    -1         UA01X   6930Y   8428X 250Y 200             
+327[1]Ground        C10   -2         UA02X   7320Y   4588X 250Y 200             
+327[1]Ground        C11   -1         UA01X  25410Y   8118X 200Y 250             
+327[1]Ground        C12   -1         UA01X  23222Y   8315X 200Y 250             
+327[1]Ground        C14   -1         UA01X  21299Y   5354X 250Y 200             
+327[1]Ground        C15   -1         UA02X  15990Y   8468X 250Y 200             
+327[1]Ground        C16   -1         UA01X   2820Y   7167X 200Y 250             
+327[1]Ground        C17   -1         UA01X  19500Y   7908X 200Y 250             
+327[1]Ground        C18   -1         UA01X  13490Y   4458X 250Y 200             
+327[1]Ground        C19   -1         UA02X  16549Y   5830X 250Y 200             
+327[1]Ground        C2    -1         UA01X   5827Y   6167X 250Y 200             
+327[1]Ground        C20   -1         UA01X  17259Y   8611X 250Y 200             
+327[1]Ground        C3    -1         UA01X   3203Y   7371X 250Y 200             
+327[1]Ground        C4    -1         UA01X  13931Y   6297X 425Y 413             
+327[1]Ground        C5    -1         UA01X   8211Y   6818X 250Y 200             
+327[1]Ground        C6    -1         UA01X  12000Y   6977X 200Y 250             
+327[1]Ground        C7    -1         UA01X   3370Y   7957X 250Y 200             
+327[1]Ground        C8    -1         UA01X   5516Y   4474X 571Y 394             
+327[1]Ground        J1    -5         UA01X   1483Y   6734X 531Y 157             
+317[1]Ground        J1    -S1   D 197PA00X    430Y   8545X 630Y 354             
+317[1]Ground        J1    -S2   D 197PA00X    430Y   5946X 630Y 354             
+327[1]Ground        J1    -S3        UA01X   1394Y   8456X 551Y 531             
+327[1]Ground        J1    -S4        UA01X   1394Y   6035X 551Y 531             
+327[1]Ground        J1    -S5        UA01X    430Y   7718X 689Y 748             
+327[1]Ground        J1    -S6        UA01X    430Y   6773X 689Y 748             
+327[1]Ground        J2    -1         UA02X  10288Y   7723X 591Y 118             
+327[1]Ground        J2    -12        UA02X  10288Y   5558X 591Y 118             
+327[1]Ground        J2    -4         UA02X  10288Y   7133X 591Y 118             
+327[1]Ground        J2    -6         UA02X  10288Y   6739X 591Y 118             
+327[1]Ground        J2    -8         UA02X  10288Y   6345X 591Y 118             
+327[1]Ground        P1    -1         UA01X  17623Y   7872X 236Y 630             
+327[1]Ground        P2    -2         UA01X   3724Y   6858X 315Y 669             
+327[1]Ground        P3    -1         UA01X  21526Y   5857X 315Y 630             
+327[1]Ground        Q2    -E         UA01X  12900Y   7727X 394Y 551             
+327[1]Ground        Q3    -1         UA01X  16050Y   5644X 394Y 177             
+327[1]Ground        Q3    -2         UA01X  16050Y   5388X 394Y 177             
+327[1]Ground        Q3    -3         UA01X  16050Y   5132X 394Y 177             
+327[1]Ground        R10   -1         UA01X   7361Y   6128X 200Y 250             
+327[1]Ground        R21   -1         UA01X  10518Y   4847X 250Y 200             
+327[1]Ground        R4    -1         UA02X   5580Y   4432X 250Y 200             
+327[1]Ground        R5    -1         UA01X   8191Y   4373X 200Y 250             
+327[1]Ground        R6    -1         UA01X   7766Y   5761X 200Y 250             
+327[1]Ground        R7    -1         UA01X   7801Y   4418X 220Y 230             
+327[1]Ground        R8    -2         UA02X   6943Y   5118X 250Y 200             
+327[1]Ground        SW2   -2         UA02X   1350Y   6870X 217Y 394             
+327[1]Ground        SW2   -5         UA02X   1685Y   8307X 276Y 276             
+327[1]Ground        SW2   -6         UA02X   1685Y   6811X 276Y 276             
+327[1]Ground        SW3   -2         UA02X   3000Y   6870X 217Y 394             
+327[1]Ground        SW3   -5         UA02X   3335Y   8307X 276Y 276             
+327[1]Ground        SW3   -6         UA02X   3335Y   6811X 276Y 276             
+327[1]Ground        SW4   -2         UA02X  25150Y   7955X 394Y 217             
+327[1]Ground        SW4   -5         UA02X  23713Y   8290X 276Y 276             
+327[1]Ground        SW4   -6         UA02X  25209Y   8290X 276Y 276             
+317[1]Ground        TP1   -1    D 280PA00X  15006Y   8626X 400Y 400             
+327[1]Ground        U1    -13        UA01X   6199Y   7169X 571Y 134             
+327[1]Ground        U1    -3         UA01X   5175Y   8449X 134Y 571             
+327[1]Ground        U1    -EP        UA01X   5303Y   7553X 787Y 787             
+327[1]Ground        U2    -21        UA01X  11425Y   6724X 551Y  98             
+327[1]Ground        U2    -3         UA01X   9220Y   6921X 551Y  98             
+327[1]Ground        U2    -5         UA01X   9220Y   6528X 551Y  98             
+327[1]Ground        U2    -EP        UA01X  10322Y   6626X1181Y1181             
+327[1]Ground        U3    -4         UA01X   6081Y   4710X 394Y  98             
+327[1]Ground        U3    -5         UA01X   6081Y   4513X 394Y  98             
+327[1]Ground        U3    -EP        UA01X   6701Y   4907X 591Y 866             
+327[1]Ground        U4    -2         UA01X  14657Y   4702X 165Y 701             
+327[1]Ground        U4    -3         UA01X  14913Y   4702X 165Y 701             
+327[1]Ground        U4    -4         UA01X  15169Y   4702X 165Y 701             
+327[1]Ground        U4    -7         UA01X  14657Y   7041X 165Y 701             
+327[1]Ground        U5    -3         UA01X  23954Y   8331X 394Y  94             
+327[1]Ground        U5    -8         UA01X  24840Y   7938X 394Y  94             
+327[1]Ground        U5    -9         UA01X  24840Y   8134X 394Y  94             
+327[1]Ground        U6    -2         UA02X  16614Y   5098X 295Y 157             
+327[1]Ground        U7    -1         UA01X  18339Y   7830X  91Y 217             
+327[1]Ground        U7    -4         UA01X  18930Y   7830X  91Y 217             
+327[1]Ground        U7    -8         UA01X  18733Y   8539X  91Y 217             
+327[1]Ground        U7    -9         UA01X  18536Y   8539X  91Y 217             
+317[1]Ground        VIA   -     D 120PA00X  15660Y   7018X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  16200Y   7018X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  16220Y   6457X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  15630Y   6448X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  17799Y   6961X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  17799Y   6358X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  18451Y   6391X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  18429Y   6961X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  14851Y   5718X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  22080Y   7618X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  22090Y   6518X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   4069Y   4473X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  22900Y   6548X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  22980Y   7528X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   4039Y   4868X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  18339Y   7541X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  19220Y   7908X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   8330Y   5207X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  13700Y   4738X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   4030Y   5288X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  14980Y   5568X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  15520Y   4618X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  16640Y   8518X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   3480Y   5288X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   3490Y   5718X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X    890Y   5288X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X    415Y   5290X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X    393Y   5724X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X    892Y   5751X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X    890Y   4888X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X    382Y   4894X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   5940Y   6597X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   6235Y   6903X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   7230Y   8398X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   4590Y   8358X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   7751Y   6028X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   8971Y   5698X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   4444Y   6382X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   7920Y   7037X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   6691Y   5448X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   6890Y   5448X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  22880Y   8348X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   6966Y   5616X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   6541Y   4413X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   6741Y   4413X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   5188Y   5882X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   6941Y   4413X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   9810Y   6107X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   9990Y   4607X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   5018Y   5332X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   9391Y   5688X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  17919Y   7861X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  14700Y   7648X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  14671Y   6378X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  15501Y   4878X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   4648Y   6378X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X   4328Y   5342X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  13191Y   7138X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  13391Y   7138X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  15700Y   5378X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  15650Y   5608X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  13566Y   6380X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X    376Y   4465X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  21533Y   6572X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  13140Y   7918X 240Y 240             
+317[1]Ground        VIA   -     D 120PA00X  12750Y   8038X 240Y 240             
+327[1]Ground        Y1    -2         UA01X   8437Y   5939X 748Y 157             
+317[1]MISO          TP4   -1    D 280PA00X  12006Y   8626X 400Y 400             
+327[1]MISO          U2    -16        UA01X  11011Y   5524X  98Y 551             
+317[1]MISO          VIA   -     D 120PA00X  12410Y   8658X 240Y 240             
+317[1]MISO          VIA   -     D 120PA00X  12383Y   5919X 240Y 240             
+317[1]MOSI          TP3   -1    D 280PA00X  13006Y   8626X 400Y 400             
+327[1]MOSI          U2    -15        UA01X  10814Y   5524X  98Y 551             
+317[1]MOSI          VIA   -     D 120PA00X  12279Y   7954X 240Y 240             
+317[1]MOSI          VIA   -     D 120PA00X  12790Y   5778X 240Y 240             
+327[1]N_D7_2Amp     D4    -A         UA02X  18622Y   4528X 354Y 276             
+327[1]N_D7_2Amp     P4    -1         UA01X  18552Y   4692X 236Y 610             
+327[1]N_D7_2Amp     Q3    -5         UA01X  17015Y   5260X 709Y1181             
+327[1]N_D7_2Amp     Q3    -6         UA01X  17389Y   5132X 394Y 177             
+327[1]N_D7_2Amp     Q3    -7         UA01X  17389Y   5388X 394Y 177             
+327[1]N_D7_2Amp     Q3    -8         UA01X  17389Y   5644X 394Y 177             
+327[1]N_D7_2Amp     TP10  -1         UA02X  18110Y   6654X 500Y 500             
+317[1]N_D7_2Amp     VIA   -     D 120PA00X  17505Y   5957X 240Y 240             
+317[1]N_D7_2Amp     VIA   -     D 120PA00X  18268Y   5000X 240Y 240             
+327[1]OLEDReset     J2    -7         UA02X  10288Y   6542X 591Y 118             
+327[1]OLEDReset     U2    -9         UA01X   9633Y   5524X  98Y 551             
+317[1]OLEDReset     VIA   -     D 120PA00X   9436Y   5376X 240Y 240             
+327[1]Plus3.0V      C1    -2         UA01X   6430Y   8428X 250Y 200             
+327[1]Plus3.0V      C11   -2         UA01X  25410Y   8618X 200Y 250             
+327[1]Plus3.0V      C12   -2         UA01X  23222Y   7815X 200Y 250             
+327[1]Plus3.0V      C17   -2         UA01X  19500Y   8408X 200Y 250             
+327[1]Plus3.0V      C20   -2         UA01X  17759Y   8611X 250Y 200             
+327[1]Plus3.0V      C4    -2         UA01X  13931Y   6978X 425Y 413             
+327[1]Plus3.0V      C5    -2         UA01X   8711Y   6818X 250Y 200             
+327[1]Plus3.0V      C6    -2         UA01X  12000Y   6477X 200Y 250             
+327[1]Plus3.0V      C8    -2         UA01X   5516Y   5222X 571Y 394             
+327[1]Plus3.0V      J2    -2         UA02X  10288Y   7526X 591Y 118             
+327[1]Plus3.0V      J2    -3         UA02X  10288Y   7330X 591Y 118             
+327[1]Plus3.0V      J2    -5         UA02X  10288Y   6936X 591Y 118             
+327[1]Plus3.0V      P1    -2         UA01X  17229Y   7872X 236Y 630             
+327[1]Plus3.0V      P3    -2         UA01X  21034Y   5857X 315Y 630             
+327[1]Plus3.0V      R12   -2         UA01X  13331Y   5608X 200Y 250             
+327[1]Plus3.0V      R13   -2         UA01X  13891Y   5268X 200Y 250             
+327[1]Plus3.0V      R14   -2         UA01X  12430Y   6748X 200Y 250             
+327[1]Plus3.0V      R15   -2         UA01X  12881Y   6748X 200Y 250             
+327[1]Plus3.0V      R20   -2         UA02X  13606Y   5269X 250Y 200             
+327[1]Plus3.0V      R3    -2         UA01X   4958Y   4937X 200Y 250             
+327[1]Plus3.0V      R9    -2         UA01X   7570Y   7378X 200Y 250             
+317[1]Plus3.0V      TP2   -1    D 280PA00X  14006Y   8626X 400Y 400             
+327[1]Plus3.0V      U1    -1         UA01X   5687Y   8449X 134Y 571             
+327[1]Plus3.0V      U2    -18        UA01X  11425Y   6134X 551Y  98             
+327[1]Plus3.0V      U2    -20        UA01X  11425Y   6528X 551Y  98             
+327[1]Plus3.0V      U2    -4         UA01X   9220Y   6724X 551Y  98             
+327[1]Plus3.0V      U3    -2         UA01X   6081Y   5103X 394Y  98             
+327[1]Plus3.0V      U4    -8         UA01X  14401Y   7041X 165Y 701             
+327[1]Plus3.0V      U5    -1         UA01X  24496Y   8577X  94Y 394             
+327[1]Plus3.0V      U5    -10        UA01X  24840Y   8331X 394Y  94             
+327[1]Plus3.0V      U5    -5         UA01X  23954Y   7938X 394Y  94             
+327[1]Plus3.0V      U5    -6         UA01X  24299Y   7692X  94Y 394             
+327[1]Plus3.0V      U7    -10        UA01X  18339Y   8539X  91Y 217             
+327[1]Plus3.0V      U7    -3         UA01X  18733Y   7830X  91Y 217             
+327[1]Plus3.0V      U7    -7         UA01X  18930Y   8539X  91Y 217             
+317[1]Plus3.0V      VIA   -     D 120PA00X  13883Y   7271X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  17410Y   7328X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  15910Y   7808X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  20140Y   7238X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  20350Y   7268X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X   5951Y   8605X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X   6071Y   8185X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X   8550Y   7187X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  13626Y   5549X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  13192Y   6650X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  25127Y   7665X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  23358Y   7534X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  17221Y   7338X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  16120Y   7808X 240Y 240             
+317[1]Plus3.0V      VIA   -     D 120PA00X  14093Y   7271X 240Y 240             
+327[1]Plus5VUSB     C2    -2         UA01X   5327Y   6167X 250Y 200             
+327[1]Plus5VUSB     D2    -A         UA02X   4621Y   7973X 315Y 315             
+327[1]Plus5VUSB     J1    -1         UA01X   1483Y   7757X 531Y 157             
+327[1]Plus5VUSB     R11   -2         UA01X   6966Y   6106X 200Y 250             
+327[1]Plus5VUSB     R24   -2         UA02X   7540Y   5488X 200Y 250             
+327[1]Plus5VUSB     TP14  -1         UA02X   4134Y   8268X 500Y 500             
+327[1]Plus5VUSB     U1    -10        UA01X   5175Y   6658X 134Y 571             
+327[1]Plus5VUSB     U3    -10        UA01X   7321Y   5300X 394Y  98             
+317[1]Plus5VUSB     VIA   -     D 120PA00X   4260Y   8218X 240Y 240             
+317[1]Plus5VUSB     VIA   -     D 120PA00X   5548Y   5972X 240Y 240             
+317[1]Plus5VUSB     VIA   -     D 120PA00X   4260Y   8398X 240Y 240             
+317[1]Plus5VUSB     VIA   -     D 120PA00X   6453Y   6127X 240Y 240             
+317[1]Plus5VUSB     VIA   -     D 120PA00X   6520Y   6288X 240Y 240             
+317[1]Plus5VUSB     VIA   -     D 120PA00X   7136Y   5866X 240Y 240             
+317[1]Plus5VUSB     VIA   -     D 120PA00X   7336Y   5816X 240Y 240             
+327[1]PlusBatRaw    P2    -1         UA01X   3232Y   6858X 315Y 669             
+327[1]PlusBatRaw    SW1   -2         UA02X   1935Y   6228X 315Y 669             
+317[1]PlusBatRaw    VIA   -     D 120PA00X   2020Y   5103X 240Y 240             
+317[1]PlusBatRaw    VIA   -     D 120PA00X   2672Y   6201X 240Y 240             
+317[1]PlusBatRaw    VIA   -     D 120PA00X   1920Y   6347X 240Y 240             
+317[1]PlusBatRaw    VIA   -     D 120PA00X   2479Y   5105X 240Y 240             
+327[1]PlusBatt      C19   -2         UA02X  17049Y   5830X 250Y 200             
+327[1]PlusBatt      C9    -1         UA02X   5557Y   5118X 250Y 200             
+327[1]PlusBatt      D3    -K         UA01X  23686Y   4310X 354Y 276             
+327[1]PlusBatt      D4    -K         UA02X  19094Y   4528X 354Y 276             
+327[1]PlusBatt      P4    -2         UA01X  18946Y   4692X 236Y 610             
+327[1]PlusBatt      P5    -2         UA02X  22278Y   5841X 315Y 630             
+327[1]PlusBatt      SW1   -1         UA02X   3116Y   6228X 315Y 669             
+327[1]PlusBatt      TP15  -1         UA02X   4488Y   5752X 500Y 500             
+327[1]PlusBatt      U3    -1         UA01X   6081Y   5300X 394Y  98             
+327[1]PlusBatt      U6    -5         UA02X  17362Y   5098X 295Y 157             
+317[1]PlusBatt      VIA   -     D 120PA00X  18798Y   5981X 240Y 240             
+317[1]PlusBatt      VIA   -     D 120PA00X  18807Y   5315X 240Y 240             
+317[1]PlusBatt      VIA   -     D 120PA00X  19449Y   4803X 240Y 240             
+317[1]PlusBatt      VIA   -     D 120PA00X  22278Y   5251X 240Y 240             
+317[1]PlusBatt      VIA   -     D 120PA00X   6390Y   5578X 240Y 240             
+317[1]PlusBatt      VIA   -     D 120PA00X   6210Y   5578X 240Y 240             
+317[1]PlusBatt      VIA   -     D 120PA00X  10706Y   4219X 240Y 240             
+327[1]RTS           C13   -1         UA01X   6720Y   7938X 250Y 200             
+327[1]RTS           U1    -16        UA01X   6199Y   7937X 571Y 134             
+317[1]SCK           TP5   -1    D 280PA00X  11006Y   8626X 400Y 400             
+327[1]SCK           U2    -17        UA01X  11425Y   5937X 551Y  98             
+317[1]SCK           VIA   -     D 120PA00X  11452Y   7765X 240Y 240             
+317[1]SCK           VIA   -     D 120PA00X  12340Y   6348X 240Y 240             
+327[1]SCL0          J2    -9         UA02X  10288Y   6148X 591Y 118             
+327[1]SCL0          P1    -4         UA01X  16442Y   7872X 236Y 630             
+327[1]SCL0          R12   -1         UA01X  13331Y   6108X 200Y 250             
+327[1]SCL0          U2    -28        UA01X  10421Y   7728X  98Y 551             
+327[1]SCL0          U4    -6         UA01X  14913Y   7041X 165Y 701             
+327[1]SCL0          U5    -2         UA01X  24299Y   8577X  94Y 394             
+327[1]SCL0          U7    -12        UA01X  18280Y   8086X 217Y  91             
+317[1]SCL0          VIA   -     D 120PA00X  22400Y   8348X 240Y 240             
+317[1]SCL0          VIA   -     D 120PA00X  16950Y   8508X 240Y 240             
+317[1]SCL0          VIA   -     D 120PA00X  10430Y   8185X 240Y 240             
+317[1]SCL0          VIA   -     D 120PA00X  11968Y   5817X 240Y 240             
+327[1]SDA0          J2    -10        UA02X  10288Y   5952X 591Y 118             
+327[1]SDA0          J2    -11        UA02X  10288Y   5755X 591Y 118             
+327[1]SDA0          P1    -3         UA01X  16836Y   7872X 236Y 630             
+327[1]SDA0          R13   -1         UA01X  13891Y   5768X 200Y 250             
+327[1]SDA0          U2    -27        UA01X  10618Y   7728X  98Y 551             
+327[1]SDA0          U4    -5         UA01X  15169Y   7041X 165Y 701             
+327[1]SDA0          U5    -4         UA01X  23954Y   8134X 394Y  94             
+327[1]SDA0          U7    -2         UA01X  18536Y   7830X  91Y 217             
+317[1]SDA0          VIA   -     D 120PA00X  18009Y   7561X 240Y 240             
+317[1]SDA0          VIA   -     D 120PA00X  16836Y   7352X 240Y 240             
+317[1]SDA0          VIA   -     D 120PA00X  21479Y   7381X 240Y 240             
+317[1]SDA0          VIA   -     D 120PA00X  10731Y   8198X 240Y 240             
+317[1]SDA0          VIA   -     D 120PA00X  12343Y   5619X 240Y 240             
+327[1]SIG3415       C3    -2         UA01X   3703Y   7371X 250Y 200             
+327[1]SIG3415       U1    -8         UA01X   4407Y   7169X 571Y 134             
+327[1]SIG3640       U2    -7         UA01X   9220Y   6134X 551Y  98             
+327[1]SIG3640       Y1    -1         UA01X   8437Y   6411X 748Y 157             
+327[1]SIG3641       U2    -8         UA01X   9220Y   5937X 551Y  98             
+327[1]SIG3641       Y1    -3         UA01X   8437Y   5466X 748Y 157             
+327[1]SIG3740       R6    -2         UA01X   7766Y   5261X 200Y 250             
+327[1]SIG3740       U3    -9         UA01X   7321Y   5103X 394Y  98             
+327[1]SIG3741       R5    -2         UA01X   8191Y   4873X 200Y 250             
+327[1]SIG3741       U3    -8         UA01X   7321Y   4907X 394Y  98             
+327[1]SIG3742       R7    -2         UA01X   7801Y   4828X 220Y 230             
+327[1]SIG3742       U3    -7         UA01X   7321Y   4710X 394Y  98             
+327[1]SIG3748       R3    -1         UA01X   4958Y   4437X 200Y 250             
+327[1]SIG3748       R4    -2         UA02X   5080Y   4432X 250Y 200             
+327[1]SIG3748       U3    -3         UA01X   6081Y   4907X 394Y  98             
+317[1]SIG3748       VIA   -     D 120PA00X   4712Y   4603X 240Y 240             
+327[1]SIG3781       C9    -2         UA02X   6057Y   5118X 250Y 200             
+327[1]SIG3781       R8    -1         UA02X   6443Y   5118X 250Y 200             
+327[1]SIG3890       C18   -2         UA01X  13990Y   4458X 250Y 200             
+327[1]SIG3890       Q3    -4         UA01X  16050Y   4877X 394Y 177             
+327[1]SIG3890       R16   -2         UA01X  12488Y   5037X 250Y 200             
+327[1]SIG3890       TP13  -1         UA02X  14530Y   4897X 500Y 500             
+317[1]SIG3890       VIA   -     D 120PA00X  12928Y   4927X 240Y 240             
+317[1]SIG3890       VIA   -     D 120PA00X  13937Y   4921X 240Y 240             
+327[1]SIG3945       D2    -K         UA02X   4621Y   7343X 315Y 315             
+327[1]SIG3945       R17   -2         UA02X   5131Y   6873X 250Y 200             
+327[1]USBEM         C7    -2         UA01X   2870Y   7957X 250Y 200             
+327[1]USBEM         J1    -2         UA01X   1483Y   7501X 531Y 157             
+327[1]USBEM         R1    -1         UA01X   2443Y   7471X 200Y 250             
+327[1]USBEM         TP8   -1         UA02X    591Y   7835X 500Y 500             
+317[1]USBEM         VIA   -     D 120PA00X    984Y   7686X 240Y 240             
+327[1]USBEP         C16   -2         UA01X   2820Y   7667X 200Y 250             
+327[1]USBEP         J1    -3         UA01X   1483Y   7246X 531Y 157             
+327[1]USBEP         R2    -1         UA01X   2053Y   7251X 200Y 250             
+327[1]USBEP         TP9   -1         UA02X    591Y   7047X 500Y 500             
+317[1]USBEP         VIA   -     D 120PA00X    984Y   7174X 240Y 240             
+327[1]USBIM         R1    -2         UA01X   2443Y   7971X 200Y 250             
+327[1]USBIM         U1    -7         UA01X   4407Y   7425X 571Y 134             
+327[1]USBIP         R2    -2         UA01X   2053Y   7751X 200Y 250             
+327[1]USBIP         U1    -6         UA01X   4407Y   7681X 571Y 134             
+327[2]-RESET        C13   -2         UA01X   7220Y  12977X 250Y 200             
+327[2]-RESET        R9    -1         UA01X   7570Y  12917X 200Y 250             
+327[2]-RESET        SW3   -3         UA02X   3669Y  13287X 217Y 394             
+317[2]-RESET        TP6   -1    D 280PA00X  10006Y  13665X 400Y 400             
+327[2]-RESET        U2    -29        UA01X  10224Y  12768X  98Y 551             
+317[2]-RESET        VIA   -     D 120PA00X   7548Y  13361X 240Y 240             
+327[2]A0            C14   -2         UA01X  20799Y  10394X 250Y 200             
+327[2]A0            P3    -3         UA01X  20542Y  10897X 315Y 630             
+327[2]A0            R14   -1         UA01X  12430Y  12287X 200Y 250             
+327[2]A0            U2    -23        UA01X  11425Y  12158X 551Y  98             
+317[2]A0            VIA   -     D 120PA00X  20020Y  11647X 240Y 240             
+317[2]A0            VIA   -     D 120PA00X  19060Y  11647X 240Y 240             
+317[2]A0            VIA   -     D 120PA00X  19140Y  12487X 240Y 240             
+317[2]A0            VIA   -     D 120PA00X  12131Y  12387X 240Y 240             
+317[2]A0            VIA   -     D 120PA00X  15383Y  11178X 240Y 240             
+317[2]A0            VIA   -     D 120PA00X  19960Y  12607X 240Y 240             
+327[2]A1            C15   -2         UA02X  15490Y  13507X 250Y 200             
+327[2]A1            Q2    -C         UA01X  14199Y  12766X 394Y 551             
+327[2]A1            R15   -1         UA01X  12881Y  12287X 200Y 250             
+327[2]A1            U2    -24        UA01X  11425Y  12354X 551Y  98             
+317[2]A1            VIA   -     D 120PA00X  14430Y  12927X 240Y 240             
+317[2]A1            VIA   -     D 120PA00X  13951Y  12647X 240Y 240             
+327[2]A3            R10   -2         UA01X   7361Y  11667X 200Y 250             
+327[2]A3            R11   -1         UA01X   6966Y  11645X 200Y 250             
+327[2]A3            U2    -26        UA01X  10814Y  12768X  98Y 551             
+317[2]A3            VIA   -     D 120PA00X   7621Y  12107X 240Y 240             
+317[2]A3            VIA   -     D 120PA00X  10469Y  13727X 240Y 240             
+327[2]D0            R22   -2         UA02X   7778Y  13111X 250Y 200             
+327[2]D0            U2    -30        UA01X  10027Y  12768X  98Y 551             
+317[2]D0            VIA   -     D 120PA00X   9531Y  13567X 240Y 240             
+327[2]D1            R23   -2         UA01X   8088Y  13651X 250Y 200             
+327[2]D1            U2    -31        UA01X   9830Y  12768X  98Y 551             
+317[2]D1            VIA   -     D 120PA00X   7978Y  13381X 240Y 240             
+317[2]D1            VIA   -     D 120PA00X   8580Y  13497X 240Y 240             
+327[2]D2            SW2   -3         UA02X   2020Y  13287X 217Y 394             
+327[2]D2            U2    -32        UA01X   9633Y  12768X  98Y 551             
+317[2]D2            VIA   -     D 120PA00X   9025Y  13442X 240Y 240             
+327[2]Ground        C1    -1         UA01X   6930Y  13467X 250Y 200             
+327[2]Ground        C10   -2         UA02X   7320Y   9627X 250Y 200             
+327[2]Ground        C11   -1         UA01X  25410Y  13157X 200Y 250             
+327[2]Ground        C12   -1         UA01X  23222Y  13354X 200Y 250             
+327[2]Ground        C14   -1         UA01X  21299Y  10394X 250Y 200             
+327[2]Ground        C15   -1         UA02X  15990Y  13507X 250Y 200             
+327[2]Ground        C16   -1         UA01X   2820Y  12206X 200Y 250             
+327[2]Ground        C17   -1         UA01X  19500Y  12947X 200Y 250             
+327[2]Ground        C18   -1         UA01X  13490Y   9497X 250Y 200             
+327[2]Ground        C19   -1         UA02X  16549Y  10869X 250Y 200             
+327[2]Ground        C2    -1         UA01X   5827Y  11206X 250Y 200             
+327[2]Ground        C20   -1         UA01X  17259Y  13650X 250Y 200             
+327[2]Ground        C3    -1         UA01X   3203Y  12411X 250Y 200             
+327[2]Ground        C4    -1         UA01X  13931Y  11336X 425Y 413             
+327[2]Ground        C5    -1         UA01X   8211Y  11857X 250Y 200             
+327[2]Ground        C6    -1         UA01X  12000Y  12016X 200Y 250             
+327[2]Ground        C7    -1         UA01X   3370Y  12996X 250Y 200             
+327[2]Ground        C8    -1         UA01X   5516Y   9513X 571Y 394             
+327[2]Ground        J1    -5         UA01X   1483Y  11773X 531Y 157             
+317[2]Ground        J1    -S1   D 197PA00X    430Y  13584X 630Y 354             
+317[2]Ground        J1    -S2   D 197PA00X    430Y  10986X 630Y 354             
+327[2]Ground        J1    -S3        UA01X   1394Y  13496X 551Y 531             
+327[2]Ground        J1    -S4        UA01X   1394Y  11074X 551Y 531             
+327[2]Ground        J1    -S5        UA01X    430Y  12757X 689Y 748             
+327[2]Ground        J1    -S6        UA01X    430Y  11813X 689Y 748             
+327[2]Ground        J2    -1         UA02X  10288Y  12763X 591Y 118             
+327[2]Ground        J2    -12        UA02X  10288Y  10597X 591Y 118             
+327[2]Ground        J2    -4         UA02X  10288Y  12172X 591Y 118             
+327[2]Ground        J2    -6         UA02X  10288Y  11778X 591Y 118             
+327[2]Ground        J2    -8         UA02X  10288Y  11385X 591Y 118             
+327[2]Ground        P1    -1         UA01X  17623Y  12912X 236Y 630             
+327[2]Ground        P2    -2         UA01X   3724Y  11897X 315Y 669             
+327[2]Ground        P3    -1         UA01X  21526Y  10897X 315Y 630             
+327[2]Ground        Q2    -E         UA01X  12900Y  12766X 394Y 551             
+327[2]Ground        Q3    -1         UA01X  16050Y  10684X 394Y 177             
+327[2]Ground        Q3    -2         UA01X  16050Y  10428X 394Y 177             
+327[2]Ground        Q3    -3         UA01X  16050Y  10172X 394Y 177             
+327[2]Ground        R10   -1         UA01X   7361Y  11167X 200Y 250             
+327[2]Ground        R21   -1         UA01X  10518Y   9886X 250Y 200             
+327[2]Ground        R4    -1         UA02X   5580Y   9471X 250Y 200             
+327[2]Ground        R5    -1         UA01X   8191Y   9412X 200Y 250             
+327[2]Ground        R6    -1         UA01X   7766Y  10800X 200Y 250             
+327[2]Ground        R7    -1         UA01X   7801Y   9457X 220Y 230             
+327[2]Ground        R8    -2         UA02X   6943Y  10157X 250Y 200             
+327[2]Ground        SW2   -2         UA02X   1350Y  11909X 217Y 394             
+327[2]Ground        SW2   -5         UA02X   1685Y  13346X 276Y 276             
+327[2]Ground        SW2   -6         UA02X   1685Y  11850X 276Y 276             
+327[2]Ground        SW3   -2         UA02X   3000Y  11909X 217Y 394             
+327[2]Ground        SW3   -5         UA02X   3335Y  13346X 276Y 276             
+327[2]Ground        SW3   -6         UA02X   3335Y  11850X 276Y 276             
+327[2]Ground        SW4   -2         UA02X  25150Y  12995X 394Y 217             
+327[2]Ground        SW4   -5         UA02X  23713Y  13329X 276Y 276             
+327[2]Ground        SW4   -6         UA02X  25209Y  13329X 276Y 276             
+317[2]Ground        TP1   -1    D 280PA00X  15006Y  13665X 400Y 400             
+327[2]Ground        U1    -13        UA01X   6199Y  12209X 571Y 134             
+327[2]Ground        U1    -3         UA01X   5175Y  13488X 134Y 571             
+327[2]Ground        U1    -EP        UA01X   5303Y  12593X 787Y 787             
+327[2]Ground        U2    -21        UA01X  11425Y  11764X 551Y  98             
+327[2]Ground        U2    -3         UA01X   9220Y  11961X 551Y  98             
+327[2]Ground        U2    -5         UA01X   9220Y  11567X 551Y  98             
+327[2]Ground        U2    -EP        UA01X  10322Y  11665X1181Y1181             
+327[2]Ground        U3    -4         UA01X   6081Y   9749X 394Y  98             
+327[2]Ground        U3    -5         UA01X   6081Y   9552X 394Y  98             
+327[2]Ground        U3    -EP        UA01X   6701Y   9946X 591Y 866             
+327[2]Ground        U4    -2         UA01X  14657Y   9741X 165Y 701             
+327[2]Ground        U4    -3         UA01X  14913Y   9741X 165Y 701             
+327[2]Ground        U4    -4         UA01X  15169Y   9741X 165Y 701             
+327[2]Ground        U4    -7         UA01X  14657Y  12080X 165Y 701             
+327[2]Ground        U5    -3         UA01X  23954Y  13371X 394Y  94             
+327[2]Ground        U5    -8         UA01X  24840Y  12977X 394Y  94             
+327[2]Ground        U5    -9         UA01X  24840Y  13174X 394Y  94             
+327[2]Ground        U6    -2         UA02X  16614Y  10138X 295Y 157             
+327[2]Ground        U7    -1         UA01X  18339Y  12869X  91Y 217             
+327[2]Ground        U7    -4         UA01X  18930Y  12869X  91Y 217             
+327[2]Ground        U7    -8         UA01X  18733Y  13578X  91Y 217             
+327[2]Ground        U7    -9         UA01X  18536Y  13578X  91Y 217             
+317[2]Ground        VIA   -     D 120PA00X  15660Y  12057X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  16200Y  12057X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  16220Y  11496X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  15630Y  11487X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  17799Y  12000X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  17799Y  11397X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  18451Y  11430X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  18429Y  12000X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  14851Y  10757X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  22080Y  12657X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  22090Y  11557X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   4069Y   9512X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  22900Y  11587X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  22980Y  12567X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   4039Y   9907X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  18339Y  12580X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  19220Y  12947X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   8330Y  10246X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  13700Y   9777X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   4030Y  10327X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  14980Y  10607X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  15520Y   9657X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  16640Y  13557X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   3480Y  10327X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   3490Y  10757X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X    890Y  10327X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X    415Y  10329X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X    393Y  10764X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X    892Y  10790X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X    890Y   9927X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X    382Y   9934X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   5940Y  11636X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   6235Y  11942X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   7230Y  13437X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   4590Y  13397X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   7751Y  11067X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   8971Y  10737X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   4444Y  11421X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   7920Y  12076X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   6691Y  10487X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   6890Y  10487X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  22880Y  13387X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   6966Y  10655X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   6541Y   9452X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   6741Y   9452X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   5188Y  10921X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   6941Y   9452X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   9810Y  11146X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   9990Y   9646X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   5018Y  10371X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   9391Y  10727X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  17919Y  12900X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  14700Y  12687X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  14671Y  11417X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  15501Y   9917X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   4648Y  11417X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X   4328Y  10381X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  13191Y  12177X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  13391Y  12177X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  15700Y  10417X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  15650Y  10647X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  13566Y  11419X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X    376Y   9504X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  21533Y  11611X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  13140Y  12957X 240Y 240             
+317[2]Ground        VIA   -     D 120PA00X  12750Y  13077X 240Y 240             
+327[2]Ground        Y1    -2         UA01X   8437Y  10978X 748Y 157             
+317[2]MISO          TP4   -1    D 280PA00X  12006Y  13665X 400Y 400             
+327[2]MISO          U2    -16        UA01X  11011Y  10563X  98Y 551             
+317[2]MISO          VIA   -     D 120PA00X  12410Y  13697X 240Y 240             
+317[2]MISO          VIA   -     D 120PA00X  12383Y  10958X 240Y 240             
+317[2]MOSI          TP3   -1    D 280PA00X  13006Y  13665X 400Y 400             
+327[2]MOSI          U2    -15        UA01X  10814Y  10563X  98Y 551             
+317[2]MOSI          VIA   -     D 120PA00X  12279Y  12993X 240Y 240             
+317[2]MOSI          VIA   -     D 120PA00X  12790Y  10817X 240Y 240             
+327[2]N_D7_2Amp     D4    -A         UA02X  18622Y   9567X 354Y 276             
+327[2]N_D7_2Amp     P4    -1         UA01X  18552Y   9732X 236Y 610             
+327[2]N_D7_2Amp     Q3    -5         UA01X  17015Y  10300X 709Y1181             
+327[2]N_D7_2Amp     Q3    -6         UA01X  17389Y  10172X 394Y 177             
+327[2]N_D7_2Amp     Q3    -7         UA01X  17389Y  10428X 394Y 177             
+327[2]N_D7_2Amp     Q3    -8         UA01X  17389Y  10684X 394Y 177             
+327[2]N_D7_2Amp     TP10  -1         UA02X  18110Y  11693X 500Y 500             
+317[2]N_D7_2Amp     VIA   -     D 120PA00X  17505Y  10996X 240Y 240             
+317[2]N_D7_2Amp     VIA   -     D 120PA00X  18268Y  10039X 240Y 240             
+327[2]OLEDReset     J2    -7         UA02X  10288Y  11581X 591Y 118             
+327[2]OLEDReset     U2    -9         UA01X   9633Y  10563X  98Y 551             
+317[2]OLEDReset     VIA   -     D 120PA00X   9436Y  10415X 240Y 240             
+327[2]Plus3.0V      C1    -2         UA01X   6430Y  13467X 250Y 200             
+327[2]Plus3.0V      C11   -2         UA01X  25410Y  13657X 200Y 250             
+327[2]Plus3.0V      C12   -2         UA01X  23222Y  12854X 200Y 250             
+327[2]Plus3.0V      C17   -2         UA01X  19500Y  13447X 200Y 250             
+327[2]Plus3.0V      C20   -2         UA01X  17759Y  13650X 250Y 200             
+327[2]Plus3.0V      C4    -2         UA01X  13931Y  12018X 425Y 413             
+327[2]Plus3.0V      C5    -2         UA01X   8711Y  11857X 250Y 200             
+327[2]Plus3.0V      C6    -2         UA01X  12000Y  11516X 200Y 250             
+327[2]Plus3.0V      C8    -2         UA01X   5516Y  10261X 571Y 394             
+327[2]Plus3.0V      J2    -2         UA02X  10288Y  12566X 591Y 118             
+327[2]Plus3.0V      J2    -3         UA02X  10288Y  12369X 591Y 118             
+327[2]Plus3.0V      J2    -5         UA02X  10288Y  11975X 591Y 118             
+327[2]Plus3.0V      P1    -2         UA01X  17229Y  12912X 236Y 630             
+327[2]Plus3.0V      P3    -2         UA01X  21034Y  10897X 315Y 630             
+327[2]Plus3.0V      R12   -2         UA01X  13331Y  10647X 200Y 250             
+327[2]Plus3.0V      R13   -2         UA01X  13891Y  10307X 200Y 250             
+327[2]Plus3.0V      R14   -2         UA01X  12430Y  11787X 200Y 250             
+327[2]Plus3.0V      R15   -2         UA01X  12881Y  11787X 200Y 250             
+327[2]Plus3.0V      R20   -2         UA02X  13606Y  10308X 250Y 200             
+327[2]Plus3.0V      R3    -2         UA01X   4958Y   9976X 200Y 250             
+327[2]Plus3.0V      R9    -2         UA01X   7570Y  12417X 200Y 250             
+317[2]Plus3.0V      TP2   -1    D 280PA00X  14006Y  13665X 400Y 400             
+327[2]Plus3.0V      U1    -1         UA01X   5687Y  13488X 134Y 571             
+327[2]Plus3.0V      U2    -18        UA01X  11425Y  11173X 551Y  98             
+327[2]Plus3.0V      U2    -20        UA01X  11425Y  11567X 551Y  98             
+327[2]Plus3.0V      U2    -4         UA01X   9220Y  11764X 551Y  98             
+327[2]Plus3.0V      U3    -2         UA01X   6081Y  10143X 394Y  98             
+327[2]Plus3.0V      U4    -8         UA01X  14401Y  12080X 165Y 701             
+327[2]Plus3.0V      U5    -1         UA01X  24496Y  13617X  94Y 394             
+327[2]Plus3.0V      U5    -10        UA01X  24840Y  13371X 394Y  94             
+327[2]Plus3.0V      U5    -5         UA01X  23954Y  12977X 394Y  94             
+327[2]Plus3.0V      U5    -6         UA01X  24299Y  12731X  94Y 394             
+327[2]Plus3.0V      U7    -10        UA01X  18339Y  13578X  91Y 217             
+327[2]Plus3.0V      U7    -3         UA01X  18733Y  12869X  91Y 217             
+327[2]Plus3.0V      U7    -7         UA01X  18930Y  13578X  91Y 217             
+317[2]Plus3.0V      VIA   -     D 120PA00X  13883Y  12310X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  17410Y  12367X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  15910Y  12847X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  20140Y  12277X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  20350Y  12307X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X   5951Y  13644X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X   6071Y  13224X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X   8550Y  12226X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  13626Y  10588X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  13192Y  11689X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  25127Y  12704X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  23358Y  12573X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  17221Y  12377X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  16120Y  12847X 240Y 240             
+317[2]Plus3.0V      VIA   -     D 120PA00X  14093Y  12310X 240Y 240             
+327[2]Plus5VUSB     C2    -2         UA01X   5327Y  11206X 250Y 200             
+327[2]Plus5VUSB     D2    -A         UA02X   4621Y  13012X 315Y 315             
+327[2]Plus5VUSB     J1    -1         UA01X   1483Y  12797X 531Y 157             
+327[2]Plus5VUSB     R11   -2         UA01X   6966Y  11145X 200Y 250             
+327[2]Plus5VUSB     R24   -2         UA02X   7540Y  10527X 200Y 250             
+327[2]Plus5VUSB     TP14  -1         UA02X   4134Y  13307X 500Y 500             
+327[2]Plus5VUSB     U1    -10        UA01X   5175Y  11697X 134Y 571             
+327[2]Plus5VUSB     U3    -10        UA01X   7321Y  10340X 394Y  98             
+317[2]Plus5VUSB     VIA   -     D 120PA00X   4260Y  13257X 240Y 240             
+317[2]Plus5VUSB     VIA   -     D 120PA00X   5548Y  11011X 240Y 240             
+317[2]Plus5VUSB     VIA   -     D 120PA00X   4260Y  13437X 240Y 240             
+317[2]Plus5VUSB     VIA   -     D 120PA00X   6453Y  11166X 240Y 240             
+317[2]Plus5VUSB     VIA   -     D 120PA00X   6520Y  11327X 240Y 240             
+317[2]Plus5VUSB     VIA   -     D 120PA00X   7136Y  10905X 240Y 240             
+317[2]Plus5VUSB     VIA   -     D 120PA00X   7336Y  10855X 240Y 240             
+327[2]PlusBatRaw    P2    -1         UA01X   3232Y  11897X 315Y 669             
+327[2]PlusBatRaw    SW1   -2         UA02X   1935Y  11268X 315Y 669             
+317[2]PlusBatRaw    VIA   -     D 120PA00X   2020Y  10142X 240Y 240             
+317[2]PlusBatRaw    VIA   -     D 120PA00X   2672Y  11241X 240Y 240             
+317[2]PlusBatRaw    VIA   -     D 120PA00X   1920Y  11386X 240Y 240             
+317[2]PlusBatRaw    VIA   -     D 120PA00X   2479Y  10144X 240Y 240             
+327[2]PlusBatt      C19   -2         UA02X  17049Y  10869X 250Y 200             
+327[2]PlusBatt      C9    -1         UA02X   5557Y  10157X 250Y 200             
+327[2]PlusBatt      D3    -K         UA01X  23686Y   9349X 354Y 276             
+327[2]PlusBatt      D4    -K         UA02X  19094Y   9567X 354Y 276             
+327[2]PlusBatt      P4    -2         UA01X  18946Y   9732X 236Y 610             
+327[2]PlusBatt      P5    -2         UA02X  22278Y  10881X 315Y 630             
+327[2]PlusBatt      SW1   -1         UA02X   3116Y  11268X 315Y 669             
+327[2]PlusBatt      TP15  -1         UA02X   4488Y  10791X 500Y 500             
+327[2]PlusBatt      U3    -1         UA01X   6081Y  10340X 394Y  98             
+327[2]PlusBatt      U6    -5         UA02X  17362Y  10138X 295Y 157             
+317[2]PlusBatt      VIA   -     D 120PA00X  18798Y  11020X 240Y 240             
+317[2]PlusBatt      VIA   -     D 120PA00X  18807Y  10354X 240Y 240             
+317[2]PlusBatt      VIA   -     D 120PA00X  19449Y   9843X 240Y 240             
+317[2]PlusBatt      VIA   -     D 120PA00X  22278Y  10290X 240Y 240             
+317[2]PlusBatt      VIA   -     D 120PA00X   6390Y  10617X 240Y 240             
+317[2]PlusBatt      VIA   -     D 120PA00X   6210Y  10617X 240Y 240             
+317[2]PlusBatt      VIA   -     D 120PA00X  10706Y   9258X 240Y 240             
+327[2]RTS           C13   -1         UA01X   6720Y  12977X 250Y 200             
+327[2]RTS           U1    -16        UA01X   6199Y  12977X 571Y 134             
+317[2]SCK           TP5   -1    D 280PA00X  11006Y  13665X 400Y 400             
+327[2]SCK           U2    -17        UA01X  11425Y  10976X 551Y  98             
+317[2]SCK           VIA   -     D 120PA00X  11452Y  12804X 240Y 240             
+317[2]SCK           VIA   -     D 120PA00X  12340Y  11387X 240Y 240             
+327[2]SCL0          J2    -9         UA02X  10288Y  11188X 591Y 118             
+327[2]SCL0          P1    -4         UA01X  16442Y  12912X 236Y 630             
+327[2]SCL0          R12   -1         UA01X  13331Y  11147X 200Y 250             
+327[2]SCL0          U2    -28        UA01X  10421Y  12768X  98Y 551             
+327[2]SCL0          U4    -6         UA01X  14913Y  12080X 165Y 701             
+327[2]SCL0          U5    -2         UA01X  24299Y  13617X  94Y 394             
+327[2]SCL0          U7    -12        UA01X  18280Y  13125X 217Y  91             
+317[2]SCL0          VIA   -     D 120PA00X  22400Y  13387X 240Y 240             
+317[2]SCL0          VIA   -     D 120PA00X  16950Y  13547X 240Y 240             
+317[2]SCL0          VIA   -     D 120PA00X  10430Y  13224X 240Y 240             
+317[2]SCL0          VIA   -     D 120PA00X  11968Y  10856X 240Y 240             
+327[2]SDA0          J2    -10        UA02X  10288Y  10991X 591Y 118             
+327[2]SDA0          J2    -11        UA02X  10288Y  10794X 591Y 118             
+327[2]SDA0          P1    -3         UA01X  16836Y  12912X 236Y 630             
+327[2]SDA0          R13   -1         UA01X  13891Y  10807X 200Y 250             
+327[2]SDA0          U2    -27        UA01X  10618Y  12768X  98Y 551             
+327[2]SDA0          U4    -5         UA01X  15169Y  12080X 165Y 701             
+327[2]SDA0          U5    -4         UA01X  23954Y  13174X 394Y  94             
+327[2]SDA0          U7    -2         UA01X  18536Y  12869X  91Y 217             
+317[2]SDA0          VIA   -     D 120PA00X  18009Y  12600X 240Y 240             
+317[2]SDA0          VIA   -     D 120PA00X  16836Y  12392X 240Y 240             
+317[2]SDA0          VIA   -     D 120PA00X  21479Y  12420X 240Y 240             
+317[2]SDA0          VIA   -     D 120PA00X  10731Y  13237X 240Y 240             
+317[2]SDA0          VIA   -     D 120PA00X  12343Y  10658X 240Y 240             
+327[2]SIG3415       C3    -2         UA01X   3703Y  12411X 250Y 200             
+327[2]SIG3415       U1    -8         UA01X   4407Y  12209X 571Y 134             
+327[2]SIG3640       U2    -7         UA01X   9220Y  11173X 551Y  98             
+327[2]SIG3640       Y1    -1         UA01X   8437Y  11450X 748Y 157             
+327[2]SIG3641       U2    -8         UA01X   9220Y  10976X 551Y  98             
+327[2]SIG3641       Y1    -3         UA01X   8437Y  10506X 748Y 157             
+327[2]SIG3740       R6    -2         UA01X   7766Y  10300X 200Y 250             
+327[2]SIG3740       U3    -9         UA01X   7321Y  10143X 394Y  98             
+327[2]SIG3741       R5    -2         UA01X   8191Y   9912X 200Y 250             
+327[2]SIG3741       U3    -8         UA01X   7321Y   9946X 394Y  98             
+327[2]SIG3742       R7    -2         UA01X   7801Y   9867X 220Y 230             
+327[2]SIG3742       U3    -7         UA01X   7321Y   9749X 394Y  98             
+327[2]SIG3748       R3    -1         UA01X   4958Y   9476X 200Y 250             
+327[2]SIG3748       R4    -2         UA02X   5080Y   9471X 250Y 200             
+327[2]SIG3748       U3    -3         UA01X   6081Y   9946X 394Y  98             
+317[2]SIG3748       VIA   -     D 120PA00X   4712Y   9642X 240Y 240             
+327[2]SIG3781       C9    -2         UA02X   6057Y  10157X 250Y 200             
+327[2]SIG3781       R8    -1         UA02X   6443Y  10157X 250Y 200             
+327[2]SIG3890       C18   -2         UA01X  13990Y   9497X 250Y 200             
+327[2]SIG3890       Q3    -4         UA01X  16050Y   9916X 394Y 177             
+327[2]SIG3890       R16   -2         UA01X  12488Y  10076X 250Y 200             
+327[2]SIG3890       TP13  -1         UA02X  14530Y   9936X 500Y 500             
+317[2]SIG3890       VIA   -     D 120PA00X  12928Y   9966X 240Y 240             
+317[2]SIG3890       VIA   -     D 120PA00X  13937Y   9961X 240Y 240             
+327[2]SIG3945       D2    -K         UA02X   4621Y  12382X 315Y 315             
+327[2]SIG3945       R17   -2         UA02X   5131Y  11912X 250Y 200             
+327[2]USBEM         C7    -2         UA01X   2870Y  12996X 250Y 200             
+327[2]USBEM         J1    -2         UA01X   1483Y  12541X 531Y 157             
+327[2]USBEM         R1    -1         UA01X   2443Y  12511X 200Y 250             
+327[2]USBEM         TP8   -1         UA02X    591Y  12874X 500Y 500             
+317[2]USBEM         VIA   -     D 120PA00X    984Y  12726X 240Y 240             
+327[2]USBEP         C16   -2         UA01X   2820Y  12706X 200Y 250             
+327[2]USBEP         J1    -3         UA01X   1483Y  12285X 531Y 157             
+327[2]USBEP         R2    -1         UA01X   2053Y  12291X 200Y 250             
+327[2]USBEP         TP9   -1         UA02X    591Y  12087X 500Y 500             
+317[2]USBEP         VIA   -     D 120PA00X    984Y  12214X 240Y 240             
+327[2]USBIM         R1    -2         UA01X   2443Y  13011X 200Y 250             
+327[2]USBIM         U1    -7         UA01X   4407Y  12465X 571Y 134             
+327[2]USBIP         R2    -2         UA01X   2053Y  12791X 200Y 250             
+327[2]USBIP         U1    -6         UA01X   4407Y  12721X 571Y 134             
+327[3]-RESET        C13   -2         UA01X   7220Y  18016X 250Y 200             
+327[3]-RESET        R9    -1         UA01X   7570Y  17956X 200Y 250             
+327[3]-RESET        SW3   -3         UA02X   3669Y  18327X 217Y 394             
+317[3]-RESET        TP6   -1    D 280PA00X  10006Y  18705X 400Y 400             
+327[3]-RESET        U2    -29        UA01X  10224Y  17807X  98Y 551             
+317[3]-RESET        VIA   -     D 120PA00X   7548Y  18400X 240Y 240             
+327[3]A0            C14   -2         UA01X  20799Y  15433X 250Y 200             
+327[3]A0            P3    -3         UA01X  20542Y  15936X 315Y 630             
+327[3]A0            R14   -1         UA01X  12430Y  17326X 200Y 250             
+327[3]A0            U2    -23        UA01X  11425Y  17197X 551Y  98             
+317[3]A0            VIA   -     D 120PA00X  20020Y  16686X 240Y 240             
+317[3]A0            VIA   -     D 120PA00X  19060Y  16686X 240Y 240             
+317[3]A0            VIA   -     D 120PA00X  19140Y  17526X 240Y 240             
+317[3]A0            VIA   -     D 120PA00X  12131Y  17426X 240Y 240             
+317[3]A0            VIA   -     D 120PA00X  15383Y  16217X 240Y 240             
+317[3]A0            VIA   -     D 120PA00X  19960Y  17646X 240Y 240             
+327[3]A1            C15   -2         UA02X  15490Y  18546X 250Y 200             
+327[3]A1            Q2    -C         UA01X  14199Y  17805X 394Y 551             
+327[3]A1            R15   -1         UA01X  12881Y  17326X 200Y 250             
+327[3]A1            U2    -24        UA01X  11425Y  17394X 551Y  98             
+317[3]A1            VIA   -     D 120PA00X  14430Y  17966X 240Y 240             
+317[3]A1            VIA   -     D 120PA00X  13951Y  17686X 240Y 240             
+327[3]A3            R10   -2         UA01X   7361Y  16706X 200Y 250             
+327[3]A3            R11   -1         UA01X   6966Y  16685X 200Y 250             
+327[3]A3            U2    -26        UA01X  10814Y  17807X  98Y 551             
+317[3]A3            VIA   -     D 120PA00X   7621Y  17146X 240Y 240             
+317[3]A3            VIA   -     D 120PA00X  10469Y  18766X 240Y 240             
+327[3]D0            R22   -2         UA02X   7778Y  18150X 250Y 200             
+327[3]D0            U2    -30        UA01X  10027Y  17807X  98Y 551             
+317[3]D0            VIA   -     D 120PA00X   9531Y  18606X 240Y 240             
+327[3]D1            R23   -2         UA01X   8088Y  18690X 250Y 200             
+327[3]D1            U2    -31        UA01X   9830Y  17807X  98Y 551             
+317[3]D1            VIA   -     D 120PA00X   7978Y  18420X 240Y 240             
+317[3]D1            VIA   -     D 120PA00X   8580Y  18536X 240Y 240             
+327[3]D2            SW2   -3         UA02X   2020Y  18327X 217Y 394             
+327[3]D2            U2    -32        UA01X   9633Y  17807X  98Y 551             
+317[3]D2            VIA   -     D 120PA00X   9025Y  18481X 240Y 240             
+327[3]Ground        C1    -1         UA01X   6930Y  18506X 250Y 200             
+327[3]Ground        C10   -2         UA02X   7320Y  14666X 250Y 200             
+327[3]Ground        C11   -1         UA01X  25410Y  18196X 200Y 250             
+327[3]Ground        C12   -1         UA01X  23222Y  18393X 200Y 250             
+327[3]Ground        C14   -1         UA01X  21299Y  15433X 250Y 200             
+327[3]Ground        C15   -1         UA02X  15990Y  18546X 250Y 200             
+327[3]Ground        C16   -1         UA01X   2820Y  17246X 200Y 250             
+327[3]Ground        C17   -1         UA01X  19500Y  17986X 200Y 250             
+327[3]Ground        C18   -1         UA01X  13490Y  14536X 250Y 200             
+327[3]Ground        C19   -1         UA02X  16549Y  15909X 250Y 200             
+327[3]Ground        C2    -1         UA01X   5827Y  16245X 250Y 200             
+327[3]Ground        C20   -1         UA01X  17259Y  18689X 250Y 200             
+327[3]Ground        C3    -1         UA01X   3203Y  17450X 250Y 200             
+327[3]Ground        C4    -1         UA01X  13931Y  16376X 425Y 413             
+327[3]Ground        C5    -1         UA01X   8211Y  16896X 250Y 200             
+327[3]Ground        C6    -1         UA01X  12000Y  17055X 200Y 250             
+327[3]Ground        C7    -1         UA01X   3370Y  18036X 250Y 200             
+327[3]Ground        C8    -1         UA01X   5516Y  14552X 571Y 394             
+327[3]Ground        J1    -5         UA01X   1483Y  16813X 531Y 157             
+317[3]Ground        J1    -S1   D 197PA00X    430Y  18624X 630Y 354             
+317[3]Ground        J1    -S2   D 197PA00X    430Y  16025X 630Y 354             
+327[3]Ground        J1    -S3        UA01X   1394Y  18535X 551Y 531             
+327[3]Ground        J1    -S4        UA01X   1394Y  16114X 551Y 531             
+327[3]Ground        J1    -S5        UA01X    430Y  17797X 689Y 748             
+327[3]Ground        J1    -S6        UA01X    430Y  16852X 689Y 748             
+327[3]Ground        J2    -1         UA02X  10288Y  17802X 591Y 118             
+327[3]Ground        J2    -12        UA02X  10288Y  15637X 591Y 118             
+327[3]Ground        J2    -4         UA02X  10288Y  17211X 591Y 118             
+327[3]Ground        J2    -6         UA02X  10288Y  16818X 591Y 118             
+327[3]Ground        J2    -8         UA02X  10288Y  16424X 591Y 118             
+327[3]Ground        P1    -1         UA01X  17623Y  17951X 236Y 630             
+327[3]Ground        P2    -2         UA01X   3724Y  16936X 315Y 669             
+327[3]Ground        P3    -1         UA01X  21526Y  15936X 315Y 630             
+327[3]Ground        Q2    -E         UA01X  12900Y  17805X 394Y 551             
+327[3]Ground        Q3    -1         UA01X  16050Y  15723X 394Y 177             
+327[3]Ground        Q3    -2         UA01X  16050Y  15467X 394Y 177             
+327[3]Ground        Q3    -3         UA01X  16050Y  15211X 394Y 177             
+327[3]Ground        R10   -1         UA01X   7361Y  16206X 200Y 250             
+327[3]Ground        R21   -1         UA01X  10518Y  14925X 250Y 200             
+327[3]Ground        R4    -1         UA02X   5580Y  14510X 250Y 200             
+327[3]Ground        R5    -1         UA01X   8191Y  14451X 200Y 250             
+327[3]Ground        R6    -1         UA01X   7766Y  15840X 200Y 250             
+327[3]Ground        R7    -1         UA01X   7801Y  14496X 220Y 230             
+327[3]Ground        R8    -2         UA02X   6943Y  15197X 250Y 200             
+327[3]Ground        SW2   -2         UA02X   1350Y  16949X 217Y 394             
+327[3]Ground        SW2   -5         UA02X   1685Y  18386X 276Y 276             
+327[3]Ground        SW2   -6         UA02X   1685Y  16890X 276Y 276             
+327[3]Ground        SW3   -2         UA02X   3000Y  16949X 217Y 394             
+327[3]Ground        SW3   -5         UA02X   3335Y  18386X 276Y 276             
+327[3]Ground        SW3   -6         UA02X   3335Y  16890X 276Y 276             
+327[3]Ground        SW4   -2         UA02X  25150Y  18034X 394Y 217             
+327[3]Ground        SW4   -5         UA02X  23713Y  18369X 276Y 276             
+327[3]Ground        SW4   -6         UA02X  25209Y  18369X 276Y 276             
+317[3]Ground        TP1   -1    D 280PA00X  15006Y  18705X 400Y 400             
+327[3]Ground        U1    -13        UA01X   6199Y  17248X 571Y 134             
+327[3]Ground        U1    -3         UA01X   5175Y  18528X 134Y 571             
+327[3]Ground        U1    -EP        UA01X   5303Y  17632X 787Y 787             
+327[3]Ground        U2    -21        UA01X  11425Y  16803X 551Y  98             
+327[3]Ground        U2    -3         UA01X   9220Y  17000X 551Y  98             
+327[3]Ground        U2    -5         UA01X   9220Y  16606X 551Y  98             
+327[3]Ground        U2    -EP        UA01X  10322Y  16705X1181Y1181             
+327[3]Ground        U3    -4         UA01X   6081Y  14788X 394Y  98             
+327[3]Ground        U3    -5         UA01X   6081Y  14592X 394Y  98             
+327[3]Ground        U3    -EP        UA01X   6701Y  14985X 591Y 866             
+327[3]Ground        U4    -2         UA01X  14657Y  14781X 165Y 701             
+327[3]Ground        U4    -3         UA01X  14913Y  14781X 165Y 701             
+327[3]Ground        U4    -4         UA01X  15169Y  14781X 165Y 701             
+327[3]Ground        U4    -7         UA01X  14657Y  17119X 165Y 701             
+327[3]Ground        U5    -3         UA01X  23954Y  18410X 394Y  94             
+327[3]Ground        U5    -8         UA01X  24840Y  18016X 394Y  94             
+327[3]Ground        U5    -9         UA01X  24840Y  18213X 394Y  94             
+327[3]Ground        U6    -2         UA02X  16614Y  15177X 295Y 157             
+327[3]Ground        U7    -1         UA01X  18339Y  17909X  91Y 217             
+327[3]Ground        U7    -4         UA01X  18930Y  17909X  91Y 217             
+327[3]Ground        U7    -8         UA01X  18733Y  18617X  91Y 217             
+327[3]Ground        U7    -9         UA01X  18536Y  18617X  91Y 217             
+317[3]Ground        VIA   -     D 120PA00X  15660Y  17096X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  16200Y  17096X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  16220Y  16535X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  15630Y  16526X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  17799Y  17039X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  17799Y  16436X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  18451Y  16469X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  18429Y  17039X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  14851Y  15796X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  22080Y  17696X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  22090Y  16596X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   4069Y  14551X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  22900Y  16626X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  22980Y  17606X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   4039Y  14946X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  18339Y  17619X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  19220Y  17986X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   8330Y  15286X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  13700Y  14816X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   4030Y  15366X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  14980Y  15646X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  15520Y  14696X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  16640Y  18596X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   3480Y  15366X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   3490Y  15796X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X    890Y  15366X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X    415Y  15369X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X    393Y  15803X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X    892Y  15830X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X    890Y  14966X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X    382Y  14973X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   5940Y  16675X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   6235Y  16981X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   7230Y  18476X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   4590Y  18436X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   7751Y  16106X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   8971Y  15776X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   4444Y  16460X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   7920Y  17115X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   6691Y  15526X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   6890Y  15526X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  22880Y  18426X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   6966Y  15695X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   6541Y  14491X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   6741Y  14491X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   5188Y  15961X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   6941Y  14491X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   9810Y  16185X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   9990Y  14685X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   5018Y  15411X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   9391Y  15766X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  17919Y  17939X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  14700Y  17726X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  14671Y  16456X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  15501Y  14956X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   4648Y  16456X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X   4328Y  15421X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  13191Y  17216X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  13391Y  17216X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  15700Y  15456X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  15650Y  15686X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  13566Y  16458X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X    376Y  14543X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  21533Y  16650X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  13140Y  17996X 240Y 240             
+317[3]Ground        VIA   -     D 120PA00X  12750Y  18116X 240Y 240             
+327[3]Ground        Y1    -2         UA01X   8437Y  16017X 748Y 157             
+317[3]MISO          TP4   -1    D 280PA00X  12006Y  18705X 400Y 400             
+327[3]MISO          U2    -16        UA01X  11011Y  15602X  98Y 551             
+317[3]MISO          VIA   -     D 120PA00X  12410Y  18736X 240Y 240             
+317[3]MISO          VIA   -     D 120PA00X  12383Y  15997X 240Y 240             
+317[3]MOSI          TP3   -1    D 280PA00X  13006Y  18705X 400Y 400             
+327[3]MOSI          U2    -15        UA01X  10814Y  15602X  98Y 551             
+317[3]MOSI          VIA   -     D 120PA00X  12279Y  18032X 240Y 240             
+317[3]MOSI          VIA   -     D 120PA00X  12790Y  15856X 240Y 240             
+327[3]N_D7_2Amp     D4    -A         UA02X  18622Y  14606X 354Y 276             
+327[3]N_D7_2Amp     P4    -1         UA01X  18552Y  14771X 236Y 610             
+327[3]N_D7_2Amp     Q3    -5         UA01X  17015Y  15339X 709Y1181             
+327[3]N_D7_2Amp     Q3    -6         UA01X  17389Y  15211X 394Y 177             
+327[3]N_D7_2Amp     Q3    -7         UA01X  17389Y  15467X 394Y 177             
+327[3]N_D7_2Amp     Q3    -8         UA01X  17389Y  15723X 394Y 177             
+327[3]N_D7_2Amp     TP10  -1         UA02X  18110Y  16732X 500Y 500             
+317[3]N_D7_2Amp     VIA   -     D 120PA00X  17505Y  16035X 240Y 240             
+317[3]N_D7_2Amp     VIA   -     D 120PA00X  18268Y  15079X 240Y 240             
+327[3]OLEDReset     J2    -7         UA02X  10288Y  16621X 591Y 118             
+327[3]OLEDReset     U2    -9         UA01X   9633Y  15602X  98Y 551             
+317[3]OLEDReset     VIA   -     D 120PA00X   9436Y  15454X 240Y 240             
+327[3]Plus3.0V      C1    -2         UA01X   6430Y  18506X 250Y 200             
+327[3]Plus3.0V      C11   -2         UA01X  25410Y  18696X 200Y 250             
+327[3]Plus3.0V      C12   -2         UA01X  23222Y  17893X 200Y 250             
+327[3]Plus3.0V      C17   -2         UA01X  19500Y  18486X 200Y 250             
+327[3]Plus3.0V      C20   -2         UA01X  17759Y  18689X 250Y 200             
+327[3]Plus3.0V      C4    -2         UA01X  13931Y  17057X 425Y 413             
+327[3]Plus3.0V      C5    -2         UA01X   8711Y  16896X 250Y 200             
+327[3]Plus3.0V      C6    -2         UA01X  12000Y  16555X 200Y 250             
+327[3]Plus3.0V      C8    -2         UA01X   5516Y  15300X 571Y 394             
+327[3]Plus3.0V      J2    -2         UA02X  10288Y  17605X 591Y 118             
+327[3]Plus3.0V      J2    -3         UA02X  10288Y  17408X 591Y 118             
+327[3]Plus3.0V      J2    -5         UA02X  10288Y  17015X 591Y 118             
+327[3]Plus3.0V      P1    -2         UA01X  17229Y  17951X 236Y 630             
+327[3]Plus3.0V      P3    -2         UA01X  21034Y  15936X 315Y 630             
+327[3]Plus3.0V      R12   -2         UA01X  13331Y  15686X 200Y 250             
+327[3]Plus3.0V      R13   -2         UA01X  13891Y  15346X 200Y 250             
+327[3]Plus3.0V      R14   -2         UA01X  12430Y  16826X 200Y 250             
+327[3]Plus3.0V      R15   -2         UA01X  12881Y  16826X 200Y 250             
+327[3]Plus3.0V      R20   -2         UA02X  13606Y  15347X 250Y 200             
+327[3]Plus3.0V      R3    -2         UA01X   4958Y  15015X 200Y 250             
+327[3]Plus3.0V      R9    -2         UA01X   7570Y  17456X 200Y 250             
+317[3]Plus3.0V      TP2   -1    D 280PA00X  14006Y  18705X 400Y 400             
+327[3]Plus3.0V      U1    -1         UA01X   5687Y  18528X 134Y 571             
+327[3]Plus3.0V      U2    -18        UA01X  11425Y  16213X 551Y  98             
+327[3]Plus3.0V      U2    -20        UA01X  11425Y  16606X 551Y  98             
+327[3]Plus3.0V      U2    -4         UA01X   9220Y  16803X 551Y  98             
+327[3]Plus3.0V      U3    -2         UA01X   6081Y  15182X 394Y  98             
+327[3]Plus3.0V      U4    -8         UA01X  14401Y  17119X 165Y 701             
+327[3]Plus3.0V      U5    -1         UA01X  24496Y  18656X  94Y 394             
+327[3]Plus3.0V      U5    -10        UA01X  24840Y  18410X 394Y  94             
+327[3]Plus3.0V      U5    -5         UA01X  23954Y  18016X 394Y  94             
+327[3]Plus3.0V      U5    -6         UA01X  24299Y  17770X  94Y 394             
+327[3]Plus3.0V      U7    -10        UA01X  18339Y  18617X  91Y 217             
+327[3]Plus3.0V      U7    -3         UA01X  18733Y  17909X  91Y 217             
+327[3]Plus3.0V      U7    -7         UA01X  18930Y  18617X  91Y 217             
+317[3]Plus3.0V      VIA   -     D 120PA00X  13883Y  17349X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  17410Y  17406X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  15910Y  17886X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  20140Y  17316X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  20350Y  17346X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X   5951Y  18683X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X   6071Y  18263X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X   8550Y  17265X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  13626Y  15627X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  13192Y  16728X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  25127Y  17744X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  23358Y  17612X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  17221Y  17416X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  16120Y  17886X 240Y 240             
+317[3]Plus3.0V      VIA   -     D 120PA00X  14093Y  17349X 240Y 240             
+327[3]Plus5VUSB     C2    -2         UA01X   5327Y  16245X 250Y 200             
+327[3]Plus5VUSB     D2    -A         UA02X   4621Y  18051X 315Y 315             
+327[3]Plus5VUSB     J1    -1         UA01X   1483Y  17836X 531Y 157             
+327[3]Plus5VUSB     R11   -2         UA01X   6966Y  16185X 200Y 250             
+327[3]Plus5VUSB     R24   -2         UA02X   7540Y  15566X 200Y 250             
+327[3]Plus5VUSB     TP14  -1         UA02X   4134Y  18346X 500Y 500             
+327[3]Plus5VUSB     U1    -10        UA01X   5175Y  16736X 134Y 571             
+327[3]Plus5VUSB     U3    -10        UA01X   7321Y  15379X 394Y  98             
+317[3]Plus5VUSB     VIA   -     D 120PA00X   4260Y  18296X 240Y 240             
+317[3]Plus5VUSB     VIA   -     D 120PA00X   5548Y  16051X 240Y 240             
+317[3]Plus5VUSB     VIA   -     D 120PA00X   4260Y  18476X 240Y 240             
+317[3]Plus5VUSB     VIA   -     D 120PA00X   6453Y  16205X 240Y 240             
+317[3]Plus5VUSB     VIA   -     D 120PA00X   6520Y  16366X 240Y 240             
+317[3]Plus5VUSB     VIA   -     D 120PA00X   7136Y  15945X 240Y 240             
+317[3]Plus5VUSB     VIA   -     D 120PA00X   7336Y  15895X 240Y 240             
+327[3]PlusBatRaw    P2    -1         UA01X   3232Y  16936X 315Y 669             
+327[3]PlusBatRaw    SW1   -2         UA02X   1935Y  16307X 315Y 669             
+317[3]PlusBatRaw    VIA   -     D 120PA00X   2020Y  15181X 240Y 240             
+317[3]PlusBatRaw    VIA   -     D 120PA00X   2672Y  16280X 240Y 240             
+317[3]PlusBatRaw    VIA   -     D 120PA00X   1920Y  16425X 240Y 240             
+317[3]PlusBatRaw    VIA   -     D 120PA00X   2479Y  15183X 240Y 240             
+327[3]PlusBatt      C19   -2         UA02X  17049Y  15909X 250Y 200             
+327[3]PlusBatt      C9    -1         UA02X   5557Y  15197X 250Y 200             
+327[3]PlusBatt      D3    -K         UA01X  23686Y  14388X 354Y 276             
+327[3]PlusBatt      D4    -K         UA02X  19094Y  14606X 354Y 276             
+327[3]PlusBatt      P4    -2         UA01X  18946Y  14771X 236Y 610             
+327[3]PlusBatt      P5    -2         UA02X  22278Y  15920X 315Y 630             
+327[3]PlusBatt      SW1   -1         UA02X   3116Y  16307X 315Y 669             
+327[3]PlusBatt      TP15  -1         UA02X   4488Y  15831X 500Y 500             
+327[3]PlusBatt      U3    -1         UA01X   6081Y  15379X 394Y  98             
+327[3]PlusBatt      U6    -5         UA02X  17362Y  15177X 295Y 157             
+317[3]PlusBatt      VIA   -     D 120PA00X  18798Y  16060X 240Y 240             
+317[3]PlusBatt      VIA   -     D 120PA00X  18807Y  15394X 240Y 240             
+317[3]PlusBatt      VIA   -     D 120PA00X  19449Y  14882X 240Y 240             
+317[3]PlusBatt      VIA   -     D 120PA00X  22278Y  15329X 240Y 240             
+317[3]PlusBatt      VIA   -     D 120PA00X   6390Y  15656X 240Y 240             
+317[3]PlusBatt      VIA   -     D 120PA00X   6210Y  15656X 240Y 240             
+317[3]PlusBatt      VIA   -     D 120PA00X  10706Y  14297X 240Y 240             
+327[3]RTS           C13   -1         UA01X   6720Y  18016X 250Y 200             
+327[3]RTS           U1    -16        UA01X   6199Y  18016X 571Y 134             
+317[3]SCK           TP5   -1    D 280PA00X  11006Y  18705X 400Y 400             
+327[3]SCK           U2    -17        UA01X  11425Y  16016X 551Y  98             
+317[3]SCK           VIA   -     D 120PA00X  11452Y  17843X 240Y 240             
+317[3]SCK           VIA   -     D 120PA00X  12340Y  16426X 240Y 240             
+327[3]SCL0          J2    -9         UA02X  10288Y  16227X 591Y 118             
+327[3]SCL0          P1    -4         UA01X  16442Y  17951X 236Y 630             
+327[3]SCL0          R12   -1         UA01X  13331Y  16186X 200Y 250             
+327[3]SCL0          U2    -28        UA01X  10421Y  17807X  98Y 551             
+327[3]SCL0          U4    -6         UA01X  14913Y  17119X 165Y 701             
+327[3]SCL0          U5    -2         UA01X  24299Y  18656X  94Y 394             
+327[3]SCL0          U7    -12        UA01X  18280Y  18165X 217Y  91             
+317[3]SCL0          VIA   -     D 120PA00X  22400Y  18426X 240Y 240             
+317[3]SCL0          VIA   -     D 120PA00X  16950Y  18586X 240Y 240             
+317[3]SCL0          VIA   -     D 120PA00X  10430Y  18263X 240Y 240             
+317[3]SCL0          VIA   -     D 120PA00X  11968Y  15895X 240Y 240             
+327[3]SDA0          J2    -10        UA02X  10288Y  16030X 591Y 118             
+327[3]SDA0          J2    -11        UA02X  10288Y  15833X 591Y 118             
+327[3]SDA0          P1    -3         UA01X  16836Y  17951X 236Y 630             
+327[3]SDA0          R13   -1         UA01X  13891Y  15846X 200Y 250             
+327[3]SDA0          U2    -27        UA01X  10618Y  17807X  98Y 551             
+327[3]SDA0          U4    -5         UA01X  15169Y  17119X 165Y 701             
+327[3]SDA0          U5    -4         UA01X  23954Y  18213X 394Y  94             
+327[3]SDA0          U7    -2         UA01X  18536Y  17909X  91Y 217             
+317[3]SDA0          VIA   -     D 120PA00X  18009Y  17639X 240Y 240             
+317[3]SDA0          VIA   -     D 120PA00X  16836Y  17431X 240Y 240             
+317[3]SDA0          VIA   -     D 120PA00X  21479Y  17459X 240Y 240             
+317[3]SDA0          VIA   -     D 120PA00X  10731Y  18276X 240Y 240             
+317[3]SDA0          VIA   -     D 120PA00X  12343Y  15697X 240Y 240             
+327[3]SIG3415       C3    -2         UA01X   3703Y  17450X 250Y 200             
+327[3]SIG3415       U1    -8         UA01X   4407Y  17248X 571Y 134             
+327[3]SIG3640       U2    -7         UA01X   9220Y  16213X 551Y  98             
+327[3]SIG3640       Y1    -1         UA01X   8437Y  16490X 748Y 157             
+327[3]SIG3641       U2    -8         UA01X   9220Y  16016X 551Y  98             
+327[3]SIG3641       Y1    -3         UA01X   8437Y  15545X 748Y 157             
+327[3]SIG3740       R6    -2         UA01X   7766Y  15340X 200Y 250             
+327[3]SIG3740       U3    -9         UA01X   7321Y  15182X 394Y  98             
+327[3]SIG3741       R5    -2         UA01X   8191Y  14951X 200Y 250             
+327[3]SIG3741       U3    -8         UA01X   7321Y  14985X 394Y  98             
+327[3]SIG3742       R7    -2         UA01X   7801Y  14906X 220Y 230             
+327[3]SIG3742       U3    -7         UA01X   7321Y  14788X 394Y  98             
+327[3]SIG3748       R3    -1         UA01X   4958Y  14515X 200Y 250             
+327[3]SIG3748       R4    -2         UA02X   5080Y  14510X 250Y 200             
+327[3]SIG3748       U3    -3         UA01X   6081Y  14985X 394Y  98             
+317[3]SIG3748       VIA   -     D 120PA00X   4712Y  14681X 240Y 240             
+327[3]SIG3781       C9    -2         UA02X   6057Y  15197X 250Y 200             
+327[3]SIG3781       R8    -1         UA02X   6443Y  15197X 250Y 200             
+327[3]SIG3890       C18   -2         UA01X  13990Y  14536X 250Y 200             
+327[3]SIG3890       Q3    -4         UA01X  16050Y  14955X 394Y 177             
+327[3]SIG3890       R16   -2         UA01X  12488Y  15115X 250Y 200             
+327[3]SIG3890       TP13  -1         UA02X  14530Y  14976X 500Y 500             
+317[3]SIG3890       VIA   -     D 120PA00X  12928Y  15005X 240Y 240             
+317[3]SIG3890       VIA   -     D 120PA00X  13937Y  15000X 240Y 240             
+327[3]SIG3945       D2    -K         UA02X   4621Y  17421X 315Y 315             
+327[3]SIG3945       R17   -2         UA02X   5131Y  16951X 250Y 200             
+327[3]USBEM         C7    -2         UA01X   2870Y  18036X 250Y 200             
+327[3]USBEM         J1    -2         UA01X   1483Y  17580X 531Y 157             
+327[3]USBEM         R1    -1         UA01X   2443Y  17550X 200Y 250             
+327[3]USBEM         TP8   -1         UA02X    591Y  17913X 500Y 500             
+317[3]USBEM         VIA   -     D 120PA00X    984Y  17765X 240Y 240             
+327[3]USBEP         C16   -2         UA01X   2820Y  17746X 200Y 250             
+327[3]USBEP         J1    -3         UA01X   1483Y  17324X 531Y 157             
+327[3]USBEP         R2    -1         UA01X   2053Y  17330X 200Y 250             
+327[3]USBEP         TP9   -1         UA02X    591Y  17126X 500Y 500             
+317[3]USBEP         VIA   -     D 120PA00X    984Y  17253X 240Y 240             
+327[3]USBIM         R1    -2         UA01X   2443Y  18050X 200Y 250             
+327[3]USBIM         U1    -7         UA01X   4407Y  17504X 571Y 134             
+327[3]USBIP         R2    -2         UA01X   2053Y  17830X 200Y 250             
+327[3]USBIP         U1    -6         UA01X   4407Y  17760X 571Y 134             
+317[1]D3            TP7   -1    D 410PA00X   8670Y   7657X 600Y 600             
+327[1]D3            U2    -1         UA01X   9220Y   7315X 551Y  98             
+327[1]D6            R18   -2         UA01X  10208Y   4893X 250Y 200             
+327[1]D6            U2    -10        UA01X   9830Y   5524X  98Y 551             
+327[1]D7            R16   -1         UA01X  11988Y   5037X 250Y 200             
+327[1]D7            R21   -2         UA01X  11018Y   4847X 250Y 200             
+327[1]D7            U2    -11        UA01X  10027Y   5524X  98Y 551             
+327[1]D9            R20   -1         UA02X  13106Y   5269X 250Y 200             
+327[1]D9            U2    -13        UA01X  10421Y   5524X  98Y 551             
+327[1]D9            U6    -1         UA02X  16614Y   4843X 295Y 157             
+317[1]D9            VIA   -     D 120PA00X  12788Y   5197X 240Y 240             
+327[1]N_CHG_Stat    R17   -1         UA02X   5631Y   6873X 250Y 200             
+327[1]N_CHG_Stat    R18   -1         UA01X   9708Y   4893X 250Y 200             
+327[1]N_CHG_Stat    U3    -6         UA01X   7321Y   4513X 394Y  98             
+317[1]N_CHG_Stat    VIA   -     D 120PA00X   9373Y   4862X 240Y 240             
+327[1]SIG3428       R23   -1         UA01X   7588Y   8612X 250Y 200             
+327[1]SIG3428       U1    -2         UA01X   5431Y   8449X 134Y 571             
+327[1]SIG3429       R22   -1         UA02X   7278Y   8072X 250Y 200             
+327[1]SIG3429       U1    -15        UA01X   6199Y   7681X 571Y 134             
+317[1]SIG3429       VIA   -     D 120PA00X   6728Y   7642X 240Y 240             
+327[1]SIG3493       SW4   -3         UA02X  23772Y   8625X 394Y 217             
+327[1]SIG3493       U2    -25        UA01X  11011Y   7728X  98Y 551             
+317[1]SIG3493       VIA   -     D 120PA00X  16330Y   8378X 240Y 240             
+317[1]SIG3493       VIA   -     D 120PA00X  14191Y   8218X 240Y 240             
+317[1]SIG3493       VIA   -     D 120PA00X  15186Y   8279X 240Y 240             
+327[1]SIG3735       D3    -A         UA01X  24158Y   4310X 354Y 276             
+327[1]SIG3735       P5    -1         UA02X  22770Y   5841X 315Y 630             
+327[1]SIG3735       PZ1   -2         UA02X  24690Y   5835X1181Y1181             
+327[1]SIG3735       TP11  -1         UA02X  25412Y   4307X 420Y 420             
+327[1]SIG3735       U6    -4         UA02X  17362Y   5354X 295Y 157             
+317[1]SIG3735       VIA   -     D 120PA00X  21772Y   6850X 240Y 240             
+317[1]SIG3735       VIA   -     D 120PA00X  23070Y   4588X 240Y 240             
+317[1]SIG3735       VIA   -     D 120PA00X  25394Y   4291X 240Y 240             
+327[1]SIG3745       C10   -1         UA02X   7820Y   4588X 250Y 200             
+327[1]SIG3745       R24   -1         UA02X   7540Y   4988X 200Y 250             
+327[1]SIG3976       P5    -3         UA02X  21786Y   5841X 315Y 630             
+327[1]SIG3976       PZ1   -1         UA02X  19572Y   5835X1181Y1181             
+327[1]SIG3976       R19   -2         UA02X  18453Y   5276X 250Y 200             
+327[1]SIG3992       R19   -1         UA02X  17953Y   5276X 250Y 200             
+327[1]SIG3992       TP12  -1         UA02X  17913Y   4646X 500Y 500             
+327[1]SIG3992       U6    -3         UA02X  16614Y   5354X 295Y 157             
+327[1]SIG3992       U6    -6         UA02X  17362Y   4843X 295Y 157             
+317[2]D3            TP7   -1    D 410PA00X   8670Y  12696X 600Y 600             
+327[2]D3            U2    -1         UA01X   9220Y  12354X 551Y  98             
+327[2]D6            R18   -2         UA01X  10208Y   9932X 250Y 200             
+327[2]D6            U2    -10        UA01X   9830Y  10563X  98Y 551             
+327[2]D7            R16   -1         UA01X  11988Y  10076X 250Y 200             
+327[2]D7            R21   -2         UA01X  11018Y   9886X 250Y 200             
+327[2]D7            U2    -11        UA01X  10027Y  10563X  98Y 551             
+327[2]D9            R20   -1         UA02X  13106Y  10308X 250Y 200             
+327[2]D9            U2    -13        UA01X  10421Y  10563X  98Y 551             
+327[2]D9            U6    -1         UA02X  16614Y   9882X 295Y 157             
+317[2]D9            VIA   -     D 120PA00X  12788Y  10236X 240Y 240             
+327[2]N_CHG_Stat    R17   -1         UA02X   5631Y  11912X 250Y 200             
+327[2]N_CHG_Stat    R18   -1         UA01X   9708Y   9932X 250Y 200             
+327[2]N_CHG_Stat    U3    -6         UA01X   7321Y   9552X 394Y  98             
+317[2]N_CHG_Stat    VIA   -     D 120PA00X   9373Y   9901X 240Y 240             
+327[2]SIG3428       R23   -1         UA01X   7588Y  13651X 250Y 200             
+327[2]SIG3428       U1    -2         UA01X   5431Y  13488X 134Y 571             
+327[2]SIG3429       R22   -1         UA02X   7278Y  13111X 250Y 200             
+327[2]SIG3429       U1    -15        UA01X   6199Y  12721X 571Y 134             
+317[2]SIG3429       VIA   -     D 120PA00X   6728Y  12681X 240Y 240             
+327[2]SIG3493       SW4   -3         UA02X  23772Y  13664X 394Y 217             
+327[2]SIG3493       U2    -25        UA01X  11011Y  12768X  98Y 551             
+317[2]SIG3493       VIA   -     D 120PA00X  16330Y  13417X 240Y 240             
+317[2]SIG3493       VIA   -     D 120PA00X  14191Y  13257X 240Y 240             
+317[2]SIG3493       VIA   -     D 120PA00X  15186Y  13318X 240Y 240             
+327[2]SIG3735       D3    -A         UA01X  24158Y   9349X 354Y 276             
+327[2]SIG3735       P5    -1         UA02X  22770Y  10881X 315Y 630             
+327[2]SIG3735       PZ1   -2         UA02X  24690Y  10874X1181Y1181             
+327[2]SIG3735       TP11  -1         UA02X  25412Y   9346X 420Y 420             
+327[2]SIG3735       U6    -4         UA02X  17362Y  10394X 295Y 157             
+317[2]SIG3735       VIA   -     D 120PA00X  21772Y  11890X 240Y 240             
+317[2]SIG3735       VIA   -     D 120PA00X  23070Y   9627X 240Y 240             
+317[2]SIG3735       VIA   -     D 120PA00X  25394Y   9331X 240Y 240             
+327[2]SIG3745       C10   -1         UA02X   7820Y   9627X 250Y 200             
+327[2]SIG3745       R24   -1         UA02X   7540Y  10027X 200Y 250             
+327[2]SIG3976       P5    -3         UA02X  21786Y  10881X 315Y 630             
+327[2]SIG3976       PZ1   -1         UA02X  19572Y  10874X1181Y1181             
+327[2]SIG3976       R19   -2         UA02X  18453Y  10315X 250Y 200             
+327[2]SIG3992       R19   -1         UA02X  17953Y  10315X 250Y 200             
+327[2]SIG3992       TP12  -1         UA02X  17913Y   9685X 500Y 500             
+327[2]SIG3992       U6    -3         UA02X  16614Y  10394X 295Y 157             
+327[2]SIG3992       U6    -6         UA02X  17362Y   9882X 295Y 157             
+317[3]D3            TP7   -1    D 410PA00X   8670Y  17735X 600Y 600             
+327[3]D3            U2    -1         UA01X   9220Y  17394X 551Y  98             
+327[3]D6            R18   -2         UA01X  10208Y  14971X 250Y 200             
+327[3]D6            U2    -10        UA01X   9830Y  15602X  98Y 551             
+327[3]D7            R16   -1         UA01X  11988Y  15115X 250Y 200             
+327[3]D7            R21   -2         UA01X  11018Y  14925X 250Y 200             
+327[3]D7            U2    -11        UA01X  10027Y  15602X  98Y 551             
+327[3]D9            R20   -1         UA02X  13106Y  15347X 250Y 200             
+327[3]D9            U2    -13        UA01X  10421Y  15602X  98Y 551             
+327[3]D9            U6    -1         UA02X  16614Y  14921X 295Y 157             
+317[3]D9            VIA   -     D 120PA00X  12788Y  15275X 240Y 240             
+327[3]N_CHG_Stat    R17   -1         UA02X   5631Y  16951X 250Y 200             
+327[3]N_CHG_Stat    R18   -1         UA01X   9708Y  14971X 250Y 200             
+327[3]N_CHG_Stat    U3    -6         UA01X   7321Y  14592X 394Y  98             
+317[3]N_CHG_Stat    VIA   -     D 120PA00X   9373Y  14940X 240Y 240             
+327[3]SIG3428       R23   -1         UA01X   7588Y  18690X 250Y 200             
+327[3]SIG3428       U1    -2         UA01X   5431Y  18528X 134Y 571             
+327[3]SIG3429       R22   -1         UA02X   7278Y  18150X 250Y 200             
+327[3]SIG3429       U1    -15        UA01X   6199Y  17760X 571Y 134             
+317[3]SIG3429       VIA   -     D 120PA00X   6728Y  17720X 240Y 240             
+327[3]SIG3493       SW4   -3         UA02X  23772Y  18703X 394Y 217             
+327[3]SIG3493       U2    -25        UA01X  11011Y  17807X  98Y 551             
+317[3]SIG3493       VIA   -     D 120PA00X  16330Y  18456X 240Y 240             
+317[3]SIG3493       VIA   -     D 120PA00X  14191Y  18296X 240Y 240             
+317[3]SIG3493       VIA   -     D 120PA00X  15186Y  18357X 240Y 240             
+327[3]SIG3735       D3    -A         UA01X  24158Y  14388X 354Y 276             
+327[3]SIG3735       P5    -1         UA02X  22770Y  15920X 315Y 630             
+327[3]SIG3735       PZ1   -2         UA02X  24690Y  15913X1181Y1181             
+327[3]SIG3735       TP11  -1         UA02X  25412Y  14385X 420Y 420             
+327[3]SIG3735       U6    -4         UA02X  17362Y  15433X 295Y 157             
+317[3]SIG3735       VIA   -     D 120PA00X  21772Y  16929X 240Y 240             
+317[3]SIG3735       VIA   -     D 120PA00X  23070Y  14666X 240Y 240             
+317[3]SIG3735       VIA   -     D 120PA00X  25394Y  14370X 240Y 240             
+327[3]SIG3745       C10   -1         UA02X   7820Y  14666X 250Y 200             
+327[3]SIG3745       R24   -1         UA02X   7540Y  15066X 200Y 250             
+327[3]SIG3976       P5    -3         UA02X  21786Y  15920X 315Y 630             
+327[3]SIG3976       PZ1   -1         UA02X  19572Y  15913X1181Y1181             
+327[3]SIG3976       R19   -2         UA02X  18453Y  15354X 250Y 200             
+327[3]SIG3992       R19   -1         UA02X  17953Y  15354X 250Y 200             
+327[3]SIG3992       TP12  -1         UA02X  17913Y  14724X 500Y 500             
+327[3]SIG3992       U6    -3         UA02X  16614Y  15433X 295Y 157             
+327[3]SIG3992       U6    -6         UA02X  17362Y  14921X 295Y 157             
+327N/C              U10   -1         UA02X   7874Y   2362X 500Y 500             
+327N/C              U11   -1         UA02X   7874Y  20866X 500Y 500             
+327N/C              U6    -1         UA01X  23622Y  20866X 500Y 500             
+327N/C              U7    -1         UA01X   3937Y  20866X 500Y 500             
+327N/C              U8    -1         UA01X   3937Y   2362X 500Y 500             
+327N/C              U9    -1         UA02X  19685Y   2362X 500Y 500             
+327N/C              FID1  -1         UA01X  25394Y   6161X 400Y 400             
+327N/C              FID2  -1         UA01X   3839Y   6063X 400Y 400             
+327N/C              J1    -4         UA01X   1483Y   6990X 531Y 157             
+327N/C              J2    -X1        UA02X  11489Y   8205X 394Y 512             
+327N/C              J2    -X2        UA02X  11489Y   5076X 394Y 512             
+327N/C              P1    -X0        UA01X  18135Y   6678X 500Y 866             
+327N/C              P1    -X1        UA01X  15930Y   6678X 500Y 866             
+327N/C              P2    -S1        UA01X   4728Y   5755X 827Y1102             
+327N/C              P2    -S2        UA01X   2228Y   5755X 827Y1102             
+327N/C              P3    -S1        UA01X  19538Y   6999X 827Y1181             
+327N/C              P3    -S2        UA01X  22530Y   6999X 827Y1181             
+327N/C              P4    -S1        UA01X  18178Y   5687X 748Y 709             
+327N/C              P4    -S2        UA01X  19320Y   5687X 748Y 709             
+327N/C              P5    -S1        UA02X  20782Y   4700X 827Y1181             
+327N/C              P5    -S2        UA02X  23774Y   4700X 827Y1181             
+327N/C              Q3    -9X        UA01X  17389Y   4877X 394Y 177             
+327N/C              SW1   -3         UA02X   1345Y   6228X 315Y 669             
+327N/C              SW1   -S1        UA02X   3805Y   5087X 669Y 354             
+327N/C              SW1   -S2        UA02X   3805Y   5913X 669Y 354             
+327N/C              SW1   -S3        UA02X    656Y   5913X 669Y 354             
+327N/C              SW1   -S4        UA02X    656Y   5087X 669Y 354             
+327N/C              SW2   -1         UA02X   1350Y   8248X 217Y 394             
+327N/C              SW2   -4         UA02X   2020Y   6870X 217Y 394             
+327N/C              SW3   -1         UA02X   3000Y   8248X 217Y 394             
+327N/C              SW3   -4         UA02X   3669Y   6870X 217Y 394             
+327N/C              SW4   -1         UA02X  23772Y   7955X 394Y 217             
+327N/C              SW4   -4         UA02X  25150Y   8625X 394Y 217             
+327N/C              U1    -11        UA01X   5431Y   6658X 134Y 571             
+327N/C              U1    -12        UA01X   5687Y   6658X 134Y 571             
+327N/C              U1    -14        UA01X   6199Y   7425X 571Y 134             
+327N/C              U1    -4         UA01X   4919Y   8449X 134Y 571             
+327N/C              U1    -5         UA01X   4407Y   7937X 571Y 134             
+327N/C              U1    -9         UA01X   4919Y   6658X 134Y 571             
+327N/C              U2    -12        UA01X  10224Y   5524X  98Y 551             
+327N/C              U2    -14        UA01X  10618Y   5524X  98Y 551             
+327N/C              U2    -19        UA01X  11425Y   6331X 551Y  98             
+327N/C              U2    -2         UA01X   9220Y   7118X 551Y  98             
+327N/C              U2    -22        UA01X  11425Y   6921X 551Y  98             
+327N/C              U2    -6         UA01X   9220Y   6331X 551Y  98             
+327N/C              U4    -1         UA01X  14401Y   4702X 165Y 701             
+327N/C              U5    -7         UA01X  24496Y   7692X  94Y 394             
+327N/C              U7    -11        UA01X  18280Y   8283X 217Y  91             
+327N/C              U7    -5         UA01X  18989Y   8086X 217Y  91             
+327N/C              U7    -6         UA01X  18989Y   8283X 217Y  91             
+327N/C              FID1  -1         UA01X  25394Y  11201X 400Y 400             
+327N/C              FID2  -1         UA01X   3839Y  11102X 400Y 400             
+327N/C              J1    -4         UA01X   1483Y  12029X 531Y 157             
+327N/C              J2    -X1        UA02X  11489Y  13245X 394Y 512             
+327N/C              J2    -X2        UA02X  11489Y  10115X 394Y 512             
+327N/C              P1    -X0        UA01X  18135Y  11718X 500Y 866             
+327N/C              P1    -X1        UA01X  15930Y  11718X 500Y 866             
+327N/C              P2    -S1        UA01X   4728Y  10795X 827Y1102             
+327N/C              P2    -S2        UA01X   2228Y  10795X 827Y1102             
+327N/C              P3    -S1        UA01X  19538Y  12038X 827Y1181             
+327N/C              P3    -S2        UA01X  22530Y  12038X 827Y1181             
+327N/C              P4    -S1        UA01X  18178Y  10726X 748Y 709             
+327N/C              P4    -S2        UA01X  19320Y  10726X 748Y 709             
+327N/C              P5    -S1        UA02X  20782Y   9739X 827Y1181             
+327N/C              P5    -S2        UA02X  23774Y   9739X 827Y1181             
+327N/C              Q3    -9X        UA01X  17389Y   9916X 394Y 177             
+327N/C              SW1   -3         UA02X   1345Y  11268X 315Y 669             
+327N/C              SW1   -S1        UA02X   3805Y  10126X 669Y 354             
+327N/C              SW1   -S2        UA02X   3805Y  10953X 669Y 354             
+327N/C              SW1   -S3        UA02X    656Y  10953X 669Y 354             
+327N/C              SW1   -S4        UA02X    656Y  10126X 669Y 354             
+327N/C              SW2   -1         UA02X   1350Y  13287X 217Y 394             
+327N/C              SW2   -4         UA02X   2020Y  11909X 217Y 394             
+327N/C              SW3   -1         UA02X   3000Y  13287X 217Y 394             
+327N/C              SW3   -4         UA02X   3669Y  11909X 217Y 394             
+327N/C              SW4   -1         UA02X  23772Y  12995X 394Y 217             
+327N/C              SW4   -4         UA02X  25150Y  13664X 394Y 217             
+327N/C              U1    -11        UA01X   5431Y  11697X 134Y 571             
+327N/C              U1    -12        UA01X   5687Y  11697X 134Y 571             
+327N/C              U1    -14        UA01X   6199Y  12465X 571Y 134             
+327N/C              U1    -4         UA01X   4919Y  13488X 134Y 571             
+327N/C              U1    -5         UA01X   4407Y  12977X 571Y 134             
+327N/C              U1    -9         UA01X   4919Y  11697X 134Y 571             
+327N/C              U2    -12        UA01X  10224Y  10563X  98Y 551             
+327N/C              U2    -14        UA01X  10618Y  10563X  98Y 551             
+327N/C              U2    -19        UA01X  11425Y  11370X 551Y  98             
+327N/C              U2    -2         UA01X   9220Y  12158X 551Y  98             
+327N/C              U2    -22        UA01X  11425Y  11961X 551Y  98             
+327N/C              U2    -6         UA01X   9220Y  11370X 551Y  98             
+327N/C              U4    -1         UA01X  14401Y   9741X 165Y 701             
+327N/C              U5    -7         UA01X  24496Y  12731X  94Y 394             
+327N/C              U7    -11        UA01X  18280Y  13322X 217Y  91             
+327N/C              U7    -5         UA01X  18989Y  13125X 217Y  91             
+327N/C              U7    -6         UA01X  18989Y  13322X 217Y  91             
+327N/C              FID1  -1         UA01X  25394Y  16240X 400Y 400             
+327N/C              FID2  -1         UA01X   3839Y  16142X 400Y 400             
+327N/C              J1    -4         UA01X   1483Y  17068X 531Y 157             
+327N/C              J2    -X1        UA02X  11489Y  18284X 394Y 512             
+327N/C              J2    -X2        UA02X  11489Y  15154X 394Y 512             
+327N/C              P1    -X0        UA01X  18135Y  16757X 500Y 866             
+327N/C              P1    -X1        UA01X  15930Y  16757X 500Y 866             
+327N/C              P2    -S1        UA01X   4728Y  15834X 827Y1102             
+327N/C              P2    -S2        UA01X   2228Y  15834X 827Y1102             
+327N/C              P3    -S1        UA01X  19538Y  17078X 827Y1181             
+327N/C              P3    -S2        UA01X  22530Y  17078X 827Y1181             
+327N/C              P4    -S1        UA01X  18178Y  15765X 748Y 709             
+327N/C              P4    -S2        UA01X  19320Y  15765X 748Y 709             
+327N/C              P5    -S1        UA02X  20782Y  14778X 827Y1181             
+327N/C              P5    -S2        UA02X  23774Y  14778X 827Y1181             
+327N/C              Q3    -9X        UA01X  17389Y  14955X 394Y 177             
+327N/C              SW1   -3         UA02X   1345Y  16307X 315Y 669             
+327N/C              SW1   -S1        UA02X   3805Y  15165X 669Y 354             
+327N/C              SW1   -S2        UA02X   3805Y  15992X 669Y 354             
+327N/C              SW1   -S3        UA02X    656Y  15992X 669Y 354             
+327N/C              SW1   -S4        UA02X    656Y  15165X 669Y 354             
+327N/C              SW2   -1         UA02X   1350Y  18327X 217Y 394             
+327N/C              SW2   -4         UA02X   2020Y  16949X 217Y 394             
+327N/C              SW3   -1         UA02X   3000Y  18327X 217Y 394             
+327N/C              SW3   -4         UA02X   3669Y  16949X 217Y 394             
+327N/C              SW4   -1         UA02X  23772Y  18034X 394Y 217             
+327N/C              SW4   -4         UA02X  25150Y  18703X 394Y 217             
+327N/C              U1    -11        UA01X   5431Y  16736X 134Y 571             
+327N/C              U1    -12        UA01X   5687Y  16736X 134Y 571             
+327N/C              U1    -14        UA01X   6199Y  17504X 571Y 134             
+327N/C              U1    -4         UA01X   4919Y  18528X 134Y 571             
+327N/C              U1    -5         UA01X   4407Y  18016X 571Y 134             
+327N/C              U1    -9         UA01X   4919Y  16736X 134Y 571             
+327N/C              U2    -12        UA01X  10224Y  15602X  98Y 551             
+327N/C              U2    -14        UA01X  10618Y  15602X  98Y 551             
+327N/C              U2    -19        UA01X  11425Y  16410X 551Y  98             
+327N/C              U2    -2         UA01X   9220Y  17197X 551Y  98             
+327N/C              U2    -22        UA01X  11425Y  17000X 551Y  98             
+327N/C              U2    -6         UA01X   9220Y  16410X 551Y  98             
+327N/C              U4    -1         UA01X  14401Y  14781X 165Y 701             
+327N/C              U5    -7         UA01X  24496Y  17770X  94Y 394             
+327N/C              U7    -11        UA01X  18280Y  18362X 217Y  91             
+327N/C              U7    -5         UA01X  18989Y  18165X 217Y  91             
+327N/C              U7    -6         UA01X  18989Y  18362X 217Y  91             
+999                                                                             
