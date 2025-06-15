@@ -235,7 +235,7 @@
             ADDR = 12: The next available address in the external EEPROM. uint32_t
 
             ADDR = 16: This field is a personalization field. The user can put any thing they want here but the intent is for name and contact information.
-                This field is 63 characters long with the last byte as a end of string byte.   NOT INPLEMENTED
+                This field is 63 characters long with the last byte as a end of string byte.   NOT IMPLEMENTED
 
             ADDR = 80: This field is a software identification field. The software puts its name, version (from VersionString[]), and release date here.
                 This field is up to 63 characters long with the last byte an end of string delimiter (\0).   NOT IMPLEMENTED
@@ -251,7 +251,7 @@
                 Bit  7  For output digital 9, 0=Servo output, 1=buzzer output
 
             ADDR = 148: The sensor specific block has the following:   NOT IMPLEMENTED
-                (Should we put the BMP390/BMP581 sample rate, IIR filter coeff & oversampling stuff here? No, not yet.)
+                (Should we put the BMP581 sample rate, IIR filter coeff & oversampling stuff here? No, not yet.)
 
                 ...
             ADDR = 160: 32 bytes. This 32 byte block is formatted exactly as a logging 32 byte record.
@@ -300,16 +300,16 @@
             ADDR - 218: Frequency 2 for the buzzer Maximum frequency allowed is 12000 Hz.
                 Read and set with "w" command
 
-            ADDR - 220: Milliseconds between samples during ascent and apogee      NOT IMPLEMENTED
+            ADDR - 220: Milliseconds between samples during ascent and apogee
                 Read and set with "w" command
 
-            ADDR - 222: Milliseconds between samples after [apogee plus 'ServoApogeeDuration_ms'] through landing      NOT IMPLEMENTED
+            ADDR - 222: Milliseconds between samples after [apogee plus 'ServoApogeeDuration_ms'] through landing
                 Read and set with "w" command
 
             (Space left for more word parameters that the "w" command can set. w command writes eight 16 bit values from 216 through 231)
 
 
-            Sketch uses 31922 bytes (98%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
+            Sketch uses 31826 bytes (98%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
     @endverbatim
 
     @author Rich Rau with additions by Bob Rau
@@ -522,12 +522,17 @@
   By: Robert Rau
   Changes: Fixed sign error on accelerometer Z axis log data. Added Logging EEPROM record format comments at bottom of file. Fixed FlightStatus bug where flight phase information was getting masked.
             Comment cleanup. Fixed apogee detect so it shows up in the log on time. More cleanup in transition to flight mode. FlightStatus cleanup.
+
+  Updated: 6/10/2025
+  Rev.: 4.6.15
+  By: Robert Rau
+  Changes: Fixed FlightStatus logging.
  
 
 */
 // Version
-const char VersionString[] = "4.6.14\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1749436554  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.15\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1749578131  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -621,7 +626,7 @@ typedef union {
   unsigned long LandingTime_ms;
 } FlightTimeStamps;
 FlightTimeStamps OurFlightTimeStamps;
-bool ApogeeDetected = false;
+//bool ApogeeDetected = false;
 uint8_t ServoFlightStateArray[7] = { 90, 90, 90, 90, 90, 90, 90 };  // Values must be from 0 to 180. 0:Waiting for launch 1:Ascent 2:Apogee 3:Descent 4:Landed 5:Low power 6:@ high current altitude
 uint8_t ServoState;
 #define ServoWaitingForLaunch_index 0
@@ -631,7 +636,7 @@ uint8_t ServoState;
 #define ServoLanded_index 4
 #define ServoLowPower_index 5
 #define ServoHighCurrent_index 6
-#define ServoApogeeDuration_ms 400  //  The servo will go to position index 2 at apogee and stay there for ServoApogeeDuration_ms milliseconds, then go to position index ServoDescent_index
+#define ServoApogeeDuration_ms 600  //  The servo will go to position index 2 at apogee and stay there for ServoApogeeDuration_ms milliseconds, then go to position index ServoDescent_index
 
 // Analog channels
 #define USBToTenthsVolts 60 / 1023  // This will convert an A/D reading of Vusb to a number ten times the volts. NO parenthesis, we want the multiply by the 60 first, if integer math.
@@ -663,7 +668,7 @@ uint32_t TimeStamp;
 #define DEFAULT_SEALEVELPRESSURE_hPa (1013.25)         //  The International Standard Atmosphere defines standard sealevel pressure as 1013.25 hectopascal (hPa) or millibars (mb).
 #define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)           //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)          //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
-#define APOGEE_DESCENT_THRESHOLD 3.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
+#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 #define START_LOGGING_ALTITUDE_m 0.6                   //  Altitude threshold that we must exceed before starting logging to EEPROM.
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
@@ -674,9 +679,10 @@ float LastDisplayedAltitude_m;                         //  Used to avoid re-writ
 bool SeaLevelPressureSetUpDirection = true;            //  Used for both setting sealevel pressure and altitude threshold for the high current output. True for UP and False for DOWN.
 uint8_t FlightModePhaseIndex;                          //  used in flight mode to keep track of the phase of the flight
 const float InvalidAltitude = -10000.0;
-float CurrentAltitude1Ago_m;  // used for pre-launch queue and landing detection
-float CurrentAltitude2Ago_m;  // used for pre-launch queue and landing detection
-float CurrentAltitude3Ago_m;  // used for pre-launch queue and landing detection
+//float CurrentAltitude4Ago_m;  // used for pre-launch queue, apogee detection
+float CurrentAltitude1Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
+float CurrentAltitude2Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
+float CurrentAltitude3Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
 uint32_t TimeStamp1Ago;       // used for pre-launch queue
 uint32_t TimeStamp2Ago;       // used for pre-launch queue
 uint32_t TimeStamp3Ago;       // used for pre-launch queue
@@ -2222,9 +2228,9 @@ void PopulatePreLaunchQueueFlightRecord(uint16_t RecordIndexValue, uint32_t Time
     current_measurement.Record.AccelerationY_g = (float)0.0;
     current_measurement.Record.AccelerationZ_g = (float)0.0;
   }
-  current_measurement.Record.Altitude = newAltitude_m - fieldAltitude_m;                                                                            // for the initial record this is the field altitude
-  current_measurement.Record.Status = 0x20 | (0x02 & (digitalRead(HighCurrentOut) << 1)) | (0x08 & (digitalRead(TestPoint7) << 3)) | FlightStatus;  // See bottom of this file for format.
-  current_measurement.Record.LightVoltage = (uint32_t)analogRead(LightSensor) * (uint32_t)3000 / (uint32_t)1023.0;                                  // uint32_t light millivolts
+  current_measurement.Record.Altitude = newAltitude_m - fieldAltitude_m;                                                                     // for the initial record this is the field altitude
+  current_measurement.Record.Status = (0x02 & (digitalRead(HighCurrentOut) << 1)) | (0x08 & (digitalRead(TestPoint7) << 3)) | FlightStatus;  // See bottom of this file for format.
+  current_measurement.Record.LightVoltage = (uint32_t)analogRead(LightSensor) * (uint32_t)3000 / (uint32_t)1023.0;                           // uint32_t light millivolts
 }
 
 
@@ -2909,9 +2915,11 @@ Host commands:
                        Bit  7  For output digital 9, 0=Servo output, 1=buzzer output
   u hhhhhhhh      Set user configuration long word. See bit assignments above. Must be exactly 8 hex characters of data.
   p               Read byte parameters.
-  p hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        Set byte parameters. Must be exactly 32 hex characters of data.
+  p hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        Set byte parameters. Must be exactly 32 hex characters of data. The first byte is at MCU EEPROM address 200 and each byte
+                                            after that is at the next larger address.
   w               Read word parameters.
-  w hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        Set word parameters. Must be exactly 32 hex characters of data.
+  w hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        Set word parameters. Must be exactly 32 hex characters of data. The first word in the parameter is at MCU EEPROM address 231:230.
+                                            Each word after that is at DECREASING addresses.
   t nnnnnn        Set SeaLevel Pressure in Pascals, not millibars. A pressure of 1013.25mb is entered as 101325 with no decimal point.
   e               Exit to charge mode.
   h               Help command.
@@ -3944,7 +3952,7 @@ void loop() {
           if (FlightModePhaseIndex == 0) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Initialize for flight.  We get here from 3 places: power up, USB power removal. First collect initial data.
             SetUpMiaFromMCUEEPROM();  //  SamplePeriod_ms is setup on returning from SetUpMiaFromMCUEEPROM().
-            ApogeeDetected = false;
+            //ApogeeDetected = false;
             display.clear();  // Keep 3.0V power as clean as possible during the findinng of field altitude, reduce OLED noise on 3.0 volt power.
             delay(50);
             FindFieldAltitude_m();  // Get a fresh field altitude.
@@ -4005,7 +4013,7 @@ void loop() {
                     break;
                   }
                 }
-                current_measurement.Record.Status = (ServoAscent_index << 9) | 0x0100;
+                current_measurement.Record.Status = 0x0100;
                 WriteRecordAtSamplePeriod(1);
 
                 // 3) ...the 2 queued up records....
@@ -4045,25 +4053,32 @@ void loop() {
           else if (FlightModePhaseIndex == 2) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Flight phase, looking for apogee
             //   flight phase with logging to external EEPROM
+            //CurrentAltitude4Ago_m = CurrentAltitude3Ago_m;
+            CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;
             CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;  // Record next to last altitude for peak altitude detection.
             CurrentAltitude1Ago_m = newAltitude_m;          // Record last altitude for peak altitude detection.
             getAltitude();                                  // Get our current altitude and update maximum altitude.
 
             // servo update
-            if ((ServoNotSounder) && (ApogeeDetected == false)) {
-
+            //if ((ApogeeDetected == false) && (CurrentAltitude4Ago_m > newAltitude_m)) {
+              // This is the peak of APOGEE!!
               // We have two apogee detections, a more sensitive one for servo position and a less sensitive one for flight phase management.
-              if ((CurrentAltitude1Ago_m > newAltitude_m) && (CurrentAltitude2Ago_m > CurrentAltitude1Ago_m)) {
-                // This is the peak of APOGEE!!
-                MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
-                OurFlightTimeStamps.ApogeeTime_ms = millis();  //  We record our apogee time for the next servo position change at a fixed time later. See ServoApogeeDuration_ms
-                ApogeeDetected = true;
-              }
-            }
+              //Serial.print(F("Phase 2, apogee det 1, apogee detect true, MET_ms="));
+              //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
+              //ApogeeDetected = true;
+            //}
 
-            if (newAltitude_m < (maxAltitude_m - APOGEE_DESCENT_THRESHOLD)) {  //   If we are past apogee (we have descended 6 meters (20 feet) from our peak altitude) advance to descent phase.
+            if (newAltitude_m < (maxAltitude_m - APOGEE_DESCENT_THRESHOLD)) {  //   If we are past apogee (we have descended 2 meters (6 feet) from our peak altitude) advance to descent phase.
               FlightModePhaseIndex = 4;
-              FlightStatus = ((ServoApogee_index << 9)) | 0x4000;
+              Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
+              Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
+              if ((ServoNotSounder)) {
+                MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
+              }
+              FlightStatus = FlightStatus & 0xf1ff;
+              FlightStatus = FlightStatus | (ServoApogee_index << 9) | 0x4000;
+              OurFlightTimeStamps.ApogeeTime_ms = millis();  //  We record our apogee time for the next servo position change at a fixed time later. See ServoApogeeDuration_ms
+              //ApogeeDetected = true;
             }
 
             PopulateFlightRecord(RecordNumber);
@@ -4097,30 +4112,38 @@ void loop() {
             CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements.
             CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
             CurrentAltitude1Ago_m = newAltitude_m;
-            getAltitude();  //   Get current altitude but don't display until we have landed because we have the display off.
-            
+            getAltitude();  //   Get current altitude but don't display maximum altitude until we have landed because nobody can see it yet.
+
 
             // High current output altitude threshold check.
             if (AltitudeHighCurrentOutSetting_m > (newAltitude_m - fieldAltitude_m)) {
               digitalWrite(HighCurrentOut, HIGH);  // High current output ON.
+              FlightStatus = FlightStatus & 0xf1ff;
+              FlightStatus = FlightStatus | ServoHighCurrent_index << 9;
               if (ServoNotSounder) {
                 MiaServo.write(ServoFlightStateArray[ServoHighCurrent_index]);
-                FlightStatus = ServoHighCurrent_index << 9;
               }
             }
             //displayAltitude();    // Only for calibration or debug.
-            // We are past apogee, trying to detect landing.
+            // We are past apogee, waiting to detect landing.
 
             // Update MCU EEPROM for last maximum altitude
-            EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));  //  FIX FIX  this should be four EEPROM.update calls so we don't wear out the EEPROM.
+            float LastMaximumAltitude;
+            EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
+            if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
+              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m)); 
+            }
 
             AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
             LandingAltitude_m = newAltitude_m - fieldAltitude_m;
 
             // Sample rate update and possible servo position update
-            if (OurFlightTimeStamps.ApogeeTime_ms + ServoApogeeDuration_ms <= millis()) {
+            if ((OurFlightTimeStamps.ApogeeTime_ms + ServoApogeeDuration_ms) <= millis()) {
+              Serial.print(F("Phase 4, finished apogee to descent,  MET_ms="));
+              Serial.println(millis());
               EEPROM.get(MCU_EEPROM_SAMPLE_RATE_POST_APOGEE, SamplePeriod_ms);  //  Change to descent sensor data sample period.
-              FlightStatus = ServoDescent_index << 9;
+              FlightStatus = FlightStatus & 0xf1ff;
+              FlightStatus = FlightStatus | (ServoDescent_index << 9);
               if (ServoNotSounder) {
                 MiaServo.write(ServoFlightStateArray[ServoDescent_index]);
               }
@@ -4129,13 +4152,14 @@ void loop() {
             if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < 9.0)) {
               // We have landed on a planet!  Save our last record.
 
-              FlightStatus = 0x8040 | (ServoLanded_index << 9);
+              FlightStatus = FlightStatus & 0xf1ff;
+              FlightStatus = FlightStatus | 0x8040 | (ServoLanded_index << 9);
               PopulateFlightRecord(RecordNumber);
               WriteRecordAtSamplePeriod(1);
 
               EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);  //  Update external EEPROM next address in MCU EEPROM.
 
-              digitalWrite(HighCurrentOut, LOW);                                      // High current output OFF.
+              digitalWrite(HighCurrentOut, LOW);  // High current output OFF.
 
               // Update display
               displayAltitude();
@@ -4190,7 +4214,7 @@ void loop() {
               //  Landed but not in low power mode yet, just let buzzer/servo do what they are doing.
               //displayAltitude();   //  display maximum altitude after landing and before low power mode.
             }
-          
+
 
           } else if (FlightModePhaseIndex == 6) {
             DoBuzzer(1);
