@@ -227,6 +227,7 @@
             ADDR = 0: The time field is not a real time in any sense, but is incremented 10 seconds for each power cycle/flight. This allow the "time stamp" to keep logs in order
                 and you know your data log was ON or AFTER the date in the log. After reset this field is check to be after the "born on" date, and a valid number.
                 The format is a standard Linux signed time in seconds, but in 64 bit format. The Linux time 0 is midnight UTC on 1 January 1970. This should be as a "TAI" value.
+                UTC time is sometimes also refered to as Greenwich Mean Time (GMT) or Coordinated Universal Time.  It is the time at the Royal Observatory in Greenwich, London.
                 The EEPROM location supports 64 bits to avoid the year 2038 problem, but the software is not 64 bit ready.
                 The Mia host application also updates this time to the current time.
 
