@@ -894,7 +894,7 @@ void setup() {
   int SkipOLEDSplashInfo;
   int CharCount;
   SkipOLEDSplashInfo = 0;
-  delay(100);
+  delay(40);
   CharCount = Serial.readBytes(receivedChars, numChars - 1);
   if (CharCount > 0) {
     SkipOLEDSplashInfo = 1;

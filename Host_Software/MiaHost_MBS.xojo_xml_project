@@ -39,8 +39,8 @@
  <BuildLinuxX86Name>MiaHost</BuildLinuxX86Name>
  <BuildCarbonExecutableFormat>1</BuildCarbonExecutableFormat>
  <DebuggerCommandLine></DebuggerCommandLine>
- <LinuxArchitecture>1</LinuxArchitecture>
- <MacArchitecture>4</MacArchitecture>
+ <LinuxArchitecture>3</LinuxArchitecture>
+ <MacArchitecture>3</MacArchitecture>
  <WindowsArchitecture>1</WindowsArchitecture>
  <OptimizationLevel>0</OptimizationLevel>
  <NormalizeControlSizes>1</NormalizeControlSizes>
@@ -637,12 +637,12 @@
    <SourceLine>if ConnectToSerialPort() then</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>//#if TargetWindows then</SourceLine>
-   <SourceLine>thread.SleepCurrent (200)  </SourceLine>
-   <SourceLine>Serial1.RequestToSend=False</SourceLine>
-   <SourceLine>Serial1.Reset</SourceLine>
-   <SourceLine>thread.SleepCurrent (200)  </SourceLine>
-   <SourceLine>Serial1.RequestToSend=True</SourceLine>
-   <SourceLine>Serial1.Reset     // This actually makes a reset pulse on Mia's ATMEGA328 MCU.</SourceLine>
+   <SourceLine>thread.SleepCurrent (200)      //  \</SourceLine>
+   <SourceLine>Serial1.RequestToSend=False  //   \</SourceLine>
+   <SourceLine>Serial1.Reset                             //      \</SourceLine>
+   <SourceLine>thread.SleepCurrent (200)      //       \</SourceLine>
+   <SourceLine>Serial1.RequestToSend=True  //         \</SourceLine>
+   <SourceLine>Serial1.Reset     //                                 This makes a reset pulse on Mia's ATMEGA328 MCU.</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>//#endif</SourceLine>
@@ -1716,36 +1716,21 @@
    <SourceLine>NumberOfFlightsFoundLabel.Refresh</SourceLine>
    <SourceLine>MiaHost.Refresh</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>x=0</SourceLine>
-   <SourceLine>while(x&lt;8)</SourceLine>
-   <SourceLine>x=x+1</SourceLine>
-   <SourceLine>Serial1.Write("~" + chrb(13))   // To skip Mia's splash screen so we can connect quicker.</SourceLine>
-   <SourceLine>Serial1.Flush</SourceLine>
-   <SourceLine>Serial1.XmitWait</SourceLine>
-   <SourceLine>thread.SleepCurrent (40)    //  Sleep for 20ms for command error response.</SourceLine>
    <SourceLine>RxChar = Serial1.ReadAll()</SourceLine>
-   <SourceLine>wend</SourceLine>
-   <SourceLine></SourceLine>
    <SourceLine>SendCommand_Meth("", SendCarrageReturnOnly)  ' Return character to move Mia from Battery Charge mode to Host mode if the above stuff didn't do it.</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>ReceivedCharacter = ""</SourceLine>
    <SourceLine>StartTimeTicks = Ticks</SourceLine>
-   <SourceLine>EndTimeTicks = StartTimeTicks + 180     '3 seconds   5-&gt;2</SourceLine>
-   <SourceLine>while(ReceivedCharacter &lt;&gt; "&gt;" and (Ticks &lt; EndTimeTicks))</SourceLine>
+   <SourceLine>EndTimeTicks = StartTimeTicks + 240     '4 seconds   </SourceLine>
+   <SourceLine>while (Ticks &lt; EndTimeTicks)</SourceLine>
    <SourceLine>RxChar = Serial1.ReadAll()</SourceLine>
+   <SourceLine>//DisconnectStatusLabel.Text = str(Ticks) + " :" + RxChar    //   DEBUG</SourceLine>
    <SourceLine>if RxChar.IndexOf("&gt;") &lt;&gt; -1 then</SourceLine>
    <SourceLine>MiaIsAlive = true</SourceLine>
    <SourceLine>Exit While</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine>SendCommand_Meth("", SendCarrageReturnOnly)  ' Return character to move Mia from Battery Charge mode to Host mode if the above stuff didn't do it.</SourceLine>
-   <SourceLine>thread.SleepCurrent (20)   </SourceLine>
+   <SourceLine>thread.SleepCurrent (30)   </SourceLine>
    <SourceLine>wend</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>//SerialPortNameLabel.Text = "Retreving Mia's parameters."</SourceLine>
-   <SourceLine>//NumberOfFlightsFoundLabel.Refresh</SourceLine>
-   <SourceLine>//MiaHost.Refresh</SourceLine>
-   <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>//diag1.Text = DiagString</SourceLine>
    <SourceLine>//SerialPortNameLabel.Text = "Done with while loop"</SourceLine>
@@ -1754,7 +1739,6 @@
    <SourceLine>SerialPortNameLabel.Text = "Retreving Mia's parameters."</SourceLine>
    <SourceLine>NumberOfFlightsFoundLabel.Refresh</SourceLine>
    <SourceLine>MiaHost.Refresh</SourceLine>
-   <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>DownloadAllFlightsButton.Enabled = True</SourceLine>
    <SourceLine>DisconnectFromMiaButton.Enabled = True</SourceLine>
@@ -4133,7 +4117,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">313</PropertyVal>
@@ -4149,7 +4133,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">45</PropertyVal>
+  <PropertyVal Name="Top">43</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -4170,10 +4154,10 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">338</PropertyVal>
+  <PropertyVal Name="Left">345</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -4186,7 +4170,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">550</PropertyVal>
+  <PropertyVal Name="Top">548</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -4207,7 +4191,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">35</PropertyVal>
@@ -4223,7 +4207,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">216</PropertyVal>
+  <PropertyVal Name="Top">214</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -4257,7 +4241,7 @@
   <PropertyVal Name="TabIndex">4</PropertyVal>
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
-  <PropertyVal Name="Text">Update Mia parameters and close the connection</PropertyVal>
+  <PropertyVal Name="Text">Update parameters and close the connection</PropertyVal>
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
@@ -4265,7 +4249,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">310</PropertyVal>
+  <PropertyVal Name="Width">329</PropertyVal>
   <ControlIndex>3</ControlIndex>
   <Locked>0</Locked>
   <PartID>132859903</PartID>
@@ -4337,7 +4321,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">140</PropertyVal>
+  <PropertyVal Name="Top">121</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -4434,7 +4418,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">332</PropertyVal>
+  <PropertyVal Name="Left">251</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -4451,11 +4435,11 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">140</PropertyVal>
+  <PropertyVal Name="Top">147</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">227</PropertyVal>
+  <PropertyVal Name="Width">272</PropertyVal>
   <ControlIndex>8</ControlIndex>
   <Locked>0</Locked>
   <PartID>1619720191</PartID>
@@ -4469,7 +4453,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="InitialValue"></PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
@@ -4486,7 +4470,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">13</PropertyVal>
+  <PropertyVal Name="Top">11</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -4563,7 +4547,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">33</PropertyVal>
@@ -4578,7 +4562,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">183</PropertyVal>
+  <PropertyVal Name="Top">181</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Value">False</PropertyVal>
@@ -4614,7 +4598,7 @@
   <PropertyVal Name="TabIndex">15</PropertyVal>
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
-  <PropertyVal Name="Text">Sealevel Pressure update status</PropertyVal>
+  <PropertyVal Name="Text">Sealevel Pressure update status: Not updated</PropertyVal>
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;c00000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
@@ -4639,7 +4623,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="InitialParent"></PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
@@ -4656,7 +4640,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">401</PropertyVal>
+  <PropertyVal Name="Top">399</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -4724,7 +4708,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">33</PropertyVal>
@@ -4740,7 +4724,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">369</PropertyVal>
+  <PropertyVal Name="Top">367</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -4950,7 +4934,7 @@
   <PropertyVal Name="Value">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
   <PropertyVal Name="VisualState">0</PropertyVal>
-  <PropertyVal Name="Width">168</PropertyVal>
+  <PropertyVal Name="Width">177</PropertyVal>
   <ControlIndex>22</ControlIndex>
   <Locked>0</Locked>
   <PartID>2090178559</PartID>
@@ -4967,7 +4951,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">33</PropertyVal>
@@ -4983,7 +4967,7 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">507</PropertyVal>
+  <PropertyVal Name="Top">505</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -5042,7 +5026,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="InitialParent"></PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
@@ -5059,11 +5043,11 @@
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">140</PropertyVal>
+  <PropertyVal Name="Top">119</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">141</PropertyVal>
+  <PropertyVal Name="Width">155</PropertyVal>
   <ControlIndex>25</ControlIndex>
   <Locked>0</Locked>
   <PartID>1325944831</PartID>
@@ -5153,7 +5137,7 @@
   <PropertyVal Name="FontName">System</PropertyVal>
   <PropertyVal Name="FontSize">0.0</PropertyVal>
   <PropertyVal Name="FontUnit">0</PropertyVal>
-  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">269</PropertyVal>
@@ -5173,7 +5157,7 @@
   <PropertyVal Name="TextAlignment">1</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">433</PropertyVal>
+  <PropertyVal Name="Top">431</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -5196,7 +5180,7 @@
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="InitialParent"></PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">567</PropertyVal>
+  <PropertyVal Name="Left">543</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5214,7 +5198,7 @@
   <PropertyVal Name="Value">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
   <PropertyVal Name="VisualState">0</PropertyVal>
-  <PropertyVal Name="Width">227</PropertyVal>
+  <PropertyVal Name="Width">254</PropertyVal>
   <ControlIndex>29</ControlIndex>
   <Locked>0</Locked>
   <PartID>1494450175</PartID>
@@ -5248,7 +5232,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">102</PropertyVal>
+  <PropertyVal Name="Top">83</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -5270,7 +5254,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">567</PropertyVal>
+  <PropertyVal Name="Left">543</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5288,7 +5272,7 @@
   <PropertyVal Name="Value">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
   <PropertyVal Name="VisualState">0</PropertyVal>
-  <PropertyVal Name="Width">204</PropertyVal>
+  <PropertyVal Name="Width">215</PropertyVal>
   <ControlIndex>31</ControlIndex>
   <Locked>0</Locked>
   <PartID>294387711</PartID>
@@ -5306,7 +5290,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">567</PropertyVal>
+  <PropertyVal Name="Left">543</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5324,7 +5308,7 @@
   <PropertyVal Name="Value">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
   <PropertyVal Name="VisualState">0</PropertyVal>
-  <PropertyVal Name="Width">212</PropertyVal>
+  <PropertyVal Name="Width">254</PropertyVal>
   <ControlIndex>32</ControlIndex>
   <Locked>0</Locked>
   <PartID>671367167</PartID>
@@ -5851,7 +5835,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">531</PropertyVal>
+  <PropertyVal Name="Left">510</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5872,7 +5856,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">149</PropertyVal>
+  <PropertyVal Name="Width">170</PropertyVal>
   <ControlIndex>45</ControlIndex>
   <Locked>0</Locked>
   <PartID>985825279</PartID>
@@ -5974,7 +5958,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">543</PropertyVal>
+  <PropertyVal Name="Left">531</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5995,7 +5979,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">172</PropertyVal>
+  <PropertyVal Name="Width">184</PropertyVal>
   <ControlIndex>48</ControlIndex>
   <Locked>0</Locked>
   <PartID>1884944383</PartID>
@@ -6258,7 +6242,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">608</PropertyVal>
+  <PropertyVal Name="Left">576</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6279,7 +6263,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">124</PropertyVal>
+  <PropertyVal Name="Width">156</PropertyVal>
   <ControlIndex>55</ControlIndex>
   <Locked>0</Locked>
   <PartID>1987577855</PartID>
@@ -8500,8 +8484,9 @@
    <EditorCount>2</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation></EditorLocation>
+    <EditorLocation>MiaHost</EditorLocation>
     <EditorPath></EditorPath>
+    <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
    </Editor>
    <Editor>
