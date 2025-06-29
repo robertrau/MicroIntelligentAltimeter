@@ -422,8 +422,8 @@
    <SourceLine>Sub DisconnectFromMia_Meth()</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>Var  TimeNow as int64</SourceLine>
-   <SourceLine>Var StartTimeTicks as int64</SourceLine>
-   <SourceLine>Var EndTimeTicks as int64</SourceLine>
+   <SourceLine>//Var StartTimeTicks as int64</SourceLine>
+   <SourceLine>//Var EndTimeTicks as int64</SourceLine>
    <SourceLine>Var CommandCharacter As String</SourceLine>
    <SourceLine>Var CommandString As String</SourceLine>
    <SourceLine></SourceLine>
@@ -446,6 +446,7 @@
    <SourceLine>CommandString = CommandCharacter + " " + UserConfigurationLongWord.ToHex(8) + chrb(13)</SourceLine>
    <SourceLine>Serial1.XmitWait</SourceLine>
    <SourceLine>Serial1.Write(CommandString)</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>//diag1.text = CommandString</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>Serial1.Flush</SourceLine>
@@ -527,15 +528,15 @@
    <SourceLine>Serial1.Flush</SourceLine>
    <SourceLine>Serial1.XmitWait</SourceLine>
    <SourceLine>thread.SleepCurrent (40)    //  sleep for 20ms</SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>Serial1.XmitWait</SourceLine>
    <SourceLine>Serial1.Write(MidHexString)</SourceLine>
    <SourceLine>Serial1.Flush</SourceLine>
-   <SourceLine>Serial1.XmitWait</SourceLine>
-   <SourceLine>thread.SleepCurrent (40)    //  sleep for 20ms</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine>thread.SleepCurrent (40)    //  sleep for 20ms</SourceLine>
+   <SourceLine>Serial1.XmitWait</SourceLine>
    <SourceLine>Serial1.Write(RightHexString + chrb(13))</SourceLine>
    <SourceLine>Serial1.Flush</SourceLine>
-   <SourceLine>Serial1.XmitWait</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>//diag1.text = CommandString + MidHexString + RightHexString</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
@@ -591,6 +592,9 @@
    <SourceLine>Var ParameterString as string</SourceLine>
    <SourceLine>Var CommandString as string</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>if CommandParameter = SendCarrageReturnOnly then</SourceLine>
    <SourceLine>CommandString = chrb(13)</SourceLine>
    <SourceLine></SourceLine>
@@ -601,13 +605,9 @@
    <SourceLine>CommandString = CommandCharacter + chrb(13)</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>'msgbox("Command " + CommandString)</SourceLine>
    <SourceLine>Serial1.XmitWait</SourceLine>
    <SourceLine>Serial1.Write(CommandString)</SourceLine>
    <SourceLine>Serial1.Flush</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
@@ -640,7 +640,7 @@
    <SourceLine>thread.SleepCurrent (200)      //  \</SourceLine>
    <SourceLine>Serial1.RequestToSend=False  //   \</SourceLine>
    <SourceLine>Serial1.Reset                             //      \</SourceLine>
-   <SourceLine>thread.SleepCurrent (200)      //       \</SourceLine>
+   <SourceLine>thread.SleepCurrent (300)      //       \</SourceLine>
    <SourceLine>Serial1.RequestToSend=True  //         \</SourceLine>
    <SourceLine>Serial1.Reset     //                                 This makes a reset pulse on Mia's ATMEGA328 MCU.</SourceLine>
    <SourceLine></SourceLine>
@@ -681,18 +681,10 @@
    <SourceLine>' https://documentation.xojo.com/getting_started/tutorials/connecting_to_a_serial_device.html</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>' On Linux, some non-standard baud rates are possible to achieve by using the Setserial system call and setting your baud rate to a special value.</SourceLine>
-   <SourceLine>' stty -F /dev/ttyUSB1 1000000    from: https://forum.xojo.com/t/set-baud-rate-beyond-230400-on-linux/53498</SourceLine>
-   <SourceLine>' http://www.kroah.com/linux-usb/</SourceLine>
-   <SourceLine>' https://unix.stackexchange.com/questions/327188/how-to-monitor-a-serial-connection-250000-baud</SourceLine>
+   <SourceLine>' https://forum.xojo.com/t/raspberry-pi-5-baud-rate-doesnt-work-at-1mbaud-on-ftdi-adapter/85736/13</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>Var SerialPortIndex as integer</SourceLine>
    <SourceLine>Var SerialPortLastIndex as Integer</SourceLine>
-   <SourceLine>Var ThisSerialPortName as String</SourceLine>
-   <SourceLine>Var MiaCandidatePortText as string</SourceLine>
-   <SourceLine>Var x as UInt16</SourceLine>
-   <SourceLine>Var SelectedIndex as UInt16</SourceLine>
    <SourceLine>Var SelectedSerialPortIndex as Integer</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>if SerialDevice.Count &lt;&gt; 0 then</SourceLine>
@@ -717,7 +709,7 @@
    <SourceLine></SourceLine>
    <SourceLine>Catch error As IOException</SourceLine>
    <SourceLine>System.Beep</SourceLine>
-   <SourceLine>MessageBox("The selected serial device could not be opened.")</SourceLine>
+   <SourceLine>MessageBox("Serial device " + SerialPopup.SelectedRowText + " could not be opened.")</SourceLine>
    <SourceLine>ConnectToMiaButton.Caption = "Connect to Mia"</SourceLine>
    <SourceLine>return False</SourceLine>
    <SourceLine>End Try</SourceLine>
@@ -740,36 +732,43 @@
    <SourceLine></SourceLine>
    <SourceLine>Catch error As IOException</SourceLine>
    <SourceLine>System.Beep</SourceLine>
-   <SourceLine>MessageBox("The selected serial device could not be opened.")</SourceLine>
+   <SourceLine>MessageBox("Serial device " + SerialPopup.SelectedRowText + " could not be opened.")</SourceLine>
+   <SourceLine>ConnectToMiaButton.Caption = "Connect to Mia"</SourceLine>
    <SourceLine>return False</SourceLine>
    <SourceLine>End Try</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
    <SourceLine>#ElseIf TargetLinux then</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>Var sh As New Shell</SourceLine>
+   <SourceLine>Var ShellCommand As String</SourceLine>
+   <SourceLine>Var ShellResult As String</SourceLine>
+   <SourceLine>Var PortName As String</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>SelectedSerialPortIndex = SerialPopup.SelectedRowIndex</SourceLine>
    <SourceLine>Serial1.Device = SerialDevice.At(SelectedSerialPortIndex)</SourceLine>
+   <SourceLine>PortName = SerialPopup.SelectedRowText</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>try</SourceLine>
+   <SourceLine>// Setup Linux for 1000000 baud</SourceLine>
+   <SourceLine>sh.Backend = "bash"</SourceLine>
+   <SourceLine>sh.Execute("/usr/bin/setserial /dev/ttyUSB0 divisor 24 spd_cust")</SourceLine>
+   <SourceLine>ShellResult = sh.Result</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>//  Setup Mia host to use 1000000 (1000000 now replaces the 38400 setting)</SourceLine>
+   <SourceLine>Serial1.Device = SerialDevice.At(SelectedSerialPortIndex)</SourceLine>
    <SourceLine>Serial1.Connect</SourceLine>
-   <SourceLine>Serial1.Baud = 1000000</SourceLine>
-   <SourceLine>Serial1.Reset</SourceLine>
+   <SourceLine>Serial1.baud = SerialConnection.Baud38400</SourceLine>
    <SourceLine>Serial1.RequestToSend=False   // Raise RTS to prepare for sending it true to reset the Mia</SourceLine>
    <SourceLine>Serial1.Reset</SourceLine>
-   <SourceLine>//Serial1.LeaveDTROnClose</SourceLine>
    <SourceLine>//  ToDo   MBS library to get Mia USB name like in PocketFrog</SourceLine>
    <SourceLine>return True</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>Catch error As IOException</SourceLine>
    <SourceLine>System.Beep</SourceLine>
-   <SourceLine>MessageBox("The selected serial device could not be opened.")</SourceLine>
+   <SourceLine>MessageBox("Serial device " + SerialPopup.SelectedRowText + " could not be opened.")</SourceLine>
+   <SourceLine>ConnectToMiaButton.Caption = "Connect to Mia"</SourceLine>
    <SourceLine>return False</SourceLine>
    <SourceLine>End Try</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>Var sh As New Shell</SourceLine>
-   <SourceLine>sh.Execute("stty -F /dev/ttyUSB1 1000000")</SourceLine>
-   <SourceLine>sh.Execute("stty -F /dev/ttyUSB2 1000000")</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>#Else</SourceLine>
    <SourceLine></SourceLine>
@@ -969,8 +968,10 @@
    <SourceLine>var curlResultRaw as String</SourceLine>
    <SourceLine>curlResultRaw = NWS_url_to_json(NWS_URL)</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>// get our URL from the json</SourceLine>
    <SourceLine>APIResult1 = ReplaceLineEndings(curlResultRaw, EndOfLine)  // </SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>Var JSON As New JSONItem (APIResult1)</SourceLine>
    <SourceLine>//  I received this JSON and crashed:     must fix</SourceLine>
    <SourceLine>// {"correlationId":"fd152f04","title":"Data Unavailable For Requested Point","type":"https://api.weather.gov/problems/InvalidPoint","status":404,"detail":"Unable to provide data for requested point 44.6997,0","instance":"https://api.weather.gov/requests/fd152f04"}</SourceLine>
@@ -999,13 +1000,35 @@
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Function FindFile(name as string) As FolderItem</SourceLine>
-   <SourceLine>// Look for file in parent folders from executable on</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>dim parent as FolderItem = app.ExecutableFile.Parent</SourceLine>
-   <SourceLine>dim x as integer = 0</SourceLine>
+   <SourceLine>Var parent as FolderItem</SourceLine>
+   <SourceLine>Var file as FolderItem</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>#If TargetLinux Then</SourceLine>
+   <SourceLine>parent = SpecialFolder.etc</SourceLine>
    <SourceLine>while parent&lt;&gt;Nil</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>dim file as FolderItem = parent.Child(name)</SourceLine>
+   <SourceLine>file = parent.Child(name)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>if file&lt;&gt;Nil and file.Exists then</SourceLine>
+   <SourceLine>//msgbox("Found")</SourceLine>
+   <SourceLine>Return file</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>parent = parent.Parent</SourceLine>
+   <SourceLine>wend</SourceLine>
+   <SourceLine>//msgbox("NOT Found")</SourceLine>
+   <SourceLine>return Nil</SourceLine>
+   <SourceLine>#endif</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>// Look for file in parent folders from executable on</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>parent = app.ExecutableFile.Parent</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>while parent&lt;&gt;Nil</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>file = parent.Child(name)</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>if file&lt;&gt;Nil and file.Exists then</SourceLine>
    <SourceLine>//msgbox("Found")</SourceLine>
@@ -1038,8 +1061,8 @@
    <SourceLine>dim d as new CURLSMBS</SourceLine>
    <SourceLine>d.ClearData</SourceLine>
    <SourceLine>// Collect connection debug info</SourceLine>
-   <SourceLine>//d.CollectDebugMessages = True</SourceLine>
-   <SourceLine>//d.OptionVerbose = true</SourceLine>
+   <SourceLine>d.CollectDebugMessages = True</SourceLine>
+   <SourceLine>d.OptionVerbose = true</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>d.CollectOutputData = true</SourceLine>
    <SourceLine>d.SetOptionHTTPHeader array("User-Agent: test/1.0")   //  added 11/30/2024 per Christian @ MBS</SourceLine>
@@ -1052,20 +1075,16 @@
    <SourceLine></SourceLine>
    <SourceLine>// Find our security cetificates</SourceLine>
    <SourceLine>#If TargetLinux Then</SourceLine>
-   <SourceLine>dim cacert as FolderItem = findFile("cacert.pem")</SourceLine>
-   <SourceLine>if cacert &lt;&gt; Nil then</SourceLine>
-   <SourceLine>d.OptionCAInfo = cacert.UnixpathMBS</SourceLine>
-   <SourceLine>else</SourceLine>
-   <SourceLine>// Throw error</SourceLine>
-   <SourceLine>msgbox("Unable to find SSL certificate file.")</SourceLine>
-   <SourceLine>end if</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>d.OptionCAInfo = "/etc/ssl/certs/ca-certificates.crt"</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>#Else</SourceLine>
    <SourceLine>call d.UseSystemCertificates()</SourceLine>
    <SourceLine>#EndIf</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>//  Do the curl!!!</SourceLine>
    <SourceLine>curlStatus = d.Perform   // </SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>DebugTextArea.text = d.DebugMessages</SourceLine>
    <SourceLine>//  collect the curl results and return</SourceLine>
    <SourceLine>var curlResultRaw as String</SourceLine>
    <SourceLine>var APIResult1 as String</SourceLine>
@@ -1202,8 +1221,8 @@
    <SourceLine>Var JSON As New JSONItem (APIResult1)</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>// Find station that has observations</SourceLine>
-   <SourceLine>var x as Integer</SourceLine>
-   <SourceLine>var StationType as String</SourceLine>
+   <SourceLine>//var x as Integer</SourceLine>
+   <SourceLine>//var StationType as String</SourceLine>
    <SourceLine>Var SeaLevelPressure As single</SourceLine>
    <SourceLine>var SeaLevelPressureQuality as String</SourceLine>
    <SourceLine>Var LocalPressure_Pa As Double</SourceLine>
@@ -1243,7 +1262,7 @@
    <SourceLine>//ReferenceTemperature = LocalTemperature_C + 273.15</SourceLine>
    <SourceLine>//SeaLevelPressureDerived = LocalPressure_Pa * Pow(1.0 - ((0.0065 / ReferenceTemperature) * (-LocalElevation_m)), 5.25588)</SourceLine>
    <SourceLine>SeaLevelPressureDerived = LocalPressure_Pa * Pow(1.0 - ((0.0000225577) * (-LocalElevation_m)), 5.25588)</SourceLine>
-   <SourceLine>SealevelPressureInfo.TextColor = rgb(200,0,0)</SourceLine>
+   <SourceLine>SealevelPressureInfo.TextColor = rgb(200, 0, 0)</SourceLine>
    <SourceLine>MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + str(SeaLevelPressureDerived / 100)</SourceLine>
    <SourceLine>SealevelPressureInfo.Text = SealevelPressureInfo.Text + "QC descriptor:" + SeaLevelPressureQuality + ", sealevel pressure Derived. "</SourceLine>
    <SourceLine>return floor(SeaLevelPressureDerived + 0.5)</SourceLine>
@@ -1487,8 +1506,9 @@
    <SourceLine>CandidateLatitude = val(ManualLocationLatTF.Text)</SourceLine>
    <SourceLine>if (CandidateLatitude &gt;= -90) and (CandidateLatitude &lt;= 90) then</SourceLine>
    <SourceLine>CurrentLatitude = CandidateLatitude</SourceLine>
+   <SourceLine>ManualLocationLatTF.TextColor = rgb(0, 0, 0)</SourceLine>
    <SourceLine>else</SourceLine>
-   <SourceLine>ManualLocationLatTF.TextColor = rgb(200,0,0)</SourceLine>
+   <SourceLine>ManualLocationLatTF.TextColor = rgb(200, 0, 0)</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
@@ -1512,8 +1532,9 @@
    <SourceLine>CandidateLongitude = val(ManualLocationLogTF.Text)</SourceLine>
    <SourceLine>if (CandidateLongitude &gt;= -180) and (CandidateLongitude &lt;= 180) then</SourceLine>
    <SourceLine>CurrentLongitude = CandidateLongitude</SourceLine>
+   <SourceLine>ManualLocationLogTF.TextColor = rgb(0, 0, 0)</SourceLine>
    <SourceLine>else</SourceLine>
-   <SourceLine>ManualLocationLogTF.TextColor = rgb(200,0,0)</SourceLine>
+   <SourceLine>ManualLocationLogTF.TextColor = rgb(200, 0, 0)</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
@@ -1693,21 +1714,21 @@
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Sub SetupSession_meth()</SourceLine>
    <SourceLine>'</SourceLine>
-   <SourceLine>Var ReceivedCharacter as string</SourceLine>
+   <SourceLine>//Var ReceivedCharacter as string</SourceLine>
    <SourceLine>Var ReceivedCharacters as string</SourceLine>
    <SourceLine>Var ReceivedParameter as string</SourceLine>
    <SourceLine>Var StartTimeTicks as int32</SourceLine>
    <SourceLine>Var EndTimeTicks as int32</SourceLine>
    <SourceLine>Var HexCharacters as string</SourceLine>
-   <SourceLine>Var x as integer</SourceLine>
-   <SourceLine>Var BitMask As UInt32</SourceLine>
+   <SourceLine>//Var x as integer</SourceLine>
+   <SourceLine>//Var BitMask As UInt32</SourceLine>
    <SourceLine>Var OptionWord as Uint16</SourceLine>
-   <SourceLine>Var FeatureBit As UInt32</SourceLine>
+   <SourceLine>//Var FeatureBit As UInt32</SourceLine>
    <SourceLine>Var WordIndex As int8</SourceLine>
    <SourceLine>Var Alt as string</SourceLine>
    <SourceLine>Var MiaIsAlive As Boolean</SourceLine>
    <SourceLine>Var AltInt as Integer</SourceLine>
-   <SourceLine>Var y As integer</SourceLine>
+   <SourceLine>//Var y As integer</SourceLine>
    <SourceLine>Var RxChar As string</SourceLine>
    <SourceLine>Var DiagString as string</SourceLine>
    <SourceLine>DiagString = ""</SourceLine>
@@ -1716,8 +1737,9 @@
    <SourceLine>NumberOfFlightsFoundLabel.Refresh</SourceLine>
    <SourceLine>MiaHost.Refresh</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>RxChar = Serial1.ReadAll()</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>SendCommand_Meth("", SendCarrageReturnOnly)  ' Return character to move Mia from Battery Charge mode to Host mode if the above stuff didn't do it.</SourceLine>
+   <SourceLine>RxChar = Serial1.ReadAll()</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>StartTimeTicks = Ticks</SourceLine>
    <SourceLine>EndTimeTicks = StartTimeTicks + 240     '4 seconds   </SourceLine>
@@ -1975,6 +1997,7 @@
    <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>RequireDownLoadCheckBox.Enabled = True</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
@@ -2555,6 +2578,7 @@
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
+ <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="MenuBarVisible">False</PropertyVal>
  <PropertyVal Name="MenuBar">1657671679</PropertyVal>
  <PropertyVal Name="Backdrop">0</PropertyVal>
@@ -2577,8 +2601,8 @@
  <PropertyVal Name="MaximumWidth">814</PropertyVal>
  <PropertyVal Name="MinimumHeight">64</PropertyVal>
  <PropertyVal Name="MinimumWidth">64</PropertyVal>
- <PropertyVal Name="Height">624</PropertyVal>
- <PropertyVal Name="Width">817</PropertyVal>
+ <PropertyVal Name="Height">750</PropertyVal>
+ <PropertyVal Name="Width">909</PropertyVal>
  <ViewBehavior>
   <ViewProperty>
    <ObjName>Name</ObjName>
@@ -2936,7 +2960,7 @@
     <SourceLine>' Connect to Mia</SourceLine>
     <SourceLine>' This button does connection</SourceLine>
     <SourceLine></SourceLine>
-    <SourceLine>'</SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine>ConnectToMia_Meth()</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>#if TargetLinux then    //   No support for location services on Linux, so we force manual entry</SourceLine>
@@ -2989,6 +3013,12 @@
     <SourceLine>DisconnectFromMia_Meth()</SourceLine>
     <SourceLine>ConnectToMiaButton.Caption = "Connect to Mia"</SourceLine>
     <SourceLine>ClearFlightLogButton.Enabled =False</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>CurrentLongitude = -1000000</SourceLine>
+    <SourceLine>CurrentLatitude = -1000000</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>SealevelPressureInfo.Text = "Sealevel Pressure update status: Not updated"</SourceLine>
+    <SourceLine>SealevelPressureInfo.TextColor = rgb(0, 0, 0)</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
@@ -3124,7 +3154,11 @@
    <ItemSource>
     <TextEncoding>134217984</TextEncoding>
     <SourceLine>Sub Action()</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine>SetupSession_meth()</SourceLine>
+    <SourceLine>MiaResetTimer.RunMode = Timer.RunModes.Off</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
@@ -3169,7 +3203,7 @@
     <SourceLine>var GridURL as string    //   example:  https://api.weather.gov/gridpoints/DTX/48,27/stations</SourceLine>
     <SourceLine>var StationURL as String   //  example: https://api.weather.gov/stations/kyip/observations/latest</SourceLine>
     <SourceLine>Var StationIDs() As String</SourceLine>
-    <SourceLine>Var dummy as double</SourceLine>
+    <SourceLine>//Var dummy as double</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>//lm.RequestPermissions(self)    //  needed</SourceLine>
     <SourceLine>// do we need to wait after request?</SourceLine>
@@ -3188,6 +3222,7 @@
     <SourceLine></SourceLine>
     <SourceLine>if DisconnectFromMiaButton.Enabled = True then</SourceLine>
     <SourceLine>SendCommand_Meth("t", SeaLevelPressure_Pa)</SourceLine>
+    <SourceLine>SealevelPressureInfo.TextColor = rgb(0, 0, 0)</SourceLine>
     <SourceLine>SealevelPressureInfo.Text = SealevelPressureInfo.Text + " Mia updated."</SourceLine>
     <SourceLine>else</SourceLine>
     <SourceLine>//SealevelPressureInfo.Text = SealevelPressureInfo.Text + " Sealevel pressure is " + str(SeaLevelPressure_Pa / 100) + " hPa."   //  hPa is the same units you adjust on the OLED</SourceLine>
@@ -3195,7 +3230,7 @@
     <SourceLine>//SealevelPressureInfo2.Text = "Updated sealevel pressure in Mia to " + str(SeaLevelPressure_Pa / 100) + " hPa"</SourceLine>
     <SourceLine>else</SourceLine>
     <SourceLine>SealevelPressureInfo.Text = "Weather data from NWS unavailable. Mia not updated."</SourceLine>
-    <SourceLine>SealevelPressureInfo.TextColor = rgb(200,0,0)</SourceLine>
+    <SourceLine>SealevelPressureInfo.TextColor = rgb(200, 0, 0)</SourceLine>
     <SourceLine>end if</SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
@@ -3246,6 +3281,10 @@
     <TextEncoding>134217984</TextEncoding>
     <SourceLine>Sub TextChanged()</SourceLine>
     <SourceLine>ManualLatitudeUpdate</SourceLine>
+    <SourceLine>if (CurrentLatitude &gt; -1000) and (CurrentLongitude &gt; -1000) then</SourceLine>
+    <SourceLine>UpdateSealevelPressureBtn.Enabled = True</SourceLine>
+    <SourceLine>end if</SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
@@ -3265,6 +3304,10 @@
     <TextEncoding>134217984</TextEncoding>
     <SourceLine>Sub TextChanged()</SourceLine>
     <SourceLine>ManualLongitudeUpdate</SourceLine>
+    <SourceLine>if (CurrentLatitude &gt; -1000) and (CurrentLongitude &gt; -1000) then</SourceLine>
+    <SourceLine>UpdateSealevelPressureBtn.Enabled = True</SourceLine>
+    <SourceLine>end if</SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
@@ -3311,15 +3354,16 @@
     <SourceLine></SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>Var LocationText As String</SourceLine>
-    <SourceLine>Var dummy as double</SourceLine>
+    <SourceLine>//Var dummy as double</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>LocationText = "o " + str(CurrentLatitude).left(13) + "," + str(CurrentLongitude).left(13) + chrb(13)</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>if DisconnectFromMiaButton.Enabled = True then</SourceLine>
+    <SourceLine>Serial1.XmitWait</SourceLine>
     <SourceLine>Serial1.Write(LocationText)</SourceLine>
     <SourceLine>Serial1.Flush</SourceLine>
     <SourceLine>thread.SleepCurrent (40)    //  sleep for 40ms</SourceLine>
-    <SourceLine>Serial1.XmitWait</SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine>end if</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
@@ -4105,6 +4149,9 @@
    </ItemSource>
   </HookInstance>
  </ControlBehavior>
+ <ControlBehavior>
+  <Superclass>DesktopTextArea</Superclass>
+ </ControlBehavior>
  <Control>
   <ControlClass>DesktopButton</ControlClass>
   <ItemName>DesktopButton</ItemName>
@@ -4174,7 +4221,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">160</PropertyVal>
+  <PropertyVal Name="Width">182</PropertyVal>
   <ControlIndex>1</ControlIndex>
   <Locked>0</Locked>
   <PartID>528216063</PartID>
@@ -4363,7 +4410,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">337</PropertyVal>
+  <PropertyVal Name="Width">291</PropertyVal>
   <ControlIndex>6</ControlIndex>
   <Locked>0</Locked>
   <PartID>204308479</PartID>
@@ -4401,7 +4448,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">293</PropertyVal>
+  <PropertyVal Name="Width">385</PropertyVal>
   <ControlIndex>7</ControlIndex>
   <Locked>0</Locked>
   <PartID>1066717183</PartID>
@@ -4464,7 +4511,7 @@
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Name">SerialPopup</PropertyVal>
   <PropertyVal Name="Scope">0</PropertyVal>
-  <PropertyVal Name="SelectedRowIndex">0</PropertyVal>
+  <PropertyVal Name="SelectedRowIndex">-1</PropertyVal>
   <PropertyVal Name="Super">DesktopPopupMenu</PropertyVal>
   <PropertyVal Name="TabIndex">10</PropertyVal>
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
@@ -4474,7 +4521,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">194</PropertyVal>
+  <PropertyVal Name="Width">223</PropertyVal>
   <ControlIndex>9</ControlIndex>
   <Locked>0</Locked>
   <PartID>2129498111</PartID>
@@ -4482,7 +4529,7 @@
  <Control>
   <ControlClass>SerialConnection</ControlClass>
   <ItemName>SerialConnection</ItemName>
-  <PropertyVal Name="Baud">13</PropertyVal>
+  <PropertyVal Name="Baud">15</PropertyVal>
   <PropertyVal Name="Bits">3</PropertyVal>
   <PropertyVal Name="BytesAvailable">0</PropertyVal>
   <PropertyVal Name="BytesLeftToSend">0</PropertyVal>
@@ -4528,7 +4575,7 @@
   <PropertyVal Name="Enabled">True</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Name">MiaResetTimer</PropertyVal>
-  <PropertyVal Name="Period">200</PropertyVal>
+  <PropertyVal Name="Period">100</PropertyVal>
   <PropertyVal Name="RunMode">0</PropertyVal>
   <PropertyVal Name="Scope">0</PropertyVal>
   <PropertyVal Name="Super">Timer</PropertyVal>
@@ -4606,7 +4653,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">535</PropertyVal>
+  <PropertyVal Name="Width">604</PropertyVal>
   <ControlIndex>14</ControlIndex>
   <Locked>0</Locked>
   <PartID>1601030143</PartID>
@@ -5047,7 +5094,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">155</PropertyVal>
+  <PropertyVal Name="Width">179</PropertyVal>
   <ControlIndex>25</ControlIndex>
   <Locked>0</Locked>
   <PartID>1325944831</PartID>
@@ -5161,7 +5208,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">287</PropertyVal>
+  <PropertyVal Name="Width">359</PropertyVal>
   <ControlIndex>28</ControlIndex>
   <Locked>0</Locked>
   <PartID>1223899135</PartID>
@@ -5180,7 +5227,7 @@
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="InitialParent"></PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">543</PropertyVal>
+  <PropertyVal Name="Left">636</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5236,7 +5283,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">293</PropertyVal>
+  <PropertyVal Name="Width">385</PropertyVal>
   <ControlIndex>30</ControlIndex>
   <Locked>0</Locked>
   <PartID>178802687</PartID>
@@ -5254,7 +5301,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">543</PropertyVal>
+  <PropertyVal Name="Left">636</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5290,7 +5337,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">543</PropertyVal>
+  <PropertyVal Name="Left">636</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5325,7 +5372,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">608</PropertyVal>
+  <PropertyVal Name="Left">701</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5370,7 +5417,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">738</PropertyVal>
+  <PropertyVal Name="Left">831</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5410,7 +5457,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">608</PropertyVal>
+  <PropertyVal Name="Left">701</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5455,7 +5502,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">738</PropertyVal>
+  <PropertyVal Name="Left">831</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5495,7 +5542,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">608</PropertyVal>
+  <PropertyVal Name="Left">701</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5540,7 +5587,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">738</PropertyVal>
+  <PropertyVal Name="Left">831</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5580,7 +5627,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">608</PropertyVal>
+  <PropertyVal Name="Left">701</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5625,7 +5672,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">738</PropertyVal>
+  <PropertyVal Name="Left">831</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5665,7 +5712,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">608</PropertyVal>
+  <PropertyVal Name="Left">701</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5710,7 +5757,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">738</PropertyVal>
+  <PropertyVal Name="Left">831</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5750,7 +5797,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">608</PropertyVal>
+  <PropertyVal Name="Left">701</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5795,7 +5842,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">738</PropertyVal>
+  <PropertyVal Name="Left">831</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5835,7 +5882,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">510</PropertyVal>
+  <PropertyVal Name="Left">603</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5880,7 +5927,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">686</PropertyVal>
+  <PropertyVal Name="Left">779</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5920,7 +5967,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">760</PropertyVal>
+  <PropertyVal Name="Left">853</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -5958,7 +6005,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">531</PropertyVal>
+  <PropertyVal Name="Left">624</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6003,7 +6050,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">721</PropertyVal>
+  <PropertyVal Name="Left">814</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6043,7 +6090,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">542</PropertyVal>
+  <PropertyVal Name="Left">635</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6088,7 +6135,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">720</PropertyVal>
+  <PropertyVal Name="Left">813</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6128,7 +6175,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">756</PropertyVal>
+  <PropertyVal Name="Left">849</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6183,7 +6230,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">24</PropertyVal>
+  <PropertyVal Name="Top">20</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6242,7 +6289,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">576</PropertyVal>
+  <PropertyVal Name="Left">669</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6287,7 +6334,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">738</PropertyVal>
+  <PropertyVal Name="Left">831</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6327,7 +6374,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">501</PropertyVal>
+  <PropertyVal Name="Left">594</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6372,7 +6419,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">700</PropertyVal>
+  <PropertyVal Name="Left">793</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6412,7 +6459,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">761</PropertyVal>
+  <PropertyVal Name="Left">854</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6450,7 +6497,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">501</PropertyVal>
+  <PropertyVal Name="Left">594</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6495,7 +6542,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">700</PropertyVal>
+  <PropertyVal Name="Left">793</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6535,7 +6582,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">761</PropertyVal>
+  <PropertyVal Name="Left">854</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6573,7 +6620,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">770</PropertyVal>
+  <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6611,7 +6658,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">770</PropertyVal>
+  <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6649,7 +6696,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">770</PropertyVal>
+  <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6687,7 +6734,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">770</PropertyVal>
+  <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6725,7 +6772,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">770</PropertyVal>
+  <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6763,7 +6810,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">770</PropertyVal>
+  <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6801,7 +6848,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">770</PropertyVal>
+  <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6839,7 +6886,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">579</PropertyVal>
+  <PropertyVal Name="Left">672</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6884,7 +6931,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">727</PropertyVal>
+  <PropertyVal Name="Left">820</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6924,7 +6971,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">775</PropertyVal>
+  <PropertyVal Name="Left">868</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6962,7 +7009,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">579</PropertyVal>
+  <PropertyVal Name="Left">672</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -7007,7 +7054,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">727</PropertyVal>
+  <PropertyVal Name="Left">820</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -7047,7 +7094,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">775</PropertyVal>
+  <PropertyVal Name="Left">868</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -7090,6 +7137,59 @@
   <ControlIndex>76</ControlIndex>
   <Locked>0</Locked>
   <PartID>1618980863</PartID>
+ </Control>
+ <Control>
+  <ControlClass>DesktopTextArea</ControlClass>
+  <ItemName>DesktopTextArea</ItemName>
+  <PropertyVal Name="AllowAutoDeactivate">True</PropertyVal>
+  <PropertyVal Name="AllowFocusRing">True</PropertyVal>
+  <PropertyVal Name="AllowSpellChecking">True</PropertyVal>
+  <PropertyVal Name="AllowStyledText">True</PropertyVal>
+  <PropertyVal Name="AllowTabs">True</PropertyVal>
+  <PropertyVal Name="BackgroundColor">&amp;hFFFFFF</PropertyVal>
+  <PropertyVal Name="Bold">False</PropertyVal>
+  <PropertyVal Name="Enabled">True</PropertyVal>
+  <PropertyVal Name="FontName">System</PropertyVal>
+  <PropertyVal Name="FontSize">0.0</PropertyVal>
+  <PropertyVal Name="FontUnit">0</PropertyVal>
+  <PropertyVal Name="Format"></PropertyVal>
+  <PropertyVal Name="HasBorder">True</PropertyVal>
+  <PropertyVal Name="HasHorizontalScrollbar">False</PropertyVal>
+  <PropertyVal Name="HasVerticalScrollbar">True</PropertyVal>
+  <PropertyVal Name="Height">114</PropertyVal>
+  <PropertyVal Name="HideSelection">True</PropertyVal>
+  <PropertyVal Name="Index">-2147483648</PropertyVal>
+  <PropertyVal Name="Italic">False</PropertyVal>
+  <PropertyVal Name="Left">20</PropertyVal>
+  <PropertyVal Name="LineHeight">0.00</PropertyVal>
+  <PropertyVal Name="LineSpacing">1.00</PropertyVal>
+  <PropertyVal Name="LockBottom">True</PropertyVal>
+  <PropertyVal Name="LockLeft">True</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
+  <PropertyVal Name="LockTop">True</PropertyVal>
+  <PropertyVal Name="MaximumCharactersAllowed">0</PropertyVal>
+  <PropertyVal Name="Multiline">True</PropertyVal>
+  <PropertyVal Name="Name">DebugTextArea</PropertyVal>
+  <PropertyVal Name="ReadOnly">False</PropertyVal>
+  <PropertyVal Name="Scope">0</PropertyVal>
+  <PropertyVal Name="Super">DesktopTextArea</PropertyVal>
+  <PropertyVal Name="TabIndex">81</PropertyVal>
+  <PropertyVal Name="TabPanelIndex">0</PropertyVal>
+  <PropertyVal Name="TabStop">True</PropertyVal>
+  <PropertyVal Name="Text"></PropertyVal>
+  <PropertyVal Name="TextAlignment">0</PropertyVal>
+  <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
+  <PropertyVal Name="Tooltip"></PropertyVal>
+  <PropertyVal Name="Top">616</PropertyVal>
+  <PropertyVal Name="Transparent">False</PropertyVal>
+  <PropertyVal Name="Underline">False</PropertyVal>
+  <PropertyVal Name="UnicodeMode">1</PropertyVal>
+  <PropertyVal Name="ValidationMask"></PropertyVal>
+  <PropertyVal Name="Visible">True</PropertyVal>
+  <PropertyVal Name="Width">881</PropertyVal>
+  <ControlIndex>77</ControlIndex>
+  <Locked>0</Locked>
+  <PartID>842547199</PartID>
  </Control>
 </block>
 <block type="Menu" ID="1657671679">
@@ -7501,6 +7601,7 @@
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
  </HookInstance>
+ <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="MenuBarVisible">False</PropertyVal>
  <PropertyVal Name="MenuBar"></PropertyVal>
  <PropertyVal Name="Backdrop">0</PropertyVal>
@@ -8120,6 +8221,7 @@
  <ItemFlags>1</ItemFlags>
  <IsInterface>0</IsInterface>
  <Compatibility></Compatibility>
+ <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="MenuBarVisible">False</PropertyVal>
  <PropertyVal Name="MenuBar"></PropertyVal>
  <PropertyVal Name="Backdrop">0</PropertyVal>
@@ -8481,20 +8583,13 @@
   <EditBounds><Rect left="0" top="38" width="1428" height="1036"/></EditBounds>
   <WindowMaximized>0</WindowMaximized>
   <Editors>
-   <EditorCount>2</EditorCount>
+   <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
     <EditorLocation>MiaHost</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
-   </Editor>
-   <Editor>
-    <EditorIndex>1</EditorIndex>
-    <EditorLocation>MainMenuBar.HelpMenu.AboutItem</EditorLocation>
-    <EditorPath>MainMenuBar.</EditorPath>
-    <EditingPartID>1657671679</EditingPartID>
-    <EditorPath>MainMenuBar.</EditorPath>
    </Editor>
    <SelectedTab>0</SelectedTab>
   </Editors>
