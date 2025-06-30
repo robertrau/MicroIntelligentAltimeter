@@ -5,7 +5,7 @@ That being said, kids can ask the hardest questions, like, how high did my rocke
 
 
 
-![Picture of Mia's user interface side](images/MiaHostConnectMac.png")
+![Picture of Mia's host user interface on a Mac](images/MiaHostConnectMac.png)
 
 
 
