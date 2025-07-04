@@ -534,10 +534,15 @@
   By: Robert Rau
   Changes: Added Wire.setWireTimeout to prevent lockup with damaged display.
 
+  Updated: 7/4/2025
+  Rev.: 4.6.17
+  By: Robert Rau
+  Changes: Fixed launch threshold from 53mph to 9mph
+
  
 */
 // Version
-const char VersionString[] = "4.6.16\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+const char VersionString[] = "4.6.17\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
 #define BIRTH_TIME_OF_THIS_VERSION 1751248136  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
@@ -675,7 +680,7 @@ uint32_t TimeStamp;
 #define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)           //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)          //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 #define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
-#define START_LOGGING_ALTITUDE_m 0.6                   //  Altitude threshold that we must exceed before starting logging to EEPROM.
+#define START_LOGGING_ALTITUDE_m 0.10                   //  Altitude threshold (in meters) that we must exceed before starting logging to EEPROM.
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -856,9 +861,29 @@ void setup() {
 
   digitalWrite(TestPoint7, LOW);
 
+  //  Before starting I2C should we check that both pins are high? If not report I2C failure on serial port? (OLED will not be accessable). FIX?
   Wire.begin();
   Wire.setClock(400000L);
+
+  //  To use the I2C timeout feature you must edit the file:
+  //  /Users/<username>/Library/Arduino15/packages/MiniCore/hardware/avr/3.1.1/libraries/Wire/src/Wire_timeout.h  (Unix format, insert your user name)
+  // If this is not your path, the compilier can tell you. You must have the verbose flag set by:
+  // Windows:  File -> Preferences... -> Show verbose output during  □ compile  □ upload
+  //   MacOS:  Arduino IDE -> Settings... -> Show verbose output during  □ compile   □ upload
+  // and check the compile checkbox.
+  // Now compile this program (the check icon at the upper left of the IDE window)
+  // Look for the string:
+  //    Using cached library dependencies for file: /<this part of the path is different for different installs>/libraries/Wire/src/Wire.cpp
+  // Make sure you grab the whole path, but not the file Wire.cpp
+  // In the folder of that path is a file Wire_timeout.h
+  // edit that file (it is only 4 lines) and enable WIRE_TIMEOUT by uncommenting the line (third line):
+  //  #define WIRE_TIMEOUT
+  //
+  //  
+  #pragma message(STRINGIFY(WIRE_TIMEOUT))
+  #pragma message(STRINGIFY(WIRE_HAS_TIMEOUT))
   Wire.setWireTimeout(120 /* us */, true /* reset_on_timeout */);    //  Will this prevent lockup with damaged display?  20250703
+  //  We need to monitor the timeout flag and set a bit in the MCU EEPROM per flight. Then maybe write a special 'last flight record' if set.
 
   M24M02E_Setup();
 
