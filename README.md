@@ -6,7 +6,11 @@ That being said, kids can ask the hardest questions, like, how high did my rocke
 
 
 ![Picture of Mia's host user interface on a Mac](images/MiaHostConnectMac.png)
+<p align="center">User Interface on a Mac</p>
 
+<br/><br/>
+The board is narrow enough to fit in a BT-5 body tube.
 
-
+![Picture of Mia user interface side](images/MiaBackPhoto0.0.1NoQWIIC.png)
+<p align="center">Back of Mia</p>
 

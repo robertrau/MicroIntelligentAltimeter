@@ -529,10 +529,15 @@
   By: Robert Rau
   Changes: Fixed FlightStatus logging.
  
+  Updated: 7/3/2025
+  Rev.: 4.6.16
+  By: Robert Rau
+  Changes: Added Wire.setWireTimeout to prevent lockup with damaged display.
 
+ 
 */
 // Version
-const char VersionString[] = "4.6.15\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+const char VersionString[] = "4.6.16\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
 #define BIRTH_TIME_OF_THIS_VERSION 1751248136  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
@@ -853,6 +858,7 @@ void setup() {
 
   Wire.begin();
   Wire.setClock(400000L);
+  Wire.setWireTimeout(120 /* us */, true /* reset_on_timeout */);    //  Will this prevent lockup with damaged display?  20250703
 
   M24M02E_Setup();
 
@@ -4360,7 +4366,7 @@ void loop() {
             /
            │  ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
            │  │                  Record Index.                  ││                   Status bits                   │
-           │  │  Record index 1 is the launch location string.  ││  A collection of 15 bits indicating states of   │
+           │  │  Record index 1 is the launch location string.  ││  A collection of 14 bits indicating states of   │
            │  │                                                 ││ internal and external conditions, and phases of │
            │  │                                                 ││                   the flight.                   │
            │  │<------------------ uint16_t ------------------> ││<------------------ uint16_t ------------------> │
@@ -4399,7 +4405,7 @@ void loop() {
 
             / ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
            │  │                  Record Index.                  ││                   Status bits                   │
-           │  │ Record Indices 2 through the end are flight log ││  A collection of 15 bits indicating states of   │
+           │  │ Record Indices 2 through the end are flight log ││  A collection of 14 bits indicating states of   │
            │  │           data at the sample period.            ││ internal and external conditions, and phases of │
            │  │                                                 ││                   the flight.                   │
            │  │<------------------ uint16_t ------------------> ││<------------------ uint16_t ------------------> │
