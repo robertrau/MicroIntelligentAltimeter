@@ -521,8 +521,8 @@
   Updated: 6/9/2025
   Rev.: 4.6.14
   By: Robert Rau
-  Changes: Fixed sign error on accelerometer Z axis log data. Added Logging EEPROM record format comments at bottom of file. Fixed FlightStatus bug where flight phase information was getting masked.
-            Comment cleanup. Fixed apogee detect so it shows up in the log on time. More cleanup in transition to flight mode. FlightStatus cleanup.
+  Changes: Fixed sign error on accelerometer Z axis log data. Added Logging EEPROM record format comments at bottom of file. Fixed FlightStatus bug where flight phase information 
+            was getting masked. Comment cleanup. Fixed apogee detect so it shows up in the log on time. More cleanup in transition to flight mode. FlightStatus cleanup.
 
   Updated: 6/10/2025
   Rev.: 4.6.15
@@ -532,18 +532,24 @@
   Updated: 7/3/2025
   Rev.: 4.6.16
   By: Robert Rau
-  Changes: Added Wire.setWireTimeout to prevent lockup with damaged display.
+  Changes: Added Wire.setWireTimeout to prevent lockup with damaged display. Then removed because it took up more FLASH than we have.
 
   Updated: 7/4/2025
   Rev.: 4.6.17
   By: Robert Rau
   Changes: Fixed launch threshold from 53mph to 9mph
 
+  Updated: 7/7/2025
+  Rev.: 4.6.18
+  By: Robert Rau
+  Changes: Changed Linux time increment so it is only incremented on entry to flight mode. We have introduced a bug where sometimes after launch the display goes blank.
+           Also servo isn't working anymore.
+
  
 */
 // Version
-const char VersionString[] = "4.6.17\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1751248136  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.18\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1752023676  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -656,7 +662,7 @@ uint8_t ServoState;
 #define I2C_OLED_ADDRESS 0x3C  // 0x3C address for 128x32 OLED
 //  External EEPROM is at 0x50 and 0x51
 #define I2C_BMP581_ADDRESS 0x47                      // 0x47 address for BMP581
-#define I2C_MC3416_ADDRESS 0x4C                      // 0x4C address for accelerometer option 1 (never tested)
+//#define I2C_MC3416_ADDRESS 0x4C                      // 0x4C address for accelerometer option 1 (never tested)
 #define I2C_KX134_ADDRESS 0x1E                       // 0x1E address for accelerometer option 2 (KX134ACR NOT KX134-1211, software not compatible)
 #define I2C_ACCELEROMETER_ADDRESS I2C_KX134_ADDRESS  // Address for selected accelerometer
 
@@ -680,7 +686,7 @@ uint32_t TimeStamp;
 #define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)           //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)          //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 #define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
-#define START_LOGGING_ALTITUDE_m 0.10                   //  Altitude threshold (in meters) that we must exceed before starting logging to EEPROM.
+#define START_LOGGING_ALTITUDE_m 0.10                  //  Altitude threshold (in meters) that we must exceed before starting logging to EEPROM.
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -822,6 +828,7 @@ bool HasUser2Button = false;
 //boolean HasChargeInput = false;    //  Not used in this version
 
 int User1ButtonAfterReset;
+bool I2CWorking = true;
 
 /**********************************************************************************************************************************************
    Arduino setup
@@ -861,125 +868,135 @@ void setup() {
 
   digitalWrite(TestPoint7, LOW);
 
-  //  Before starting I2C should we check that both pins are high? If not report I2C failure on serial port? (OLED will not be accessable). FIX?
-  Wire.begin();
-  Wire.setClock(400000L);
-
-  //  To use the I2C timeout feature you must edit the file:
-  //  /Users/<username>/Library/Arduino15/packages/MiniCore/hardware/avr/3.1.1/libraries/Wire/src/Wire_timeout.h  (Unix format, insert your user name)
-  // If this is not your path, the compilier can tell you. You must have the verbose flag set by:
-  // Windows:  File -> Preferences... -> Show verbose output during  □ compile  □ upload
-  //   MacOS:  Arduino IDE -> Settings... -> Show verbose output during  □ compile   □ upload
-  // and check the compile checkbox.
-  // Now compile this program (the check icon at the upper left of the IDE window)
-  // Look for the string:
-  //    Using cached library dependencies for file: /<this part of the path is different for different installs>/libraries/Wire/src/Wire.cpp
-  // Make sure you grab the whole path, but not the file Wire.cpp
-  // In the folder of that path is a file Wire_timeout.h
-  // edit that file (it is only 4 lines) and enable WIRE_TIMEOUT by uncommenting the line (third line):
-  //  #define WIRE_TIMEOUT
-  //
-  //  
-  #pragma message(STRINGIFY(WIRE_TIMEOUT))
-  #pragma message(STRINGIFY(WIRE_HAS_TIMEOUT))
-  Wire.setWireTimeout(120 /* us */, true /* reset_on_timeout */);    //  Will this prevent lockup with damaged display?  20250703
-  //  We need to monitor the timeout flag and set a bit in the MCU EEPROM per flight. Then maybe write a special 'last flight record' if set.
-
-  M24M02E_Setup();
-
-  // set board features...
-  // ... first, as required by PCB version...
-  if (digitalRead(UnusedD23) == LOW) {  // The MiniCore bootloader is required to access D23
-    //  Mia 0.0.1
-    HasUser2Button = true;
-    //HasChargeInput = true;  // Digital input 6.      //  Not used in this version.
-  } else {
-    //  Mia 0.0.0
-    HasUser2Button = false;
-    //HasChargeInput = false;   //  Not used in this version.
+  //  Before starting I2C, we check that both pins are high? If not report I2C failure on serial port? (OLED will not be accessable).
+  if ((digitalRead(A4) == LOW) || (digitalRead(A5) == LOW)) {  // Check that SDA and SCL are both resting high
+    I2CWorking = false;
+    Serial.println(F("I2C Failed"));
   }
 
-  // ... second, apply MCU EEPROM configuration ()
-  SetUpMiaFromMCUEEPROM();  //  SamplePeriod_ms is setup for ascent on returning from SetUpMiaFromMCUEEPROM().
+  if (I2CWorking) {
+    Wire.begin();
+    Wire.setClock(400000L);
 
-  SetupBMP581();                                 // SamplePeriod_ms must be setup before this function call.
-  CurrentPressure = ReadBMP581LatestPressure();  // Flush readings from old setup in output registers.
+    // The I2C timeout feature will prevent lock ups when there is a I2C failure. This feature uses 100s of bytes and does not fit in FlASH with all the current features.
+    //  To use the I2C timeout feature you must edit the file:
+    //  /Users/<username>/Library/Arduino15/packages/MiniCore/hardware/avr/3.1.1/libraries/Wire/src/Wire_timeout.h  (Unix format, insert your user name)
+    // If this is not your path, the compilier can tell you. You must have the verbose flag set by:
+    // Windows:  File -> Preferences... -> Show verbose output during  □ compile  □ upload
+    //   MacOS:  Arduino IDE -> Settings... -> Show verbose output during  □ compile   □ upload
+    // and check the compile checkbox.
+    // Now compile this program (the check icon at the upper left of the IDE window)
+    // Look for the string:
+    //    Using cached library dependencies for file: /<this part of the path is different for different installs>/libraries/Wire/src/Wire.cpp
+    // Make sure you grab the whole path, but not the file Wire.cpp
+    // In the folder of that path is a file Wire_timeout.h
+    // edit that file (it is only 4 lines) and enable WIRE_TIMEOUT by uncommenting the line (third line):
+    //  #define WIRE_TIMEOUT
+    //
+    //
+    //#pragma message(STRINGIFY(WIRE_TIMEOUT))
+    //#pragma message(STRINGIFY(WIRE_HAS_TIMEOUT))
+    //Wire.setWireTimeout(120 /* us */, true /* reset_on_timeout */);    //  Will this prevent lockup with damaged display?  20250703
+    //  We need to monitor the timeout flag and set a bit in the MCU EEPROM per flight. Then maybe write a special 'last flight record' if set.
+
+    M24M02E_Setup();
+
+    // set board features...
+    // ... first, as required by PCB version...
+    if (digitalRead(UnusedD23) == LOW) {  // The MiniCore bootloader is required to access D23
+      //  Mia 0.0.1
+      HasUser2Button = true;
+      //HasChargeInput = true;  // Digital input 6.      //  Not used in this version.
+    } else {
+      //  Mia 0.0.0
+      HasUser2Button = false;
+      //HasChargeInput = false;   //  Not used in this version.
+    }
+
+    // ... second, apply MCU EEPROM configuration ()
+    SetUpMiaFromMCUEEPROM();  //  SamplePeriod_ms is setup for ascent on returning from SetUpMiaFromMCUEEPROM().
+
+    SetupBMP581();                                 // SamplePeriod_ms must be setup before this function call.
+    CurrentPressure = ReadBMP581LatestPressure();  // Flush readings from old setup in output registers.
 
 
-  // Setup OLED Display
-  display.begin(&Adafruit128x32, I2C_OLED_ADDRESS, N_OLEDReset);
-  display.setFont(Iain5x7);  // Proportional font to get more characters per line on the OLED.
-  display.clear();           // Clear display
+    // Setup OLED Display
+    display.begin(&Adafruit128x32, I2C_OLED_ADDRESS, N_OLEDReset);
+    display.setFont(Iain5x7);  // Proportional font to get more characters per line on the OLED.
+    display.clear();           // Clear display
 
-  // Now we have to make sure our EEPROM sea level pressure value in MCU EEPROM is valid. Normaly it should be, but on a brand new Mia, it won't be, it will be 0xFFFFFFFF.
-  MCUEEPROMSeaLevelPressureCheck();
+    // Now we have to make sure our EEPROM sea level pressure value in MCU EEPROM is valid. Normaly it should be, but on a brand new Mia, it won't be, it will be 0xFFFFFFFF.
+    MCUEEPROMSeaLevelPressureCheck();
 
-  if (User1ButtonAfterReset == LOW) {
-    DoSensorDisplayLoop();
-  }
+    if (User1ButtonAfterReset == LOW) {
+      DoSensorDisplayLoop();
+    }
 
-  display.set2X();
-  display.println(F("    Mia"));  // the F() macro will keep a single copy of the text in flash, no RAM use.
+    display.set2X();
+    display.println(F("    Mia"));  // the F() macro will keep a single copy of the text in flash, no RAM use.
 
-  // Lets see if we are hooked to a host computer, if so we will skip the splash screen and instructions question.
-  int SkipOLEDSplashInfo;
-  int CharCount;
-  SkipOLEDSplashInfo = 0;
-  delay(40);
-  CharCount = Serial.readBytes(receivedChars, numChars - 1);
-  if (CharCount > 0) {
-    SkipOLEDSplashInfo = 1;
-  }
+    // Lets see if we are hooked to a host computer, if so we will skip the splash screen and instructions question.
+    int SkipOLEDSplashInfo;
+    int CharCount;
+    SkipOLEDSplashInfo = 0;
+    delay(40);
+    CharCount = Serial.readBytes(receivedChars, numChars - 1);
+    if (CharCount > 0) {
+      SkipOLEDSplashInfo = 1;
+    }
 
-  if (SkipOLEDSplashInfo == 0) {
-    DoSplashScreen();  //  Display   Mia    Micro   Intelligent    Altitmeter   splash screen
-    delay(200);
+    if (SkipOLEDSplashInfo == 0) {
+      DoSplashScreen();  //  Display   Mia    Micro   Intelligent    Altitmeter   splash screen
+      delay(200);
 
-    display.clear();  //  Now display last altitude.
-    display.println(F("Last Altitude "));
-    EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, maxAltitude_m);
-    display.print(maxAltitude_m * METERS_TO_FEET);
-    display.print(F(" ft"));
-    delay(3500);
+      display.clear();  //  Now display last altitude.
+      display.println(F("Last Altitude "));
+      EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, maxAltitude_m);
+      display.print(maxAltitude_m * METERS_TO_FEET);
+      display.print(F(" ft"));
+      delay(3500);
 
-    display.clear();
-    display.println(F("Hold USER1 Btn"));
-    display.print(F("-> Instructions"));
-    delay(2500);
-    if (!digitalRead(N_DispButton)) {
-      DisplayInstructions();
+      display.clear();
+      display.println(F("Hold USER1 Btn"));
+      display.print(F("-> Instructions"));
+      delay(2500);
+      if (!digitalRead(N_DispButton)) {
+        DisplayInstructions();
+      }
+    }
+
+    //  Initialize our date-time system.
+    MCUEEPROMTimeCheck();
+    //IncrementMCUEEPROMTime();  //  Every reset/power up we increment our date-time by ten seconds. This won't give an accurate time but will keep flight records in chronological order.
+    // Changed, we only increment MCUEEPROM time when we drop into flight mode.
+
+    // Now we have to make sure the Latitude and longitude record at MCU_EEPROM_ADDR_LATITUDE_LONGITUDE is correctly initialized.
+    //    The first 16 bit word is 0x0001 for its record number. The second 16 bit word is the status, fixed at 0x0100. Test Latitude and longitude follow. Last byte of test is a zero delimiter.
+    EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE, 0x01);
+    EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 1U, 0x00);
+    EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 2U, 0x00);
+    EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 3U, 0x01);
+    EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 31U, 0x0);  //  end of string
+
+    //  Prepare the display for flight mode
+    display.set2X();  // Get display ready for flight mode, instructions may have reduced the size to 1x.
+
+    MCUEEPROMAltitudeCheck();  // Check the Altitude value for the high current output
+
+    if (HasAccelerometer) {
+      if (!((AccelKX134ACRCheck() == 0) && (AccelKX134ACRInit() == 0))) {  // If accelerometer fails reset check or initialization, request the user to 'Cycle Pwr' and stop.
+        display.print(F("Cycle Pwr"));
+        while (1)
+          ;
+      }
     }
   }
-
-  //  Initialize out date-time system.
-  MCUEEPROMTimeCheck();
-  IncrementMCUEEPROMTime();  //  Every reset/power up we increment our date-time by ten seconds. This won't give an accurate time but will keep flight records in chronological order.
-
-  // Now we have to make sure the Latitude and longitude record at MCU_EEPROM_ADDR_LATITUDE_LONGITUDE is correctly initialized.
-  //    The first 16 bit word is 0x0001 for its record number. The second 16 bit word is the status, fixed at 0x0100. Test Latitude and longitude follow. Last byte of test is a zero delimiter.
-  EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE, 0x01);
-  EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 1U, 0x00);
-  EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 2U, 0x00);
-  EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 3U, 0x01);
-  EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 31U, 0x0);  //  end of string
-
-  //  Prepare the display for flight mode
-  display.set2X();  // Get display ready for flight mode, instructions may have reduced the size to 1x.
-
   //  Prepare sensors and variables for flight mode.
+  LastDisplayedAltitude_m = InvalidAltitude;
   OperationalMode = AllOperationalModes::FlightMode;  // Default operational mode is flight mode.
   FlightModePhaseIndex = 0;
   current_measurement.Record.Status = 0x0040;
-  LastDisplayedAltitude_m = InvalidAltitude;
-  MCUEEPROMAltitudeCheck();
 
-  if (HasAccelerometer) {
-    if (!((AccelKX134ACRCheck() == 0) && (AccelKX134ACRInit() == 0))) {  // If accelerometer fails reset check or initialization, request the user to 'Cycle Pwr' and stop.
-      display.print(F("Cycle Pwr"));
-      while (1)
-        ;
-    }
-  }
   DoBuzzer(0);
 }
 
@@ -2222,8 +2239,8 @@ void PopulateFlightRecord(uint16_t RecordIndexValue) {
   if (RecordIndexValue == 0) {
     // initial, pre-flight record
     current_measurement.Record.Altitude = fieldAltitude_m;                                                                             // for the initial record this is the field altitude
-    current_measurement.Record.Status = 0x01 | (0x02 & (digitalRead(HighCurrentOut) << 1)) | (0x08 & (digitalRead(TestPoint7) << 3));  //  This is the bits: 0:InitialRecord (with field altitude and sea level pressure). 1:PD7_On. 2:BuzzerOn. 3:PD3_TP7. 8:Second Init record with lat & lon
-    //   4:Altitude in feet. 5: Temperature in °C.   15: Landing detected   14: Apogee detected
+    current_measurement.Record.Status = 0x01 | (0x02 & (digitalRead(HighCurrentOut) << 1)) | (0x08 & (digitalRead(TestPoint7) << 3));  //  This is the bits: 0:ON,InitialRecord (with field altitude and sea level pressure). 1:HighCurrentOut_On. 2:OFF,BuzzerOn. 3:PD3_TP7. 8:OFF,Second Init record with lat & lon
+    //   4:OFF,Log Altitude in feet. 5:OFF,Temperature in °C.   15:OFF,Landing detected   14:OFF,Apogee detected
     current_measurement.InitRecord.SeaLevelPressureX4 = int(SeaLevelPressure_hPa * 4.0);  //   fix   Why save in moon units????  it is a 32 bit data type, save it as a float.  FIX FIX FIX host too
     current_measurement.InitRecord.LinuxDateTime = EEPROMTime;
     current_measurement.InitRecord.spare = 0;
@@ -3732,9 +3749,6 @@ void loop() {
   float AltitudeDelta;
   float LandingAltitude_m;
 
-  //  TWBR = 2;
-
-
   // Make sure, that if we have left flight mode, that we have an end record in our external EEPROM.
   if (((current_measurement.Record.Status & 0x40) != 0x40) && (OperationalMode != AllOperationalModes::FlightMode)) {
     // Then we didn't write an end record.
@@ -4093,11 +4107,11 @@ void loop() {
 
             // servo update
             //if ((ApogeeDetected == false) && (CurrentAltitude4Ago_m > newAltitude_m)) {
-              // This is the peak of APOGEE!!
-              // We have two apogee detections, a more sensitive one for servo position and a less sensitive one for flight phase management.
-              //Serial.print(F("Phase 2, apogee det 1, apogee detect true, MET_ms="));
-              //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
-              //ApogeeDetected = true;
+            // This is the peak of APOGEE!!
+            // We have two apogee detections, a more sensitive one for servo position and a less sensitive one for flight phase management.
+            //Serial.print(F("Phase 2, apogee det 1, apogee detect true, MET_ms="));
+            //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
+            //ApogeeDetected = true;
             //}
 
             if (newAltitude_m < (maxAltitude_m - APOGEE_DESCENT_THRESHOLD)) {  //   If we are past apogee (we have descended 2 meters (6 feet) from our peak altitude) advance to descent phase.
@@ -4163,7 +4177,7 @@ void loop() {
             float LastMaximumAltitude;
             EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
             if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
-              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m)); 
+              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
             }
 
             AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
