@@ -1871,9 +1871,11 @@
    <SourceLine>case 5</SourceLine>
    <SourceLine>//msgbox("Pre apogee samp period " + str(OptionWord))</SourceLine>
    <SourceLine>SamplePeriodPreApogeeTF.text = str(OptionWord)</SourceLine>
+   <SourceLine>UpdateLoggingDuration()</SourceLine>
    <SourceLine>case 4</SourceLine>
    <SourceLine>//msgbox("Post apogee samp period " + str(OptionWord))</SourceLine>
    <SourceLine>SamplePeriodPostApogeeTF.text = str(OptionWord)</SourceLine>
+   <SourceLine>UpdateLoggingDuration()</SourceLine>
    <SourceLine>case 3</SourceLine>
    <SourceLine>//</SourceLine>
    <SourceLine></SourceLine>
@@ -2164,6 +2166,36 @@
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine>End Sub</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams></ItemParams>
+  <ItemResult></ItemResult>
+ </Method>
+ <Method>
+  <ItemName>UpdateLoggingDuration</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <PartID>1761382399</PartID>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Sub UpdateLoggingDuration()</SourceLine>
+   <SourceLine>// Full EEPROM logging duration computed when configuration loaded or periods are changed.</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>Var AveragePeriod as Single</SourceLine>
+   <SourceLine>Var LoggingDuration as Single</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>//   Assuming descent takes five times longer than ascent.</SourceLine>
+   <SourceLine>AveragePeriod = ((val(SamplePeriodPreApogeeTF.Text) + (5 * val(SamplePeriodPostApogeeTF))) / 6.0) / 1000.0</SourceLine>
+   <SourceLine>LoggingDuration = AveragePeriod * 8192</SourceLine>
+   <SourceLine>if val(SamplePeriodPreApogeeTF.Text) = val(SamplePeriodPostApogeeTF) then</SourceLine>
+   <SourceLine>LoggingDurationLabel.Text = "Logging duration " + str(LoggingDuration) + " s" </SourceLine>
+   <SourceLine>else</SourceLine>
+   <SourceLine>LoggingDurationLabel.Text = "Logging duration approximately " + str(LoggingDuration) + " s" </SourceLine>
+   <SourceLine>end if</SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -3844,7 +3876,7 @@
    <ItemSource>
     <TextEncoding>134217984</TextEncoding>
     <SourceLine>Sub TextChanged()</SourceLine>
-    <SourceLine></SourceLine>
+    <SourceLine>UpdateLoggingDuration()</SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
   </HookInstance>
@@ -3865,7 +3897,7 @@
    <ItemSource>
     <TextEncoding>134217984</TextEncoding>
     <SourceLine>Sub TextChanged()</SourceLine>
-    <SourceLine></SourceLine>
+    <SourceLine>UpdateLoggingDuration()</SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
   </HookInstance>
@@ -4151,6 +4183,9 @@
  </ControlBehavior>
  <ControlBehavior>
   <Superclass>DesktopTextArea</Superclass>
+ </ControlBehavior>
+ <ControlBehavior>
+  <Superclass>DesktopLabel</Superclass>
  </ControlBehavior>
  <Control>
   <ControlClass>DesktopButton</ControlClass>
@@ -6542,7 +6577,7 @@
   <PropertyVal Name="Hint"></PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">793</PropertyVal>
+  <PropertyVal Name="Left">792</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6560,7 +6595,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The number of milliseconds between samples during descent. This can be as low as 10 but the altitude accuracy is lower and the average sample rate will be closer to 12 milliseconds. Values 14 and greater produce better results. The maximum is 65530 milliseconds, or 65.53 seconds.</PropertyVal>
-  <PropertyVal Name="Top">581</PropertyVal>
+  <PropertyVal Name="Top">584</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -7156,7 +7191,7 @@
   <PropertyVal Name="HasBorder">True</PropertyVal>
   <PropertyVal Name="HasHorizontalScrollbar">False</PropertyVal>
   <PropertyVal Name="HasVerticalScrollbar">True</PropertyVal>
-  <PropertyVal Name="Height">114</PropertyVal>
+  <PropertyVal Name="Height">86</PropertyVal>
   <PropertyVal Name="HideSelection">True</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
@@ -7180,7 +7215,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">616</PropertyVal>
+  <PropertyVal Name="Top">644</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="UnicodeMode">1</PropertyVal>
@@ -7190,6 +7225,44 @@
   <ControlIndex>77</ControlIndex>
   <Locked>0</Locked>
   <PartID>842547199</PartID>
+ </Control>
+ <Control>
+  <ControlClass>DesktopLabel</ControlClass>
+  <ItemName>DesktopLabel</ItemName>
+  <PropertyVal Name="AllowAutoDeactivate">True</PropertyVal>
+  <PropertyVal Name="Bold">False</PropertyVal>
+  <PropertyVal Name="Enabled">True</PropertyVal>
+  <PropertyVal Name="FontName">System</PropertyVal>
+  <PropertyVal Name="FontSize">0.0</PropertyVal>
+  <PropertyVal Name="FontUnit">0</PropertyVal>
+  <PropertyVal Name="Height">20</PropertyVal>
+  <PropertyVal Name="Index">-2147483648</PropertyVal>
+  <PropertyVal Name="Italic">False</PropertyVal>
+  <PropertyVal Name="Left">389</PropertyVal>
+  <PropertyVal Name="LockBottom">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
+  <PropertyVal Name="LockTop">True</PropertyVal>
+  <PropertyVal Name="Multiline">False</PropertyVal>
+  <PropertyVal Name="Name">LoggingDurationLabel</PropertyVal>
+  <PropertyVal Name="Scope">0</PropertyVal>
+  <PropertyVal Name="Selectable">False</PropertyVal>
+  <PropertyVal Name="Super">DesktopLabel</PropertyVal>
+  <PropertyVal Name="TabIndex">82</PropertyVal>
+  <PropertyVal Name="TabPanelIndex">0</PropertyVal>
+  <PropertyVal Name="TabStop">True</PropertyVal>
+  <PropertyVal Name="Text">Logging duration unavailable</PropertyVal>
+  <PropertyVal Name="TextAlignment">3</PropertyVal>
+  <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
+  <PropertyVal Name="Tooltip">This duration assumes the descent time is five times longer than the ascent time.</PropertyVal>
+  <PropertyVal Name="Top">616</PropertyVal>
+  <PropertyVal Name="Transparent">False</PropertyVal>
+  <PropertyVal Name="Underline">False</PropertyVal>
+  <PropertyVal Name="Visible">True</PropertyVal>
+  <PropertyVal Name="Width">480</PropertyVal>
+  <ControlIndex>78</ControlIndex>
+  <Locked>0</Locked>
+  <PartID>1934338047</PartID>
  </Control>
 </block>
 <block type="Menu" ID="1657671679">
@@ -8586,7 +8659,7 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost</EditorLocation>
+    <EditorLocation>MiaHost.Controls.HighCurrentAltitudeLabel</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>

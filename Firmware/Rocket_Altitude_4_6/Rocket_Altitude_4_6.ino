@@ -310,7 +310,7 @@
             (Space left for more word parameters that the "w" command can set. w command writes eight 16 bit values from 216 through 231)
 
 
-            Sketch uses 31826 bytes (98%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
+            Sketch uses 31654 bytes (97%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
     @endverbatim
 
     @author Rich Rau with additions by Bob Rau
@@ -545,11 +545,21 @@
   Changes: Changed Linux time increment so it is only incremented on entry to flight mode. We have introduced a bug where sometimes after launch the display goes blank.
            Also servo isn't working anymore.
 
+  Updated: 7/8/2025
+  Rev.: 4.6.19
+  By: Robert Rau
+  Changes: Fixed status bit comment at file bottom. 
+
+  Updated: 7/9/2025
+  Rev.: 4.6.20
+  By: Robert Rau
+  Changes: Increased allowance for landing altitude difference from launch altitude to 20 meters. Moved old altitude queue updates into getAltitude().
+
  
 */
 // Version
-const char VersionString[] = "4.6.18\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1752023676  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.20\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1752159580  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -724,7 +734,7 @@ BMP581Pressure LatestPressure;
 //                Bit  0  BMP390 pressure/temperature sensor              <-- NOT USING, NOT AN OPTION ANYMORE, 0
 //                Bit  1  Optical sensor with VEMT2523SLX01 and 1.00kΩ pull up resistor  <-- SOLDERED ON THE BOARD, NOT AN OPTION ANYMORE, 1
 //                Bit  2  Memsic MC3416 Accelerometer                     <-- NO INTENTION TO USE, NOT AN OPTION ANYMORE, 0
-//                Bit  3  Kionix KX134 Accelerometer                      <-- OPTION, autoconfigured, 0
+//                Bit  3  Kionix KX134ACR Accelerometer                      <-- OPTION, autoconfigured, 0
 //                Bit  4  10 kΩ thermistor, muRata NXFT15XH103FEAB050, plugged in P3 <--OPTION, default ON, 1
 //                Bit  5  BMP581 pressure/temperature sensor               <-- SOLDERED ON THE BOARD, NOT AN OPTION ANYMORE, 1
 //                Bit  6  For output digital 9, SounderRequiresFrequency   <--OPTION, default ON, 1
@@ -732,7 +742,7 @@ BMP581Pressure LatestPressure;
 uint32_t UserConfiguration;
 #define UserConfigurationRequiredFeatures 0x00000022UL             //Current production board build with defaults.
 #define UserConfigurationDefaultFeatures 0x00000072UL              //Current production board build with defaults.
-#define UserConfigurationHasRohmKX134Accelerometer 0x00000008UL    // KX134 mask
+#define UserConfigurationHasRohmKX134Accelerometer 0x00000008UL    // KX134ACR mask
 #define UserConfigurationP3ThermistorNotVoltage_mask 0x00000010UL  // P3 temperature/voltage mask
 #define UserConfigurationSounderRequiresFrequency 0x00000040UL     // SounderRequiresFrequency mask
 #define UserConfigurationSounderNotServo_mask 0x00000080UL         // Servo mask
@@ -902,7 +912,7 @@ void setup() {
     M24M02E_Setup();
 
     // set board features...
-    // ... first, as required by PCB version...
+    // ... first, find out which PCB version we have. THIS CAN BE REMOVED FOR PRODUCTION AS THERE ARE ONLY THREE 0.0.0 BOARDS IN THE WORLD!
     if (digitalRead(UnusedD23) == LOW) {  // The MiniCore bootloader is required to access D23
       //  Mia 0.0.1
       HasUser2Button = true;
@@ -2180,6 +2190,10 @@ float getTemperatureP3() {
    @retval
 */
 void getAltitude() {
+  //  First, update old altitude queue     NOTE: these may be getting updated faster than the sample rate, must fix.
+  CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements. 
+  CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
+  CurrentAltitude1Ago_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
   newAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
   if (maxAltitude_m < newAltitude_m) {  // If new altitude is greater then max altitude
@@ -2858,7 +2872,7 @@ bool USBPowered() {
 */
 void CaptureCommandLine() {
   char endMarker = '\r';
-  char BackSpace = '\010';  //  control H, 0x08
+  char BackSpace = '\010';  //  control H, 0x08      // Should this be a define?    FIX
   char ReceivedCharacter;
 
   while (Serial.available() > 0 && newData == false) {
@@ -2893,13 +2907,11 @@ void CaptureCommandLine() {
 
 
 /**
-   @brief Convert a hexidecimal character to a 4 bit integer
-
-   @note
+   @brief Convert a hexidecimal character to a 4 bit integer. Supports both upper case and lower case.
 
    @param[in]  hex character
 
-   @retval 
+   @retval Integer from 0 through 15
 */
 int HexToNibble(char hexChar) {
   if (hexChar >= '0' && hexChar <= '9') {
@@ -2909,24 +2921,22 @@ int HexToNibble(char hexChar) {
   } else if (hexChar >= 'a' && hexChar <= 'f') {
     return hexChar - 'a' + 10;
   } else {
-    return 0;  // Invalid hex character
+    return 0;  // Return zero for an invalid hex character.
   }
 }
 
 
 
 /**
-   @brief Convert a hexidecimal string to an integer
+   @brief Convert a hexidecimal string to an integer.
 
-   @details  Limited to a 32 bit integer
-
-   @note
+   @details  Limited to a 32 bit integer.
 
    @param[in]  ptr, pointer to location of hex characters in receivedChars
    @param[in] Length, the number of hex characters to convert to an integer
    @param[out]  the resulting integer
 
-   @retval
+   @retval  integer of hex string.
 */
 uint32_t HexidecimalStringToInteger(char* ptr, int Length) {
   uint32_t ConvertedInteger;
@@ -2941,10 +2951,9 @@ uint32_t HexidecimalStringToInteger(char* ptr, int Length) {
 
 
 /**
-   @brief
+   @brief   ProcessCommand - takes the string from CaptureCommandLine() and executes the command.
 
    @details
-
 Host commands:
   a               Get the last maximum altitude, displayed in feet above launch field altitude.
   l               List all the flight records in logging EEPROM.
@@ -2956,8 +2965,8 @@ Host commands:
   u               Display user configuration long word.
                        Bit  0  BMP390 pressure/temperature sensor
                        Bit  1  Optical sensor with VEMT2523SLX01 and 1.00kΩ pull up resistor
-                       Bit  2  Memsic MC3416 Accelerometer
-                       Bit  3  Kionix KX134 Accelerometer
+                       Bit  2  Memsic MC3416 Accelerometer (no support)
+                       Bit  3  Kionix KX134ACR Accelerometer
                        Bit  4  1: 10 kΩ thermistor, muRata NXFT15XH103FEAB050, plugged in P3 (Mia provides a 10.0 k 1% pull up ressistor)   0:Record voltage from P3
                        Bit  5  BMP581 pressure/temperature sensor
                        Bit  6  For output digital 9, SounderRequiresFrequency
@@ -2975,13 +2984,9 @@ Host commands:
 
 
 
-   @note
-
-   @param[in]
-   @param[in]
-   @param[out]
-
-   @retval
+   @param[in] None
+ 
+   @retval  None
 */
 void ProcessCommand() {
   uint32_t LastStartingIndex;
@@ -4028,14 +4033,14 @@ void loop() {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Wait for launch phase
             //  Flight phase 1, wait for altitude to start going up.
 
-            // Keep a queue of the last three altitudes and timestamps. These have to get updated at the sample rate.
+            // getAltitude() keeps a queue of the last three altitudes and We keep track of the last timestamps here. These have to get updated at the sample rate.
 
 
             if (millis() >= (TimeStamp1Ago + SamplePeriod_ms)) {
 
               //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
-              CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-              CurrentAltitude1Ago_m = newAltitude_m;  //
+              //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
+              //CurrentAltitude1Ago_m = newAltitude_m;  //
 
               //TimeStamp3Ago = TimeStamp2Ago;
               TimeStamp2Ago = TimeStamp1Ago;
@@ -4100,9 +4105,9 @@ void loop() {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Flight phase, looking for apogee
             //   flight phase with logging to external EEPROM
             //CurrentAltitude4Ago_m = CurrentAltitude3Ago_m;
-            CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;
-            CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;  // Record next to last altitude for peak altitude detection.
-            CurrentAltitude1Ago_m = newAltitude_m;          // Record last altitude for peak altitude detection.
+            //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;
+            //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;  // Record next to last altitude for peak altitude detection.
+            //CurrentAltitude1Ago_m = newAltitude_m;          // Record last altitude for peak altitude detection.
             getAltitude();                                  // Get our current altitude and update maximum altitude.
 
             // servo update
@@ -4135,9 +4140,9 @@ void loop() {
             // Flight phase but we ran out of EEPROM, so just report altitude to OLED.
             display.clearField(100, 0, 3);
             display.print(F("FUL"));                        //   EEPROM FULL indication in top right corner of display.
-            CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
-            CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-            CurrentAltitude1Ago_m = newAltitude_m;
+            //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
+            //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
+            //CurrentAltitude1Ago_m = newAltitude_m;
             getAltitude();
             //displayAltitude();  // Don't use OLED to keep 3.0V as clean as possible. Only used for debug.
             AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
@@ -4155,9 +4160,9 @@ void loop() {
 
           else if (FlightModePhaseIndex == 4) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Post apogee looking for landing.
-            CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements.
-            CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-            CurrentAltitude1Ago_m = newAltitude_m;
+            //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements. All values in the queue are valid from flight Phase 2
+            //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
+            //CurrentAltitude1Ago_m = newAltitude_m;
             getAltitude();  //   Get current altitude but don't display maximum altitude until we have landed because nobody can see it yet.
 
 
@@ -4195,7 +4200,7 @@ void loop() {
               }
             }
 
-            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < 9.0)) {
+            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < 20.0)) {   // If we have not moved a meter in the last 3 samples and we are within 20 meters of field launch altitude, we have landed.
               // We have landed on a planet!  Save our last record.
 
               FlightStatus = FlightStatus & 0xf1ff;
@@ -4488,8 +4493,8 @@ void loop() {
 
              ┌─────────────────────────────────────────────────────────────── 15   Landing detected
              │   ┌─────────────────────────────────────────────────────────── 14   Apogee detected
-             │   │   ┌─────────────────────────────────────────────────────── 13   Unused
-             │   │   │   ┌─────────────────────────────────────────────────── 12   Abnormal termination
+             │   │   ┌─────────────────────────────────────────────────────── 13   Abnormal termination
+             │   │   │   ┌─────────────────────────────────────────────────── 12   Unused
              │   │   │   │       ┌─────────────────────────────────────────── 11:9 Flight phase (servo position index)
              │   │   │   │       │       ┌─────────────────────────────────── 8    Location Record
              │   │   │   │       │       │   ┌─────────────────────────────── 7    Unused
