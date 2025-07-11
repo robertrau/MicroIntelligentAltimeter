@@ -5,11 +5,11 @@
  <IDEVersion>20240402</IDEVersion>
  <MajorVersion>0</MajorVersion>
  <MinorVersion>1</MinorVersion>
- <SubVersion>5</SubVersion>
+ <SubVersion>6</SubVersion>
  <Release>0</Release>
  <NonRelease>0</NonRelease>
  <Region></Region>
- <ShortVersion>1.1.0-beta</ShortVersion>
+ <ShortVersion>0.1.6-beta</ShortVersion>
  <LongVersion>2025</LongVersion>
  <InfoVersion>MisHost - download flight logs from Mia Flight Computer</InfoVersion>
  <AutoIncVersion>0</AutoIncVersion>
@@ -18,7 +18,7 @@
  <DefaultLanguage>0</DefaultLanguage>
  <CurrentLanguage>0</CurrentLanguage>
  <DefaultEncoding>0</DefaultEncoding>
- <BuildFlags>6544</BuildFlags>
+ <BuildFlags>6528</BuildFlags>
  <UseBuildsFolder>1</UseBuildsFolder>
  <WebApp>0</WebApp>
  <Icon>
@@ -39,8 +39,8 @@
  <BuildLinuxX86Name>MiaHost</BuildLinuxX86Name>
  <BuildCarbonExecutableFormat>1</BuildCarbonExecutableFormat>
  <DebuggerCommandLine></DebuggerCommandLine>
- <LinuxArchitecture>3</LinuxArchitecture>
- <MacArchitecture>3</MacArchitecture>
+ <LinuxArchitecture>1</LinuxArchitecture>
+ <MacArchitecture>4</MacArchitecture>
  <WindowsArchitecture>1</WindowsArchitecture>
  <OptimizationLevel>0</OptimizationLevel>
  <NormalizeControlSizes>1</NormalizeControlSizes>
@@ -562,10 +562,7 @@
    <SourceLine>thread.SleepCurrent (100)    //  sleep for 100ms</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>Serial1.Close</SourceLine>
-   <SourceLine>SerialPortNameLabel.Text = "Mia has returned to battery charge mode"</SourceLine>
-   <SourceLine>DownloadAllFlightsButton.Enabled = False</SourceLine>
-   <SourceLine>DisconnectFromMiaButton.Enabled = False</SourceLine>
-   <SourceLine>DisconnectStatusLabel.Text = "The Mia can be unplugged."</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -2189,13 +2186,54 @@
    <SourceLine>Var LoggingDuration as Single</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>//   Assuming descent takes five times longer than ascent.</SourceLine>
-   <SourceLine>AveragePeriod = ((val(SamplePeriodPreApogeeTF.Text) + (5 * val(SamplePeriodPostApogeeTF))) / 6.0) / 1000.0</SourceLine>
+   <SourceLine>AveragePeriod = ((val(SamplePeriodPreApogeeTF.Text) + (5 * val(SamplePeriodPostApogeeTF.Text))) / 6.0) / 1000.0</SourceLine>
    <SourceLine>LoggingDuration = AveragePeriod * 8192</SourceLine>
-   <SourceLine>if val(SamplePeriodPreApogeeTF.Text) = val(SamplePeriodPostApogeeTF) then</SourceLine>
+   <SourceLine>if val(SamplePeriodPreApogeeTF.Text) = val(SamplePeriodPostApogeeTF.Text) then</SourceLine>
    <SourceLine>LoggingDurationLabel.Text = "Logging duration " + str(LoggingDuration) + " s" </SourceLine>
    <SourceLine>else</SourceLine>
    <SourceLine>LoggingDurationLabel.Text = "Logging duration approximately " + str(LoggingDuration) + " s" </SourceLine>
    <SourceLine>end if</SourceLine>
+   <SourceLine>End Sub</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams></ItemParams>
+  <ItemResult></ItemResult>
+ </Method>
+ <Method>
+  <ItemName>CleanUpAndDisconnect</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <PartID>746498047</PartID>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Sub CleanUpAndDisconnect()</SourceLine>
+   <SourceLine>MiaHost.Refresh</SourceLine>
+   <SourceLine>ServoPreLaunchTF.Refresh   //  these refreshes were required because reading the text (.text) was reading OLD values!!</SourceLine>
+   <SourceLine>ServoAscentTF.Refresh</SourceLine>
+   <SourceLine>ServoApogeeTF.Refresh</SourceLine>
+   <SourceLine>ServoDecentTF.Refresh</SourceLine>
+   <SourceLine>ServoLandedTF.Refresh</SourceLine>
+   <SourceLine>ServoLowPowerTF.Refresh</SourceLine>
+   <SourceLine>ServoHCOutTF.Refresh</SourceLine>
+   <SourceLine>SounderSlowDownTF.Refresh</SourceLine>
+   <SourceLine>DelayBeforeLowPowerTF.Refresh</SourceLine>
+   <SourceLine>AltitudeForOutputTF.Refresh</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>NumberOfFlightsFoundLabel.text = ""</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>DisconnectFromMia_Meth()</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>ClearFlightLogButton.Enabled =False</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>CurrentLongitude = -1000000</SourceLine>
+   <SourceLine>CurrentLatitude = -1000000</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>SealevelPressureInfo.Text = "Sealevel Pressure update status: Not updated"</SourceLine>
+   <SourceLine>SealevelPressureInfo.TextColor = rgb(0, 0, 0)</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -3028,7 +3066,6 @@
     <SourceLine>'     send the exit command</SourceLine>
     <SourceLine>'     disconnect serial connection</SourceLine>
     <SourceLine></SourceLine>
-    <SourceLine>DisconnectStatusLabel.Text = "Communicating with Mia."</SourceLine>
     <SourceLine>ServoPreLaunchTF.Refresh   //  these refreshes were required because reading the text (.text) was reading OLD values!!</SourceLine>
     <SourceLine>ServoAscentTF.Refresh</SourceLine>
     <SourceLine>ServoApogeeTF.Refresh</SourceLine>
@@ -3039,18 +3076,12 @@
     <SourceLine>SounderSlowDownTF.Refresh</SourceLine>
     <SourceLine>DelayBeforeLowPowerTF.Refresh</SourceLine>
     <SourceLine>AltitudeForOutputTF.Refresh</SourceLine>
-    <SourceLine></SourceLine>
+    <SourceLine>DisconnectStatusLabel.Text = "Communicating with Mia."</SourceLine>
     <SourceLine>NumberOfFlightsFoundLabel.text = ""</SourceLine>
     <SourceLine></SourceLine>
-    <SourceLine>DisconnectFromMia_Meth()</SourceLine>
-    <SourceLine>ConnectToMiaButton.Caption = "Connect to Mia"</SourceLine>
-    <SourceLine>ClearFlightLogButton.Enabled =False</SourceLine>
     <SourceLine></SourceLine>
-    <SourceLine>CurrentLongitude = -1000000</SourceLine>
-    <SourceLine>CurrentLatitude = -1000000</SourceLine>
+    <SourceLine>MiaDisconnectTimer.RunMode = Timer.RunModes.Single </SourceLine>
     <SourceLine></SourceLine>
-    <SourceLine>SealevelPressureInfo.Text = "Sealevel Pressure update status: Not updated"</SourceLine>
-    <SourceLine>SealevelPressureInfo.TextColor = rgb(0, 0, 0)</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
@@ -4186,6 +4217,39 @@
  </ControlBehavior>
  <ControlBehavior>
   <Superclass>DesktopLabel</Superclass>
+ </ControlBehavior>
+ <ControlBehavior>
+  <Superclass>Timer</Superclass>
+  <HookInstance>
+   <ItemName>Action</ItemName>
+   <Compatibility></Compatibility>
+   <Visible>1</Visible>
+   <PartID>1930395647</PartID>
+   <ItemSource>
+    <TextEncoding>134217984</TextEncoding>
+    <SourceLine>Sub Action()</SourceLine>
+    <SourceLine>DisconnectFromMia_Meth()</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>CurrentLongitude = -1000000</SourceLine>
+    <SourceLine>CurrentLatitude = -1000000</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>SealevelPressureInfo.Text = "Sealevel Pressure update status: Not updated"</SourceLine>
+    <SourceLine>SealevelPressureInfo.TextColor = rgb(0, 0, 0)</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>ConnectToMiaButton.Caption = "Connect to Mia"</SourceLine>
+    <SourceLine>ClearFlightLogButton.Enabled =False</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>SerialPortNameLabel.Text = "Mia has returned to battery charge mode"</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>DownloadAllFlightsButton.Enabled = False</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>DisconnectFromMiaButton.Enabled = False</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>DisconnectStatusLabel.Text = "The Mia can be unplugged."</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>End Sub</SourceLine>
+   </ItemSource>
+  </HookInstance>
  </ControlBehavior>
  <Control>
   <ControlClass>DesktopButton</ControlClass>
@@ -6324,7 +6388,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">669</PropertyVal>
+  <PropertyVal Name="Left">554</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6337,7 +6401,7 @@
   <PropertyVal Name="TabIndex">60</PropertyVal>
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
-  <PropertyVal Name="Text">Servo @ HC output:</PropertyVal>
+  <PropertyVal Name="Text">Servo @ high current output Alt.:</PropertyVal>
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The servo will move to this position at the altitude set for the high current output to turn on. It will stay at this position through landing. Set to a value from 0 to 180.</PropertyVal>
@@ -6345,7 +6409,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">156</PropertyVal>
+  <PropertyVal Name="Width">271</PropertyVal>
   <ControlIndex>55</ControlIndex>
   <Locked>0</Locked>
   <PartID>1987577855</PartID>
@@ -7263,6 +7327,21 @@
   <ControlIndex>78</ControlIndex>
   <Locked>0</Locked>
   <PartID>1934338047</PartID>
+ </Control>
+ <Control>
+  <ControlClass>Timer</ControlClass>
+  <ItemName>Timer</ItemName>
+  <PropertyVal Name="Enabled">True</PropertyVal>
+  <PropertyVal Name="Index">-2147483648</PropertyVal>
+  <PropertyVal Name="Name">MiaDisconnectTimer</PropertyVal>
+  <PropertyVal Name="Period">10</PropertyVal>
+  <PropertyVal Name="RunMode">0</PropertyVal>
+  <PropertyVal Name="Scope">0</PropertyVal>
+  <PropertyVal Name="Super">Timer</PropertyVal>
+  <PropertyVal Name="TabPanelIndex">0</PropertyVal>
+  <ControlIndex>79</ControlIndex>
+  <Locked>0</Locked>
+  <PartID>996917247</PartID>
  </Control>
 </block>
 <block type="Menu" ID="1657671679">
@@ -8659,9 +8738,8 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost.Controls.HighCurrentAltitudeLabel</EditorLocation>
+    <EditorLocation></EditorLocation>
     <EditorPath></EditorPath>
-    <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
    </Editor>
    <SelectedTab>0</SelectedTab>

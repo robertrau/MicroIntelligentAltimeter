@@ -555,11 +555,16 @@
   By: Robert Rau
   Changes: Increased allowance for landing altitude difference from launch altitude to 20 meters. Moved old altitude queue updates into getAltitude().
 
+  Updated: 7/10/2025
+  Rev.: 4.6.21
+  By: Robert Rau
+  Changes: Put servo to sleep a half a second after low power mode.
+
  
 */
 // Version
-const char VersionString[] = "4.6.20\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1752159580  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.21\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1752196424  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -839,6 +844,8 @@ bool HasUser2Button = false;
 
 int User1ButtonAfterReset;
 bool I2CWorking = true;
+
+uint32_t DetachServoForLowPowerTime_ms;
 
 /**********************************************************************************************************************************************
    Arduino setup
@@ -4147,7 +4154,9 @@ void loop() {
             //displayAltitude();  // Don't use OLED to keep 3.0V as clean as possible. Only used for debug.
             AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
             LandingAltitude_m = newAltitude_m - fieldAltitude_m;
-            if ((abs(AltitudeDelta) < 0.5) && (abs(LandingAltitude_m) < 10.0)) {
+            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < 20.0)) {
+              // Update display
+              displayAltitude();
               DisplayLandedIndication();
               //  We don't update FlightStatus since nothing is getting recorded.
               FlightModePhaseIndex = 5;
@@ -4260,6 +4269,8 @@ void loop() {
                 BuzzerSchedule[6] = (uint16_t)LowPowerSounderMultiplier;
               }
               FlightModePhaseIndex = 6;
+              DetachServoForLowPowerTime_ms = millis() + 500;
+
               //Serial.println("FlightModePhaseIndex = 6");
             } else {
               //  Landed but not in low power mode yet, just let buzzer/servo do what they are doing.
@@ -4269,6 +4280,9 @@ void loop() {
 
           } else if (FlightModePhaseIndex == 6) {
             DoBuzzer(1);
+            if (millis() > DetachServoForLowPowerTime_ms) {
+              MiaServo.detach();
+            }
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Staying in  low power mode.
           }
 
