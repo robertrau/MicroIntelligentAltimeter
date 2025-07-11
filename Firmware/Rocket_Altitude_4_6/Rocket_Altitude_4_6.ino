@@ -310,7 +310,7 @@
             (Space left for more word parameters that the "w" command can set. w command writes eight 16 bit values from 216 through 231)
 
 
-            Sketch uses 31654 bytes (97%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
+            Sketch uses 31672 bytes (97%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
     @endverbatim
 
     @author Rich Rau with additions by Bob Rau
@@ -560,10 +560,15 @@
   By: Robert Rau
   Changes: Put servo to sleep a half a second after low power mode.
 
+  Updated: 7/11/2025
+  Rev.: 4.6.22
+  By: Robert Rau
+  Changes: Fixed altitude queue to respect sample rate. Updated landing detection. getAltitude() now is called ones at the top of flight mode.
+
  
 */
 // Version
-const char VersionString[] = "4.6.21\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+const char VersionString[] = "4.6.22\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
 #define BIRTH_TIME_OF_THIS_VERSION 1752196424  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
@@ -727,6 +732,7 @@ typedef union {
   uint32_t PressureFraction;  //  ASSUMING LITTEL END-IAN !!!!!!!
 } BMP581Pressure;
 BMP581Pressure LatestPressure;
+#define MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m 61        //  This allows for a delta from the launch altitude for landing detection. Must account for landing in a valley, hill, or tree. 61m is 200ft.
 
 //  High current output altitudes
 #define DEFAULT_ALTITUDE_ft 500.0   //  default altitude to trip high current output, 800ft. above field altitude. In feet.
@@ -837,15 +843,17 @@ int i;
 
 //void(* resetFunc) (void) = 0;   //declare reset function at address 0   CHECK THAT YOUR TARGET PROCESSOR RESETS TO ADDRESS ZERO!!!
 
-// Mia version management
+// Mia version management (Mia version 0.0.0 didn't have these features)
 bool HasAccelerometer = false;
 bool HasUser2Button = false;
 //boolean HasChargeInput = false;    //  Not used in this version
 
 int User1ButtonAfterReset;
-bool I2CWorking = true;
+bool I2CWorking = true;        //  This is a flag indicating that both signals of the I2C bus were high are ready for communications.
 
-uint32_t DetachServoForLowPowerTime_ms;
+uint32_t DetachServoForLowPowerTime_ms;   //  This is for the delay from entering low power mode to shutting off the servo pulses.
+
+bool ThisIsALoggingCycle;  //  This indicates if a iteration through our main loop will include a sample logging.
 
 /**********************************************************************************************************************************************
    Arduino setup
@@ -1921,11 +1929,12 @@ void WriteRecordAtSamplePeriod(uint8_t ForceWriteNow) {
     FlightModePhaseIndex = 3;                            // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode and return.
     return;
   }
-  if ((millis() >= (TimeStamp1Ago + SamplePeriod_ms)) || ForceWriteNow) {
+  if (ThisIsALoggingCycle || ForceWriteNow) {
     writeByteArray(EepromAddress, current_measurement.Bytes, sizeof(current_measurement.Record));  //  Writing out pre-populated measurement record.
     TimeStamp1Ago += SamplePeriod_ms;
     EepromAddress = EepromAddress + sizeof(current_measurement.Record);  //  Increment to starting address of next write.
     RecordNumber++;
+
   }
 }
 
@@ -2197,10 +2206,10 @@ float getTemperatureP3() {
    @retval
 */
 void getAltitude() {
-  //  First, update old altitude queue     NOTE: these may be getting updated faster than the sample rate, must fix.
-  CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements. 
-  CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-  CurrentAltitude1Ago_m = newAltitude_m;
+  //  First, update old altitude queue     NOTE: these may be getting updated faster than the sample rate, must fix.   Moved to WriteRecordAtSamplePeriod()
+  //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements. 
+  //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
+  //CurrentAltitude1Ago_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
   newAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
   if (maxAltitude_m < newAltitude_m) {  // If new altitude is greater then max altitude
@@ -4007,6 +4016,22 @@ void loop() {
                                                              Launch Pad                    ╰─────▶|◀─────┘                                              
 
 */
+
+          // Our loop period and our sample period are not linked, we must find out if this trip through our loop will be a logging event. If so, we will update both the old altitude queue and set a flag for the logging function.
+          if (millis() >= (TimeStamp1Ago + SamplePeriod_ms)) {
+            ThisIsALoggingCycle = true;
+            CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
+            CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
+            CurrentAltitude1Ago_m = newAltitude_m;  //
+
+            TimeStamp2Ago = TimeStamp1Ago;
+            TimeStamp1Ago += SamplePeriod_ms;
+          }
+          else {
+            ThisIsALoggingCycle = false;
+          }
+          getAltitude();
+
           if (FlightModePhaseIndex == 0) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Initialize for flight.  We get here from 3 places: power up, USB power removal. First collect initial data.
             SetUpMiaFromMCUEEPROM();  //  SamplePeriod_ms is setup on returning from SetUpMiaFromMCUEEPROM().
@@ -4039,21 +4064,8 @@ void loop() {
           } else if (FlightModePhaseIndex == 1) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Wait for launch phase
             //  Flight phase 1, wait for altitude to start going up.
-
-            // getAltitude() keeps a queue of the last three altitudes and We keep track of the last timestamps here. These have to get updated at the sample rate.
-
-
-            if (millis() >= (TimeStamp1Ago + SamplePeriod_ms)) {
-
-              //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
-              //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-              //CurrentAltitude1Ago_m = newAltitude_m;  //
-
-              //TimeStamp3Ago = TimeStamp2Ago;
-              TimeStamp2Ago = TimeStamp1Ago;
-              TimeStamp1Ago += SamplePeriod_ms;
-            }
-            getAltitude();
+ 
+            //getAltitude();
 
             //  Launch Detection: Dual check as noise filter. See if new altitude is enough higher than second previous altitude to detect launch
             if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m / 2))) || (newAltitude_m > fieldAltitude_m + 2.0)) {
@@ -4086,7 +4098,7 @@ void loop() {
                 WriteRecordAtSamplePeriod(1);
 
                 // 4) our first live record
-                getAltitude();  //  Get altitude but don't display it, as we are flying, there is nobody to see it.
+                //getAltitude();  //  Get altitude but don't display it, as we are flying, there is nobody to see it.
                 RecordNumber = 4;
                 PopulateFlightRecord(RecordNumber);
 
@@ -4115,7 +4127,7 @@ void loop() {
             //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;
             //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;  // Record next to last altitude for peak altitude detection.
             //CurrentAltitude1Ago_m = newAltitude_m;          // Record last altitude for peak altitude detection.
-            getAltitude();                                  // Get our current altitude and update maximum altitude.
+            //getAltitude();                                  // Get our current altitude and update maximum altitude.
 
             // servo update
             //if ((ApogeeDetected == false) && (CurrentAltitude4Ago_m > newAltitude_m)) {
@@ -4150,11 +4162,11 @@ void loop() {
             //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
             //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
             //CurrentAltitude1Ago_m = newAltitude_m;
-            getAltitude();
+            //getAltitude();
             //displayAltitude();  // Don't use OLED to keep 3.0V as clean as possible. Only used for debug.
             AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
             LandingAltitude_m = newAltitude_m - fieldAltitude_m;
-            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < 20.0)) {
+            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
               // Update display
               displayAltitude();
               DisplayLandedIndication();
@@ -4172,7 +4184,7 @@ void loop() {
             //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements. All values in the queue are valid from flight Phase 2
             //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
             //CurrentAltitude1Ago_m = newAltitude_m;
-            getAltitude();  //   Get current altitude but don't display maximum altitude until we have landed because nobody can see it yet.
+            //getAltitude();  //   Get current altitude but don't display maximum altitude until we have landed because nobody can see it yet.
 
 
             // High current output altitude threshold check.
@@ -4209,7 +4221,7 @@ void loop() {
               }
             }
 
-            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < 20.0)) {   // If we have not moved a meter in the last 3 samples and we are within 20 meters of field launch altitude, we have landed.
+            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {   // If we have not moved a meter in the last 3 samples and we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, we have landed.
               // We have landed on a planet!  Save our last record.
 
               FlightStatus = FlightStatus & 0xf1ff;
