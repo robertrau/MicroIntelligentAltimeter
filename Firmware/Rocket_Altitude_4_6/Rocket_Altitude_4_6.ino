@@ -563,13 +563,18 @@
   Updated: 7/11/2025
   Rev.: 4.6.22
   By: Robert Rau
-  Changes: Fixed altitude queue to respect sample rate. Updated landing detection. getAltitude() now is called ones at the top of flight mode.
+  Changes: Fixed altitude queue to respect sample rate. Updated landing detection. getAltitude() now is called once at the top of flight mode.
+
+  Updated: 7/12/2025
+  Rev.: 4.6.23
+  By: Robert Rau
+  Changes: Fixed blank max altitude display after landing.
 
  
 */
 // Version
-const char VersionString[] = "4.6.22\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1752196424  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.23\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1752338817  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -2994,7 +2999,7 @@ Host commands:
   w               Read word parameters.
   w hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        Set word parameters. Must be exactly 32 hex characters of data. The first word in the parameter is at MCU EEPROM address 231:230.
                                             Each word after that is at DECREASING addresses.
-  t nnnnnn        Set SeaLevel Pressure in Pascals, not millibars. A pressure of 1013.25mb is entered as 101325 with no decimal point.
+  t nnnnnn        Set SeaLevel Pressure in Pascals, not millibars. A pressure of 1013.25mb is entered as 101325 with no decimal point. A pressure of 989.25 is entered as 98925.
   e               Exit to charge mode.
   h               Help command.
 
@@ -4234,7 +4239,7 @@ void loop() {
               digitalWrite(HighCurrentOut, LOW);  // High current output OFF.
 
               // Update display
-              displayAltitude();
+              //displayAltitude();
               DisplayLandedIndication();
 
               // servo update
@@ -4256,6 +4261,7 @@ void loop() {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Landed, start buzzer or position servo and wait for transition to low power mode.
 
             //  Check and see if we go to low power flight mode yet
+            displayAltitude();
             DoBuzzer(1);
 
             if ((OurFlightTimeStamps.LandingTime_ms + DelayToLowPower_ms <= millis())) {
