@@ -570,11 +570,16 @@
   By: Robert Rau
   Changes: Fixed blank max altitude display after landing.
 
+  Updated: 7/12/2025
+  Rev.: 4.6.24
+  By: Robert Rau
+  Changes: Fixed bug where with Mia moving up and down a few feet it would detect launch but never apogee, display was stuck blank.
+
  
 */
 // Version
-const char VersionString[] = "4.6.23\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1752338817  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.24\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1752370788  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -710,7 +715,7 @@ uint32_t TimeStamp;
 #define DEFAULT_SEALEVELPRESSURE_hPa (1013.25)         //  The International Standard Atmosphere defines standard sealevel pressure as 1013.25 hectopascal (hPa) or millibars (mb).
 #define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)           //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)          //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
-#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
+//#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 #define START_LOGGING_ALTITUDE_m 0.10                  //  Altitude threshold (in meters) that we must exceed before starting logging to EEPROM.
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
@@ -2872,7 +2877,7 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump
    @retval boolean TRUE if on USB power, FALSE if not on USB power
 */
 bool USBPowered() {
-  //return false;  //   DEBUG
+  return false;  //   DEBUG
   uint16_t USBADRaw = analogRead(USBVbus);
   return (USBADRaw > USB_VOLTS_THRESHOLD_TO_ADCOUNTS);
 }
@@ -4063,7 +4068,7 @@ void loop() {
             AltitudeHighCurrentOutSetting_m = AltitudeHighCurrentOutSetting_ft / METERS_TO_FEET;
             FlightModePhaseIndex = 1;  // advance to wait for launch phase
             TimeStamp1Ago = millis();
-            //Serial.println("FlightModePhaseIndex = 1");
+            Serial.println("FlightModePhaseIndex = 1");  //  Debug1
 
 
           } else if (FlightModePhaseIndex == 1) {
@@ -4117,7 +4122,7 @@ void loop() {
                   MiaServo.write(ServoFlightStateArray[ServoAscent_index]);
                 }
                 FlightModePhaseIndex = 2;  // Advance to flight phase
-                //Serial.println("FlightModePhaseIndex = 2");
+                Serial.println("FlightModePhaseIndex = 2");  //  Debug1
               }
             } else {
               displayAltitude();  //  Want to see the altitude while preping the rocket.
@@ -4142,10 +4147,11 @@ void loop() {
             //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
             //ApogeeDetected = true;
             //}
-
-            if (newAltitude_m < (maxAltitude_m - APOGEE_DESCENT_THRESHOLD)) {  //   If we are past apogee (we have descended 2 meters (6 feet) from our peak altitude) advance to descent phase.
+            
+            
+            if ((newAltitude_m < CurrentAltitude1Ago_m) && (CurrentAltitude1Ago_m < CurrentAltitude2Ago_m)) {  //   If we are past apogee (we have descended for two consecutive samples, advance to descent phase.
               FlightModePhaseIndex = 4;
-              Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
+              //Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
               Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
               if ((ServoNotSounder)) {
                 MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
@@ -4154,6 +4160,7 @@ void loop() {
               FlightStatus = FlightStatus | (ServoApogee_index << 9) | 0x4000;
               OurFlightTimeStamps.ApogeeTime_ms = millis();  //  We record our apogee time for the next servo position change at a fixed time later. See ServoApogeeDuration_ms
               //ApogeeDetected = true;
+              Serial.println("FlightModePhaseIndex = 4");  //  Debug1
             }
 
             PopulateFlightRecord(RecordNumber);
@@ -4226,7 +4233,7 @@ void loop() {
               }
             }
 
-            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {   // If we have not moved a meter in the last 3 samples and we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, we have landed.
+            if ((abs(AltitudeDelta) < 0.6) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m)) {   // If we have not moved 0.6 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
               // We have landed on a planet!  Save our last record.
 
               FlightStatus = FlightStatus & 0xf1ff;
@@ -4248,7 +4255,7 @@ void loop() {
               }
               OurFlightTimeStamps.LandingTime_ms = millis();
               FlightModePhaseIndex = 5;
-              //Serial.println("FlightModePhaseIndex = 5");
+              Serial.println("FlightModePhaseIndex = 5");   // Debug1
 
             } else {
               PopulateFlightRecord(RecordNumber);
@@ -4289,7 +4296,7 @@ void loop() {
               FlightModePhaseIndex = 6;
               DetachServoForLowPowerTime_ms = millis() + 500;
 
-              //Serial.println("FlightModePhaseIndex = 6");
+              Serial.println("FlightModePhaseIndex = 6");  // Debug1
             } else {
               //  Landed but not in low power mode yet, just let buzzer/servo do what they are doing.
               //displayAltitude();   //  display maximum altitude after landing and before low power mode.
