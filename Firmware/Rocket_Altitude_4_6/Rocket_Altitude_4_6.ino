@@ -575,10 +575,20 @@
   By: Robert Rau
   Changes: Fixed bug where with Mia moving up and down a few feet it would detect launch but never apogee, display was stuck blank.
 
- 
+  Updated: 7/13/2025
+  Rev.: 4.6.25
+  By: Robert Rau
+  Changes: fixed USBPowered(), I left debug code in it! Fixed Apogee detect.....AGAIN, using sensor noise threshold we measured.
+
+  Updated: 7/14/2025
+  Rev.: 4.6.26
+  By: Robert Rau
+  Changes: Several speedup fixes. Adjusted launch threshold. 
+
+ USBPowered
 */
 // Version
-const char VersionString[] = "4.6.24\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+const char VersionString[] = "4.6.26\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
 #define BIRTH_TIME_OF_THIS_VERSION 1752370788  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
@@ -716,7 +726,7 @@ uint32_t TimeStamp;
 #define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)           //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)          //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
-#define START_LOGGING_ALTITUDE_m 0.10                  //  Altitude threshold (in meters) that we must exceed before starting logging to EEPROM.
+#define START_LOGGING_ALTITUDE_m 0.18                  //  Altitude threshold (in meters) that we must exceed before starting logging to EEPROM.
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -743,6 +753,7 @@ typedef union {
 } BMP581Pressure;
 BMP581Pressure LatestPressure;
 #define MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m 61        //  This allows for a delta from the launch altitude for landing detection. Must account for landing in a valley, hill, or tree. 61m is 200ft.
+#define PRESURE_SENSOR_NOISE_THRESHOLD_m 0.18         // Measured at just less than 0.15, so I am adding a little margin to cover part to part variation.
 
 //  High current output altitudes
 #define DEFAULT_ALTITUDE_ft 500.0   //  default altitude to trip high current output, 800ft. above field altitude. In feet.
@@ -1104,7 +1115,7 @@ void SetUpMiaFromMCUEEPROM() {
 
 
   //  **********  Low power setup  *****************************************************************************
-  // Check delay from landing to low power then initialize. Default is 10 seconds (EEPROM byte value = 0x01)
+  // Check delay from landing to low power then initialize. Default is 10 seconds (EEPROM byte value = 0x01).
   EEPROM.get(MCU_EEPROM_DELAY_FROM_LANDING_TO_LOW_POWER_MODE, InitUtilityByte);
   if (InitUtilityByte == 0xff) {
     EEPROM.put(MCU_EEPROM_DELAY_FROM_LANDING_TO_LOW_POWER_MODE, 1);
@@ -2877,7 +2888,7 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump
    @retval boolean TRUE if on USB power, FALSE if not on USB power
 */
 bool USBPowered() {
-  return false;  //   DEBUG
+  //return false;  //   DEBUG
   uint16_t USBADRaw = analogRead(USBVbus);
   return (USBADRaw > USB_VOLTS_THRESHOLD_TO_ADCOUNTS);
 }
@@ -4053,10 +4064,10 @@ void loop() {
             EEPROM.get(MCU_EEPROM_EXT_EEPROM_ADDR_START, EepromAddress);
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, EEPROMTime);  // Date stamp for the CSV formatted data dump
             PopulateFlightRecord(0);                                 // Collect all initial record data, don't write it yet since we don't know if we will really fly.
-            IncrementMCUEEPROMTime();
+            IncrementMCUEEPROMTime();    //  This just adds 10 seconds to our date-time value so the date stamp for each file is in cronalogical order. We don't know the real time unless we get it from the host interface.
             LastDisplayedAltitude_m = InvalidAltitude;  //  Invalidate last displayed max altitude.
 
-            BuzzerSchedule[2] = INTER_BUZZ_DELAY_ms;  // Restore buzzer from low power mode.
+            BuzzerSchedule[2] = INTER_BUZZ_DELAY_ms;  // Restore buzzer to normal from low power mode.
             BuzzerSchedule[6] = INTER_BUZZ_DELAY_ms;
 
 
@@ -4068,7 +4079,7 @@ void loop() {
             AltitudeHighCurrentOutSetting_m = AltitudeHighCurrentOutSetting_ft / METERS_TO_FEET;
             FlightModePhaseIndex = 1;  // advance to wait for launch phase
             TimeStamp1Ago = millis();
-            Serial.println("FlightModePhaseIndex = 1");  //  Debug1
+            //Serial.println("FlightModePhaseIndex = 1");  //  Debug1
 
 
           } else if (FlightModePhaseIndex == 1) {
@@ -4078,7 +4089,7 @@ void loop() {
             //getAltitude();
 
             //  Launch Detection: Dual check as noise filter. See if new altitude is enough higher than second previous altitude to detect launch
-            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m / 2))) || (newAltitude_m > fieldAltitude_m + 2.0)) {
+            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m / 2))) || (newAltitude_m > fieldAltitude_m + 3.0)) {
               //  *** OK, passed launch detect, things get busy here. ***************************************************************************
               // This is our "at launch" list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
               {
@@ -4122,7 +4133,7 @@ void loop() {
                   MiaServo.write(ServoFlightStateArray[ServoAscent_index]);
                 }
                 FlightModePhaseIndex = 2;  // Advance to flight phase
-                Serial.println("FlightModePhaseIndex = 2");  //  Debug1
+                //Serial.println("FlightModePhaseIndex = 2");  //  Debug1
               }
             } else {
               displayAltitude();  //  Want to see the altitude while preping the rocket.
@@ -4148,11 +4159,11 @@ void loop() {
             //ApogeeDetected = true;
             //}
             
-            
-            if ((newAltitude_m < CurrentAltitude1Ago_m) && (CurrentAltitude1Ago_m < CurrentAltitude2Ago_m)) {  //   If we are past apogee (we have descended for two consecutive samples, advance to descent phase.
+            if (newAltitude_m < CurrentAltitude1Ago_m) {   //  A quick test to avoid all the floating point math below.
+            if (((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m)) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
               FlightModePhaseIndex = 4;
               //Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
-              Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
+              //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
               if ((ServoNotSounder)) {
                 MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
               }
@@ -4160,7 +4171,8 @@ void loop() {
               FlightStatus = FlightStatus | (ServoApogee_index << 9) | 0x4000;
               OurFlightTimeStamps.ApogeeTime_ms = millis();  //  We record our apogee time for the next servo position change at a fixed time later. See ServoApogeeDuration_ms
               //ApogeeDetected = true;
-              Serial.println("FlightModePhaseIndex = 4");  //  Debug1
+              //Serial.println("FlightModePhaseIndex = 4");  //  Debug1
+            }
             }
 
             PopulateFlightRecord(RecordNumber);
@@ -4223,8 +4235,8 @@ void loop() {
 
             // Sample rate update and possible servo position update
             if ((OurFlightTimeStamps.ApogeeTime_ms + ServoApogeeDuration_ms) <= millis()) {
-              Serial.print(F("Phase 4, finished apogee to descent,  MET_ms="));
-              Serial.println(millis());
+              //Serial.print(F("Phase 4, finished apogee to descent,  MET_ms="));
+              //Serial.println(millis());
               EEPROM.get(MCU_EEPROM_SAMPLE_RATE_POST_APOGEE, SamplePeriod_ms);  //  Change to descent sensor data sample period.
               FlightStatus = FlightStatus & 0xf1ff;
               FlightStatus = FlightStatus | (ServoDescent_index << 9);
@@ -4255,7 +4267,7 @@ void loop() {
               }
               OurFlightTimeStamps.LandingTime_ms = millis();
               FlightModePhaseIndex = 5;
-              Serial.println("FlightModePhaseIndex = 5");   // Debug1
+              //Serial.println("FlightModePhaseIndex = 5");   // Debug1
 
             } else {
               PopulateFlightRecord(RecordNumber);
@@ -4296,7 +4308,7 @@ void loop() {
               FlightModePhaseIndex = 6;
               DetachServoForLowPowerTime_ms = millis() + 500;
 
-              Serial.println("FlightModePhaseIndex = 6");  // Debug1
+              //Serial.println("FlightModePhaseIndex = 6");  // Debug1
             } else {
               //  Landed but not in low power mode yet, just let buzzer/servo do what they are doing.
               //displayAltitude();   //  display maximum altitude after landing and before low power mode.

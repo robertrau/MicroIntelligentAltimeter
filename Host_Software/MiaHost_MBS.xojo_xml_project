@@ -5,7 +5,7 @@
  <IDEVersion>20240402</IDEVersion>
  <MajorVersion>0</MajorVersion>
  <MinorVersion>1</MinorVersion>
- <SubVersion>6</SubVersion>
+ <SubVersion>7</SubVersion>
  <Release>0</Release>
  <NonRelease>0</NonRelease>
  <Region></Region>
@@ -2684,10 +2684,10 @@
  <PropertyVal Name="HasCloseButton">True</PropertyVal>
  <PropertyVal Name="Title">Mia Host Interface</PropertyVal>
  <PropertyVal Name="Type">0</PropertyVal>
- <PropertyVal Name="MaximumHeight">800</PropertyVal>
- <PropertyVal Name="MaximumWidth">1000</PropertyVal>
- <PropertyVal Name="MinimumHeight">64</PropertyVal>
- <PropertyVal Name="MinimumWidth">64</PropertyVal>
+ <PropertyVal Name="MaximumHeight">1000</PropertyVal>
+ <PropertyVal Name="MaximumWidth">1200</PropertyVal>
+ <PropertyVal Name="MinimumHeight">640</PropertyVal>
+ <PropertyVal Name="MinimumWidth">640</PropertyVal>
  <PropertyVal Name="Height">750</PropertyVal>
  <PropertyVal Name="Width">909</PropertyVal>
  <ViewBehavior>
@@ -3038,6 +3038,7 @@
    <PropertyGroup>Behavior</PropertyGroup>
    <PropertyValue>None</PropertyValue>
    <ItemType>String</ItemType>
+   <EditorType>MultiLineEditor</EditorType>
   </ViewProperty>
  </ViewBehavior>
  <ControlBehavior>
@@ -5373,8 +5374,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">636</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Name">SounderRequiresFreqCB</PropertyVal>
   <PropertyVal Name="Scope">0</PropertyVal>
@@ -5447,8 +5448,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">636</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Name">ServoEnableCB</PropertyVal>
   <PropertyVal Name="Scope">0</PropertyVal>
@@ -5483,8 +5484,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">636</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Name">VoltageOnP3CB</PropertyVal>
   <PropertyVal Name="Scope">0</PropertyVal>
@@ -5518,8 +5519,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">695</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoPreLaunchLabel</PropertyVal>
@@ -5563,8 +5564,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">825</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">ServoPreLaunchTF</PropertyVal>
@@ -5603,8 +5604,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">695</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoAscentLabel</PropertyVal>
@@ -5648,8 +5649,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">825</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">ServoAscentTF</PropertyVal>
@@ -5688,8 +5689,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">695</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoApogeeLabel</PropertyVal>
@@ -5733,8 +5734,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">825</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">ServoApogeeTF</PropertyVal>
@@ -5773,8 +5774,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">695</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoDecentLabel</PropertyVal>
@@ -5818,8 +5819,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">825</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">ServoDecentTF</PropertyVal>
@@ -5858,8 +5859,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">695</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoLandedLabel</PropertyVal>
@@ -5903,8 +5904,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">825</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">ServoLandedTF</PropertyVal>
@@ -5943,8 +5944,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">695</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoLowPowerLabel</PropertyVal>
@@ -5988,8 +5989,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">825</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">ServoLowPowerTF</PropertyVal>
@@ -6028,8 +6029,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">603</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">HighCurrentAltitudeLabel</PropertyVal>
@@ -6073,8 +6074,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">779</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">7</PropertyVal>
   <PropertyVal Name="Name">AltitudeForOutputTF</PropertyVal>
@@ -6113,8 +6114,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">853</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ftLabel</PropertyVal>
@@ -6151,8 +6152,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">624</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoLowPowerLabel1</PropertyVal>
@@ -6196,8 +6197,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">814</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">SounderSlowDownTF</PropertyVal>
@@ -6236,8 +6237,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">635</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoLowPowerLabel2</PropertyVal>
@@ -6281,8 +6282,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">813</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">DelayBeforeLowPowerTF</PropertyVal>
@@ -6321,8 +6322,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">849</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">sLabel</PropertyVal>
@@ -6435,8 +6436,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">548</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ServoHCOutLabel</PropertyVal>
@@ -6480,8 +6481,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">825</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">3</PropertyVal>
   <PropertyVal Name="Name">ServoHCOutTF</PropertyVal>
@@ -6520,8 +6521,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">594</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">SamplePeriodPreApogeeLabel</PropertyVal>
@@ -6565,8 +6566,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">793</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">5</PropertyVal>
   <PropertyVal Name="Name">SamplePeriodPreApogeeTF</PropertyVal>
@@ -6605,8 +6606,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">854</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ms1</PropertyVal>
@@ -6643,8 +6644,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">594</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">SamplePeriodPostApogeeLabel</PropertyVal>
@@ -6688,8 +6689,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">792</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">5</PropertyVal>
   <PropertyVal Name="Name">SamplePeriodPostApogeeTF</PropertyVal>
@@ -6728,8 +6729,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">854</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">ms2</PropertyVal>
@@ -6766,8 +6767,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Deg1</PropertyVal>
@@ -6804,8 +6805,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Deg2</PropertyVal>
@@ -6842,8 +6843,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Deg3</PropertyVal>
@@ -6880,8 +6881,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Deg4</PropertyVal>
@@ -6918,8 +6919,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Deg5</PropertyVal>
@@ -6956,8 +6957,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Deg6</PropertyVal>
@@ -6994,8 +6995,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">863</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Deg7</PropertyVal>
@@ -7032,8 +7033,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">672</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">SounderFreq1Label</PropertyVal>
@@ -7077,8 +7078,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">820</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">5</PropertyVal>
   <PropertyVal Name="Name">SounderFreq1TF</PropertyVal>
@@ -7117,8 +7118,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">868</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Hz1</PropertyVal>
@@ -7155,8 +7156,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">672</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">SounderFreq2Label</PropertyVal>
@@ -7200,8 +7201,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">820</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="MaximumCharactersAllowed">5</PropertyVal>
   <PropertyVal Name="Name">SounderFreq2TF</PropertyVal>
@@ -7240,8 +7241,8 @@
   <PropertyVal Name="Italic">False</PropertyVal>
   <PropertyVal Name="Left">868</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
-  <PropertyVal Name="LockLeft">True</PropertyVal>
-  <PropertyVal Name="LockRight">False</PropertyVal>
+  <PropertyVal Name="LockLeft">False</PropertyVal>
+  <PropertyVal Name="LockRight">True</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
   <PropertyVal Name="Name">Hz2</PropertyVal>
@@ -8849,8 +8850,9 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation></EditorLocation>
+    <EditorLocation>MiaHost.Controls.ServoLowPowerLabel</EditorLocation>
     <EditorPath></EditorPath>
+    <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
    </Editor>
    <SelectedTab>0</SelectedTab>
