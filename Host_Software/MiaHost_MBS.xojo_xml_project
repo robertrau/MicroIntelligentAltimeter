@@ -950,7 +950,8 @@
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>// Build URL</SourceLine>
+   <SourceLine>// Build URL. Format details: https://weather-gov.github.io/api/general-faqs</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>LatitudeFullText = str(CurrentLatitude)</SourceLine>
    <SourceLine>LatPointLocation = LatitudeFullText.IndexOf(".")</SourceLine>
    <SourceLine>LatitudeURLText = LatitudeFullText.left(LatPointLocation + 5)</SourceLine>
@@ -1081,13 +1082,14 @@
    <SourceLine></SourceLine>
    <SourceLine>//  Do the curl!!!</SourceLine>
    <SourceLine>curlStatus = d.Perform   // </SourceLine>
-   <SourceLine>DebugTextArea.text = d.DebugMessages</SourceLine>
+   <SourceLine>DebugTextArea.text = DebugTextArea.text + d.DebugMessages</SourceLine>
    <SourceLine>//  collect the curl results and return</SourceLine>
    <SourceLine>var curlResultRaw as String</SourceLine>
    <SourceLine>var APIResult1 as String</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>curlResultRaw = d.OutputData</SourceLine>
    <SourceLine>APIResult1 = ReplaceLineEndings(curlResultRaw, EndOfLine)  // </SourceLine>
+   <SourceLine>DebugTextArea.text = DebugTextArea.text + EndOfLine + "🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀"  + EndOfLine</SourceLine>
    <SourceLine>return APIResult1</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Function</SourceLine>
@@ -1189,9 +1191,15 @@
    <SourceLine>// Given a NWS station URL we extract sealevel pressure from the json response.</SourceLine>
    <SourceLine>//   Some stations do not report sealevel pressure and we need to derive it from barametric pressure, elevation, and temperature.</SourceLine>
    <SourceLine>// See   https://www.weather.gov/documentation/services-web-api#/default/station_observation_latest</SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>// and https://github.com/weather-gov/api/discussions/771#discussioncomment-13853813</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>dim APIResult1 as String</SourceLine>
+   <SourceLine>Const SPECIFIC_GAS_CONSTANT_JdivKkg  As Double = 287.0  // specific gas constant for dry air 287.0 J/K*kg</SourceLine>
+   <SourceLine>Const Math_e As Double = 2.71828182845904523536</SourceLine>
+   <SourceLine>Const GRAVITATIONAL_ACCELERATION_m_ss As Double = 9.80665   //  gravitational acceleration constant m/s^2</SourceLine>
+   <SourceLine>Const METERS_TO_FEET as Double = 3.28084</SourceLine>
+   <SourceLine>Const StandardSeaLevelPressure_mb As Double = 1013.25</SourceLine>
+   <SourceLine>Const LapseRate_C_m As Double = 0.00650   //  From NOAA 1976</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>// url support</SourceLine>
    <SourceLine></SourceLine>
@@ -1200,7 +1208,9 @@
    <SourceLine>curlResultRaw = NWS_url_to_json(URL)</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>APIResult1 = ReplaceLineEndings(curlResultRaw, EndOfLine)  // </SourceLine>
+   <SourceLine>DebugTextArea.text = DebugTextArea.text + EndOfLine + "🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀"  + EndOfLine</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine>DebugTextArea.text = DebugTextArea.text + APIResult1</SourceLine>
    <SourceLine>// Must filter out NWS junk. The json sometimes has lines that start with:  "* TLSv1.2 (IN),..." and must be removed</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>var LineArray() as String</SourceLine>
@@ -1220,52 +1230,172 @@
    <SourceLine>// Find station that has observations</SourceLine>
    <SourceLine>//var x as Integer</SourceLine>
    <SourceLine>//var StationType as String</SourceLine>
-   <SourceLine>Var SeaLevelPressure As single</SourceLine>
+   <SourceLine>Var SeaLevelPressure_Pa As single</SourceLine>
    <SourceLine>var SeaLevelPressureQuality as String</SourceLine>
-   <SourceLine>Var LocalPressure_Pa As Double</SourceLine>
+   <SourceLine>var BarometricPressureQuality as String</SourceLine>
+   <SourceLine>var StationTemperatureQuality as String</SourceLine>
+   <SourceLine>Var StationBarometricPressure_Pa As Double</SourceLine>
    <SourceLine>Var LocalElevation_m As Double</SourceLine>
    <SourceLine>Var LocalElevation_feet As Integer</SourceLine>
+   <SourceLine>Var HaveBarometricPressure As Boolean</SourceLine>
+   <SourceLine>Var HaveSeaLevelPressure As Boolean</SourceLine>
+   <SourceLine>Var HaveStationElevation As Boolean</SourceLine>
+   <SourceLine>Var HaveStationTemperature As Boolean</SourceLine>
+   <SourceLine>Var HaveStationGroundLevelPressure As Boolean</SourceLine>
+   <SourceLine>Var WallaceHobbsH as Double</SourceLine>
+   <SourceLine>Var LocalTemperature_C As Double</SourceLine>
+   <SourceLine>Var LocalTemperature_K As Double</SourceLine>
+   <SourceLine>Var StationGroundLevelPressure_mb As Double</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>LocalPressure_Pa = JSON.Child("properties").Child("barometricPressure").Value("value")</SourceLine>
-   <SourceLine>MiaHost.LocalGroundLevelPresLabel.Text = "Local ground level pressure: " + str(LocalPressure_Pa / 100) + "mb"</SourceLine>
-   <SourceLine>LocalElevation_m = JSON.Child("properties").Child("elevation").Value("value")</SourceLine>
-   <SourceLine>LocalElevation_feet = LocalElevation_m * 3.28084</SourceLine>
-   <SourceLine>MiaHost.LocalGroundLevelAltLabel1.Text = "Local ground level altitude: " + str(LocalElevation_m) + "m  or " + str(LocalElevation_feet) + "ft."</SourceLine>
+   <SourceLine>HaveBarometricPressure = False</SourceLine>
+   <SourceLine>HaveSeaLevelPressure = False</SourceLine>
+   <SourceLine>HaveStationElevation = False</SourceLine>
+   <SourceLine>HaveStationTemperature = False</SourceLine>
+   <SourceLine>HaveStationGroundLevelPressure = False</SourceLine>
+   <SourceLine>SeaLevelPressure_Pa = 0</SourceLine>
+   <SourceLine>StationGroundLevelPressure_mb = 0</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>//  See if sealevel pressure is provided</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>// NWS doesn't always report sea level pressure, but since weather data is needed for aircraft, it almost always reports a altimeter setting (reported as "barometricPressure")</SourceLine>
+   <SourceLine>//  Station elevation and temperature are always provided as long as there is not equipment malfunction.</SourceLine>
+   <SourceLine>//  See if sea level pressure is provided</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>try</SourceLine>
    <SourceLine>SeaLevelPressureQuality = JSON.Child("properties").Child("seaLevelPressure").Value("qualityControl")</SourceLine>
    <SourceLine>if SeaLevelPressureQuality = "V" then    //  only use if Verified, passed levels 1, 2, and 3 (see comments below)</SourceLine>
-   <SourceLine>SeaLevelPressure = JSON.Child("properties").Child("seaLevelPressure").Value("value")</SourceLine>
-   <SourceLine>SealevelPressureInfo.TextColor = rgb(0,0,0)</SourceLine>
-   <SourceLine>SealevelPressureInfo.Text = SealevelPressureInfo.Text + "Sealevel pressure available. "</SourceLine>
-   <SourceLine>MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + str(SeaLevelPressure / 100) + "mb"</SourceLine>
-   <SourceLine>return floor(SeaLevelPressure + 0.5)</SourceLine>
+   <SourceLine>SeaLevelPressure_Pa = JSON.Child("properties").Child("seaLevelPressure").Value("value")</SourceLine>
+   <SourceLine>HaveSeaLevelPressure = True</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>Catch </SourceLine>
+   <SourceLine>SeaLevelPressureQuality = "x"</SourceLine>
+   <SourceLine>HaveSeaLevelPressure = False</SourceLine>
+   <SourceLine>end try</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>else</SourceLine>
-   <SourceLine>Var LocalTemperature_C As Double</SourceLine>
-   <SourceLine>Var SeaLevelPressureDerived As Double</SourceLine>
-   <SourceLine>Var ReferenceTemperature As Double   //  at sea level, given our lapse rate of 0.0065K/m and our temperature at our ground level</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>// seaLevelPressure is not available, we must derive it from other data the station provides.</SourceLine>
+   <SourceLine>//HaveSeaLevelPressure = False     //  FOR DEBUG</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>// So no seaLevelPressure from station, lets see if we have enough data to derive it...</SourceLine>
+   <SourceLine>//  ...Barometric Pressure (altimeter setting is common language, not local station pressure)</SourceLine>
+   <SourceLine>try</SourceLine>
+   <SourceLine>BarometricPressureQuality = JSON.Child("properties").Child("barometricPressure").Value("qualityControl")</SourceLine>
+   <SourceLine>if BarometricPressureQuality = "V" then    //  only use if Verified, passed levels 1, 2, and 3 (see comments below)</SourceLine>
+   <SourceLine>StationBarometricPressure_Pa = JSON.Child("properties").Child("barometricPressure").Value("value")</SourceLine>
+   <SourceLine>HaveBarometricPressure = True</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>Catch </SourceLine>
+   <SourceLine>BarometricPressureQuality = "x"</SourceLine>
+   <SourceLine>HaveBarometricPressure = False</SourceLine>
+   <SourceLine>end try</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>//  ...Station elevation</SourceLine>
+   <SourceLine>try</SourceLine>
+   <SourceLine>LocalElevation_m = JSON.Child("properties").Child("elevation").Value("value")</SourceLine>
+   <SourceLine>HaveStationElevation = True</SourceLine>
+   <SourceLine>Catch </SourceLine>
+   <SourceLine>HaveStationElevation = False</SourceLine>
+   <SourceLine>end try</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>//  ...Station temperature</SourceLine>
+   <SourceLine>try</SourceLine>
+   <SourceLine>StationTemperatureQuality = JSON.Child("properties").Child("temperature").Value("qualityControl")</SourceLine>
+   <SourceLine>if StationTemperatureQuality = "V" then    //  only use if Verified, passed levels 1, 2, and 3 (see comments below)</SourceLine>
    <SourceLine>LocalTemperature_C = JSON.Child("properties").Child("temperature").Value("value")</SourceLine>
+   <SourceLine>HaveStationTemperature = True</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>Catch </SourceLine>
+   <SourceLine>StationTemperatureQuality = "x"</SourceLine>
+   <SourceLine>HaveStationTemperature = False</SourceLine>
+   <SourceLine>end try</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>//msgbox("Local elevation " +str(LocalElevation_m))</SourceLine>
-   <SourceLine>//msgbox("Local pressure " +str(LocalPressure_Pa))</SourceLine>
-   <SourceLine>//msgbox("Local temperature " +str(LocalTemperature_C))</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>//  THIS FORMULA BELOW DOESN'T AGREE WITH READINGS FROM NWS!!!!!</SourceLine>
-   <SourceLine>//SeaLevelPressureDerived = LocalPressure_Pa / (Pow((1.0 - 2.25577e-5 * LocalElevation_m), 5.25588))   //  see: https://www.engineeringtoolbox.com/air-altitude-pressure-d_462.html </SourceLine>
-   <SourceLine>ReferenceTemperature = LocalTemperature_C + (LocalElevation_m * 0.0065) + 273.15</SourceLine>
-   <SourceLine>//ReferenceTemperature = LocalTemperature_C + 273.15</SourceLine>
-   <SourceLine>//SeaLevelPressureDerived = LocalPressure_Pa * Pow(1.0 - ((0.0065 / ReferenceTemperature) * (-LocalElevation_m)), 5.25588)</SourceLine>
-   <SourceLine>SeaLevelPressureDerived = LocalPressure_Pa * Pow(1.0 - ((0.0000225577) * (-LocalElevation_m)), 5.25588)</SourceLine>
-   <SourceLine>SealevelPressureInfo.TextColor = rgb(200, 0, 0)</SourceLine>
-   <SourceLine>MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + str(SeaLevelPressureDerived / 100)</SourceLine>
-   <SourceLine>SealevelPressureInfo.Text = SealevelPressureInfo.Text + "QC descriptor:" + SeaLevelPressureQuality + ", sealevel pressure Derived. "</SourceLine>
-   <SourceLine>return floor(SeaLevelPressureDerived + 0.5)</SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>if HaveBarometricPressure and HaveStationElevation and HaveStationTemperature and (HaveSeaLevelPressure = False) then</SourceLine>
+   <SourceLine>LocalTemperature_K = LocalTemperature_C + 273.15</SourceLine>
+   <SourceLine>WallaceHobbsH = (SPECIFIC_GAS_CONSTANT_JdivKkg * LocalTemperature_K) / GRAVITATIONAL_ACCELERATION_m_ss  // J s^2 / m kg</SourceLine>
+   <SourceLine>SeaLevelPressure_Pa = StationBarometricPressure_Pa * (Pow(Math_e, (LocalElevation_m / WallaceHobbsH)))</SourceLine>
+   <SourceLine>elseif HaveSeaLevelPressure = False then</SourceLine>
+   <SourceLine>SeaLevelPressure_Pa = 0</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine>if HaveBarometricPressure and HaveStationElevation then</SourceLine>
+   <SourceLine>//   from here https://www.weather.gov/epz/wxcalc_stationpressure</SourceLine>
+   <SourceLine>StationGroundLevelPressure_mb = (StationBarometricPressure_Pa / 100) * pow(( 288.0 - ( LapseRate_C_m * LocalElevation_m)) / 288.0, (1.0 / 0.190284))</SourceLine>
+   <SourceLine>HaveStationGroundLevelPressure = True</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>// Update User Interface</SourceLine>
+   <SourceLine>if HaveSeaLevelPressure then</SourceLine>
+   <SourceLine>SealevelPressureInfo.Text = SealevelPressureInfo.Text + "Sealevel pressure available. "</SourceLine>
+   <SourceLine>else</SourceLine>
+   <SourceLine>SealevelPressureInfo.Text = SealevelPressureInfo.Text + "Sealevel pressure derived. "</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + str(SeaLevelPressure_Pa / 100.0) + "mb"</SourceLine>
+   <SourceLine>LocalElevation_feet = LocalElevation_m * METERS_TO_FEET</SourceLine>
+   <SourceLine>//msgbox("LocalElevation_feet" + str(LocalElevation_feet))     //  debug</SourceLine>
+   <SourceLine>MiaHost.LocalGroundLevelAltLabel1.Text = "Local ground level altitude: " + str(LocalElevation_m) + "m  or " + str(LocalElevation_feet) + "ft."</SourceLine>
+   <SourceLine>if SeaLevelPressure_Pa &lt;&gt; 0 then </SourceLine>
+   <SourceLine>MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + str(SeaLevelPressure_Pa / 100.0) + "mb"</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>if HaveStationGroundLevelPressure then</SourceLine>
+   <SourceLine>LocalGroundLevelPresLabel.Text = LocalGroundLevelPresLabel.Text + " " + StationGroundLevelPressure_mb.ToString("####.00") + "mb"</SourceLine>
+   <SourceLine>else</SourceLine>
+   <SourceLine>LocalGroundLevelPresLabel.Text = ""</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>return floor(SeaLevelPressure_Pa + 0.5)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'StationBarometricPressure_Pa = JSON.Child("properties").Child("barometricPressure").Value("value")</SourceLine>
+   <SourceLine>'MsgBox("StationBarometricPressure_Pa" + Str(StationBarometricPressure_Pa))     //  debug</SourceLine>
+   <SourceLine>'MiaHost.LocalGroundLevelPresLabel.Text = "Station Barometric pressure: " + Str(StationBarometricPressure_Pa / 100) + "mb"</SourceLine>
+   <SourceLine>'LocalElevation_m = JSON.Child("properties").Child("elevation").Value("value")</SourceLine>
+   <SourceLine>'LocalElevation_feet = LocalElevation_m * 3.28084</SourceLine>
+   <SourceLine>'//msgbox("LocalElevation_feet" + str(LocalElevation_feet))     //  debug</SourceLine>
+   <SourceLine>'MiaHost.LocalGroundLevelAltLabel1.Text = "Local ground level altitude: " + Str(LocalElevation_m) + "m  or " + Str(LocalElevation_feet) + "ft."</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'SeaLevelPressureQuality = JSON.Child("properties").Child("seaLevelPressure").Value("qualityControl")</SourceLine>
+   <SourceLine>'If SeaLevelPressureQuality = "V" Then    //  only use if Verified, passed levels 1, 2, and 3 (see comments below)</SourceLine>
+   <SourceLine>'SeaLevelPressure_Pa = JSON.Child("properties").Child("seaLevelPressure").Value("value")</SourceLine>
+   <SourceLine>'MsgBox("SeaLevelPressure" + Str(SeaLevelPressure_Pa))     //  debug</SourceLine>
+   <SourceLine>'SealevelPressureInfo.TextColor = RGB(0,0,0)</SourceLine>
+   <SourceLine>'SealevelPressureInfo.Text = SealevelPressureInfo.Text + "Sealevel pressure available. "</SourceLine>
+   <SourceLine>'MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + Str(SeaLevelPressure_Pa / 100) + "mb"</SourceLine>
+   <SourceLine>'Return Floor(SeaLevelPressure_Pa + 0.5)</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'Else</SourceLine>
+   <SourceLine>'// See: https://unidata.github.io/MetPy/latest/api/generated/metpy.calc.altimeter_to_sea_level_pressure.html</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'Var LocalTemperature_C As Double</SourceLine>
+   <SourceLine>'Var SeaLevelPressureDerived As Double</SourceLine>
+   <SourceLine>'Var ReferenceTemperature As Double   //  at sea level, given our lapse rate of 0.0065K/m and our temperature at our ground level</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'// seaLevelPressure is not available, we must derive it from other data the station provides.</SourceLine>
+   <SourceLine>'LocalTemperature_C = JSON.Child("properties").Child("temperature").Value("value")</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'//msgbox("Local elevation " +str(LocalElevation_m))</SourceLine>
+   <SourceLine>'//msgbox("Local pressure " +str(StationBarometricPressure_Pa))</SourceLine>
+   <SourceLine>'//msgbox("Local temperature " +str(LocalTemperature_C))</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'//  THIS FORMULA BELOW DOESN'T AGREE WITH READINGS FROM NWS!!!!!</SourceLine>
+   <SourceLine>'//SeaLevelPressureDerived = StationBarometricPressure_Pa / (Pow((1.0 - 2.25577e-5 * LocalElevation_m), 5.25588))   //  see: https://www.engineeringtoolbox.com/air-altitude-pressure-d_462.html </SourceLine>
+   <SourceLine>'ReferenceTemperature = LocalTemperature_C + (LocalElevation_m * 0.0065) + 273.15</SourceLine>
+   <SourceLine>'//ReferenceTemperature = LocalTemperature_C + 273.15</SourceLine>
+   <SourceLine>'//SeaLevelPressureDerived = StationBarometricPressure_Pa * Pow(1.0 - ((0.0065 / ReferenceTemperature) * (-LocalElevation_m)), 5.25588)</SourceLine>
+   <SourceLine>'SeaLevelPressureDerived = StationBarometricPressure_Pa * Pow(1.0 - ((0.0000225577) * (-LocalElevation_m)), 5.25588)</SourceLine>
+   <SourceLine>'SealevelPressureInfo.TextColor = RGB(200, 0, 0)</SourceLine>
+   <SourceLine>'MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + Str(SeaLevelPressureDerived / 100)</SourceLine>
+   <SourceLine>'SealevelPressureInfo.Text = SealevelPressureInfo.Text + "QC descriptor:" + SeaLevelPressureQuality + ", sealevel pressure Derived. "</SourceLine>
+   <SourceLine>'Return Floor(SeaLevelPressureDerived + 0.5)</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'End If</SourceLine>
+   <SourceLine>'</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
@@ -3296,7 +3426,7 @@
     <SourceLine>//lm.RequestPermissions(self)    //  needed</SourceLine>
     <SourceLine>// do we need to wait after request?</SourceLine>
     <SourceLine></SourceLine>
-    <SourceLine>GridURL = NWS_LatLog_to_grid_url</SourceLine>
+    <SourceLine>GridURL = NWS_LatLog_to_grid_url()</SourceLine>
     <SourceLine>//GridURL = "ERROR"   //  for validation</SourceLine>
     <SourceLine>if GridURL &lt;&gt; "ERROR" then</SourceLine>
     <SourceLine>SealevelPressureInfo.TextColor = rgb(0,0,0)</SourceLine>
@@ -5269,7 +5399,7 @@
   <PropertyVal Name="TabIndex">27</PropertyVal>
   <PropertyVal Name="TabPanelIndex">0</PropertyVal>
   <PropertyVal Name="TabStop">True</PropertyVal>
-  <PropertyVal Name="Text">Local ground level pressure</PropertyVal>
+  <PropertyVal Name="Text">Station Barometric pressure</PropertyVal>
   <PropertyVal Name="TextAlignment">1</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
@@ -5277,7 +5407,7 @@
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">236</PropertyVal>
+  <PropertyVal Name="Width">281</PropertyVal>
   <ControlIndex>26</ControlIndex>
   <Locked>0</Locked>
   <PartID>2106855423</PartID>
@@ -5332,7 +5462,7 @@
   <PropertyVal Name="Height">24</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">269</PropertyVal>
+  <PropertyVal Name="Left">304</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -8844,13 +8974,13 @@
   <ItemData>0</ItemData>
  </WarningPreferences>
  <StudioWindowState>
-  <EditBounds><Rect left="0" top="38" width="1428" height="1036"/></EditBounds>
+  <EditBounds><Rect left="0" top="38" width="1428" height="928"/></EditBounds>
   <WindowMaximized>0</WindowMaximized>
   <Editors>
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost.Controls.ServoLowPowerLabel</EditorLocation>
+    <EditorLocation>MiaHost.NWS_station_to_measurements</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>

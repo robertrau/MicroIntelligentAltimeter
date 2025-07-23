@@ -1199,22 +1199,22 @@ void DoSplashScreen() {
 void DisplayInstructions() {
   display.set1X();
   display.clear();
-  display.println(F("Instruction for Mia operation"));
-  display.print(F("Version: "));
+  display.println(F("Instruction for Mia operation"));   //  29 char
+  display.print(F("Version: "));                 //  9 char
   display.println(VersionString);
   delay(4000);
 
   display.clear();
-  display.println(F("Buttons:"));
-  display.println(F("Left black button: USER 1"));
+  display.println(F("Buttons:"));             //  8 char
+  display.println(F("Left black button: USER 1"));  //  25 char
   if (HasUser2Button) {                                //  Only >= 0.01 versions of the Mia board has the Right black button
-    display.println(F("Right black button: USER 2"));  //  used for setting high current output altitude threshold
+    display.println(F("Right black button: USER 2"));  //  used for setting high current output altitude threshold    //  26 char
   }
-  display.println(F("Orange Button: Reset"));
+  display.println(F("Orange Button: Reset"));  //  20 char
   delay(7000);
 
   display.clear();
-  display.println(F("For accurate altitude the"));
+  display.println(F("For accurate altitude the"));   //  25 char
   display.println(F("user must set the current"));
   display.println(F("sea level pressure. Phone"));
   display.println(F("Apps can tell you this."));
@@ -1276,10 +1276,12 @@ void DoSensorDisplayLoop() {
     //FindFieldAltitude_m();
     display.clear();
     display.print(F("Alt:"));
-    display.print(maxAltitude_m);
+    display.print(maxAltitude_m, 1);
     display.print(F(" m  "));
-    display.print(maxAltitude_m * METERS_TO_FEET);
-    display.println(F(" ft  "));
+    display.print(maxAltitude_m * METERS_TO_FEET, 1);
+    display.print(F(" ft,  "));
+    display.print(ReadBMP581LatestPressure(), 1);
+    display.println(F("mb"));
     display.print(F("Temp:"));
     DisplayTemperature_F = getTemperatureP3();
     display.print((int16_t)(DisplayTemperature_F - 32) * 5 / 9);
