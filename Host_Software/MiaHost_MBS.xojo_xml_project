@@ -5,11 +5,11 @@
  <IDEVersion>20240402</IDEVersion>
  <MajorVersion>0</MajorVersion>
  <MinorVersion>1</MinorVersion>
- <SubVersion>7</SubVersion>
+ <SubVersion>9</SubVersion>
  <Release>0</Release>
  <NonRelease>0</NonRelease>
  <Region></Region>
- <ShortVersion>0.1.6-beta</ShortVersion>
+ <ShortVersion>0.1.9-beta</ShortVersion>
  <LongVersion>2025</LongVersion>
  <InfoVersion>MisHost - download flight logs from Mia Flight Computer</InfoVersion>
  <AutoIncVersion>0</AutoIncVersion>
@@ -255,54 +255,54 @@
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Sub Opening()</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>#If TargetmacOS Then</SourceLine>
-   <SourceLine>if not MyLocationManager.locationServicesAvailable then</SourceLine>
-   <SourceLine>MsgBox "Location Services are not available."</SourceLine>
-   <SourceLine>end if</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>if not MyLocationManager.locationServicesEnabled then</SourceLine>
-   <SourceLine>MsgBox "Location Services are not enabled."</SourceLine>
-   <SourceLine>end if</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>LocationManager=new MyLocationManager</SourceLine>
-   <SourceLine>LocationManager.desiredAccuracy=CLLocationMBS.kCLLocationAccuracyBest</SourceLine>
-   <SourceLine>LocationManager.startUpdatingLocation</SourceLine>
-   <SourceLine>#EndIf</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>#if TargetWindows then</SourceLine>
-   <SourceLine>try</SourceLine>
-   <SourceLine>lm = new WindowsLocationManager</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>// check status now</SourceLine>
-   <SourceLine>CheckStatus</SourceLine>
-   <SourceLine>catch e as WindowsLocationExceptionMBS</SourceLine>
-   <SourceLine>msgbox("LOCATION SERVICES UNAVAILABLE - To use, go to Start -&gt; Settings -&gt; Privacy -&gt; Location -&gt; and make sure Location for this device is ON and make sure Allow apps to access your location is ON")</SourceLine>
-   <SourceLine>end try</SourceLine>
    <SourceLine>'</SourceLine>
    <SourceLine>'</SourceLine>
-   <SourceLine>// this may raise as no location is available.</SourceLine>
-   <SourceLine>#Pragma BreakOnExceptions false</SourceLine>
    <SourceLine>'</SourceLine>
-   <SourceLine>try</SourceLine>
-   <SourceLine>dim t as WindowsLocationMBS = lm.Report</SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>'#If TargetmacOS Then</SourceLine>
+   <SourceLine>'if not MyLocationManager.locationServicesAvailable then</SourceLine>
+   <SourceLine>'MsgBox "Location Services are not available."</SourceLine>
+   <SourceLine>'end if</SourceLine>
    <SourceLine>'</SourceLine>
-   <SourceLine>if t &lt;&gt; nil then</SourceLine>
-   <SourceLine>UpdateWindowsLocation( t)</SourceLine>
-   <SourceLine>end if</SourceLine>
+   <SourceLine>'if not MyLocationManager.locationServicesEnabled then</SourceLine>
+   <SourceLine>'MsgBox "Location Services are not enabled."</SourceLine>
+   <SourceLine>'end if</SourceLine>
    <SourceLine>'</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>lm.StartEvents</SourceLine>
-   <SourceLine>catch e as WindowsLocationExceptionMBS</SourceLine>
-   <SourceLine>msgbox("LOCATION SERVICES UNAVAILABLE - To use, go to Start -&gt; Settings -&gt; Privacy -&gt; Location -&gt; and make sure Location for this device is ON and make sure Allow apps to access your location is ON")</SourceLine>
-   <SourceLine>end try</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>#EndIf</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'LocationManager=new MyLocationManager</SourceLine>
+   <SourceLine>'LocationManager.desiredAccuracy=CLLocationMBS.kCLLocationAccuracyBest</SourceLine>
+   <SourceLine>'LocationManager.startUpdatingLocation</SourceLine>
+   <SourceLine>'#EndIf</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'#if TargetWindows then</SourceLine>
+   <SourceLine>'try</SourceLine>
+   <SourceLine>'lm = new WindowsLocationManager</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'// check status now</SourceLine>
+   <SourceLine>'CheckStatus</SourceLine>
+   <SourceLine>'catch e as WindowsLocationExceptionMBS</SourceLine>
+   <SourceLine>'msgbox("LOCATION SERVICES UNAVAILABLE - To use, go to Start -&gt; Settings -&gt; Privacy -&gt; Location -&gt; and make sure Location for this device is ON and make sure Allow apps to access your location is ON")</SourceLine>
+   <SourceLine>'end try</SourceLine>
+   <SourceLine>''</SourceLine>
+   <SourceLine>''</SourceLine>
+   <SourceLine>'// this may raise as no location is available.</SourceLine>
+   <SourceLine>'#Pragma BreakOnExceptions false</SourceLine>
+   <SourceLine>''</SourceLine>
+   <SourceLine>'try</SourceLine>
+   <SourceLine>'dim t as WindowsLocationMBS = lm.Report</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>''</SourceLine>
+   <SourceLine>'if t &lt;&gt; nil then</SourceLine>
+   <SourceLine>'UpdateWindowsLocation( t)</SourceLine>
+   <SourceLine>'end if</SourceLine>
+   <SourceLine>''</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'lm.StartEvents</SourceLine>
+   <SourceLine>'catch e as WindowsLocationExceptionMBS</SourceLine>
+   <SourceLine>'msgbox("LOCATION SERVICES UNAVAILABLE - To use, go to Start -&gt; Settings -&gt; Privacy -&gt; Location -&gt; and make sure Location for this device is ON and make sure Allow apps to access your location is ON")</SourceLine>
+   <SourceLine>'end try</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'#EndIf</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
@@ -421,25 +421,12 @@
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Sub DisconnectFromMia_Meth()</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>Var  TimeNow as int64</SourceLine>
    <SourceLine>//Var StartTimeTicks as int64</SourceLine>
    <SourceLine>//Var EndTimeTicks as int64</SourceLine>
    <SourceLine>Var CommandCharacter As String</SourceLine>
    <SourceLine>Var CommandString As String</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>TimeNow = GetCurrentUNIXTime_Meth</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>// Update Mia's current time</SourceLine>
-   <SourceLine>SendCommand_Meth("s", TimeNow)</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>Serial1.Flush</SourceLine>
-   <SourceLine>thread.SleepCurrent (150)    //  sleep for 200ms</SourceLine>
-   <SourceLine>Serial1.Flush</SourceLine>
-   <SourceLine>thread.SleepCurrent (150)    //  sleep for 200ms</SourceLine>
-   <SourceLine>Serial1.Flush</SourceLine>
-   <SourceLine>thread.SleepCurrent (150)    //  sleep for 200ms</SourceLine>
+   <SourceLine>UpdateMiaUNIXTime()</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>//  Update user configuration bits</SourceLine>
    <SourceLine>CommandCharacter = "u"</SourceLine>
@@ -2129,6 +2116,9 @@
    <SourceLine></SourceLine>
    <SourceLine>RequireDownLoadCheckBox.Enabled = True</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine>UpdateMiaUNIXTime()</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
@@ -2365,6 +2355,40 @@
    <SourceLine></SourceLine>
    <SourceLine>SealevelPressureInfo.Text = "Sealevel Pressure update status: Not updated"</SourceLine>
    <SourceLine>SealevelPressureInfo.TextColor = rgb(0, 0, 0)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>End Sub</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <IsShared>0</IsShared>
+  <ItemParams></ItemParams>
+  <ItemResult></ItemResult>
+ </Method>
+ <Method>
+  <ItemName>UpdateMiaUNIXTime</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <PartID>232712191</PartID>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Sub UpdateMiaUNIXTime()</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>Var  TimeNow as int64</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>TimeNow = GetCurrentUNIXTime_Meth</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>// Update Mia's current time</SourceLine>
+   <SourceLine>SendCommand_Meth("s", TimeNow)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>Serial1.Flush</SourceLine>
+   <SourceLine>thread.SleepCurrent (100)    //  sleep for 100ms</SourceLine>
+   <SourceLine>Serial1.Flush</SourceLine>
+   <SourceLine>thread.SleepCurrent (100)    //  sleep for 100ms</SourceLine>
+   <SourceLine>Serial1.Flush</SourceLine>
+   <SourceLine>thread.SleepCurrent (100)    //  sleep for 100ms</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
@@ -3202,6 +3226,58 @@
     <SourceLine></SourceLine>
     <SourceLine></SourceLine>
     <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>#If TargetmacOS Then</SourceLine>
+    <SourceLine>' https://www.monkeybreadsoftware.de/xojo/video/AppleMapViewInXojo-script.shtml</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>if not MyLocationManager.locationServicesAvailable then</SourceLine>
+    <SourceLine>MsgBox "Location Services are not available."</SourceLine>
+    <SourceLine>end if</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>if not MyLocationManager.locationServicesEnabled then</SourceLine>
+    <SourceLine>MsgBox "Location Services are not enabled."</SourceLine>
+    <SourceLine>end if</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>LocationManager = new MyLocationManager</SourceLine>
+    <SourceLine>LocationManager.desiredAccuracy=CLLocationMBS.kCLLocationAccuracyBest</SourceLine>
+    <SourceLine>LocationManager.startUpdatingLocation</SourceLine>
+    <SourceLine>#EndIf</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>#if TargetWindows then</SourceLine>
+    <SourceLine>try</SourceLine>
+    <SourceLine>lm = new WindowsLocationManager</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>// check status now</SourceLine>
+    <SourceLine>CheckStatus</SourceLine>
+    <SourceLine>catch e as WindowsLocationExceptionMBS</SourceLine>
+    <SourceLine>msgbox("LOCATION SERVICES UNAVAILABLE - To use, go to Start -&gt; Settings -&gt; Privacy -&gt; Location -&gt; and make sure Location for this device is ON and make sure Allow apps to access your location is ON")</SourceLine>
+    <SourceLine>end try</SourceLine>
+    <SourceLine>'</SourceLine>
+    <SourceLine>'</SourceLine>
+    <SourceLine>// this may raise as no location is available.</SourceLine>
+    <SourceLine>#Pragma BreakOnExceptions false</SourceLine>
+    <SourceLine>'</SourceLine>
+    <SourceLine>try</SourceLine>
+    <SourceLine>dim t as WindowsLocationMBS = lm.Report</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>'</SourceLine>
+    <SourceLine>if t &lt;&gt; nil then</SourceLine>
+    <SourceLine>UpdateWindowsLocation( t)</SourceLine>
+    <SourceLine>end if</SourceLine>
+    <SourceLine>'</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>lm.StartEvents</SourceLine>
+    <SourceLine>catch e as WindowsLocationExceptionMBS</SourceLine>
+    <SourceLine>msgbox("LOCATION SERVICES UNAVAILABLE - To use, go to Start -&gt; Settings -&gt; Privacy -&gt; Location -&gt; and make sure Location for this device is ON and make sure Allow apps to access your location is ON")</SourceLine>
+    <SourceLine>end try</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine>#EndIf</SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
   </HookInstance>
@@ -3236,6 +3312,10 @@
     <SourceLine></SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>MiaDisconnectTimer.RunMode = Timer.RunModes.Single </SourceLine>
+    <SourceLine>#if TargetMacOS then</SourceLine>
+    <SourceLine>LocationManager.stopUpdatingLocation</SourceLine>
+    <SourceLine>#EndIf</SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine></SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>End Sub</SourceLine>
@@ -5664,7 +5744,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The servo position while waiting for lift off. Set to a value from 0 to 180.</PropertyVal>
-  <PropertyVal Name="Top">167</PropertyVal>
+  <PropertyVal Name="Top">166</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -5710,7 +5790,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">167</PropertyVal>
+  <PropertyVal Name="Top">166</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -5749,7 +5829,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The servo will move to this position at launch detect. It will stay at this position through the ascent. Set to a value from 0 to 180.</PropertyVal>
-  <PropertyVal Name="Top">199</PropertyVal>
+  <PropertyVal Name="Top">196</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -5795,7 +5875,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">199</PropertyVal>
+  <PropertyVal Name="Top">196</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -5834,7 +5914,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">At apogee the servo will move tto this position. Then, after 0.40 seconds, the servo will move to the decent position. Set to a value from 0 to 180.</PropertyVal>
-  <PropertyVal Name="Top">228</PropertyVal>
+  <PropertyVal Name="Top">226</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -5880,7 +5960,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">228</PropertyVal>
+  <PropertyVal Name="Top">226</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -5919,7 +5999,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The servo will move to this position after the 0.40 second long Apogee position. It will stay at this position until the altitude set for the high current ouptut. Then it moves to the 'Servo @ HC output' position. Set to a value from 0 to 180.</PropertyVal>
-  <PropertyVal Name="Top">260</PropertyVal>
+  <PropertyVal Name="Top">256</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -5965,7 +6045,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">260</PropertyVal>
+  <PropertyVal Name="Top">256</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6004,7 +6084,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">After detecting landing the servo moves to this position. It stays here for the duration of the 'Delay before low power' timer, then the servo will move to its last position, the low power position. Set to a value from 0 to 180.</PropertyVal>
-  <PropertyVal Name="Top">324</PropertyVal>
+  <PropertyVal Name="Top">316</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6050,7 +6130,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">324</PropertyVal>
+  <PropertyVal Name="Top">316</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6089,7 +6169,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">After the flight is complete and the delay before low power time has passed the servo moves to this final position. Set to a value from 0 to 180.</PropertyVal>
-  <PropertyVal Name="Top">356</PropertyVal>
+  <PropertyVal Name="Top">346</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6135,7 +6215,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">356</PropertyVal>
+  <PropertyVal Name="Top">346</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6174,7 +6254,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">456</PropertyVal>
+  <PropertyVal Name="Top">446</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6220,7 +6300,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">After apogee, when the rocket goes below this altitude the high current output will turn on.</PropertyVal>
-  <PropertyVal Name="Top">456</PropertyVal>
+  <PropertyVal Name="Top">446</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6259,7 +6339,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">456</PropertyVal>
+  <PropertyVal Name="Top">446</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6297,7 +6377,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">When in low power mode, the sounder off time is multiplied by this factor.</PropertyVal>
-  <PropertyVal Name="Top">520</PropertyVal>
+  <PropertyVal Name="Top">516</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6343,7 +6423,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">520</PropertyVal>
+  <PropertyVal Name="Top">516</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6382,7 +6462,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">After landing has been detected, this timer starts. When this time has passed the Mia will shut the OLED display off, increase the time between sounder beeps, and move the servo to its low power position.</PropertyVal>
-  <PropertyVal Name="Top">491</PropertyVal>
+  <PropertyVal Name="Top">486</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6428,7 +6508,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">491</PropertyVal>
+  <PropertyVal Name="Top">486</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6467,7 +6547,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">491</PropertyVal>
+  <PropertyVal Name="Top">486</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6488,7 +6568,7 @@
   <PropertyVal Name="Height">20</PropertyVal>
   <PropertyVal Name="Index">-2147483648</PropertyVal>
   <PropertyVal Name="Italic">False</PropertyVal>
-  <PropertyVal Name="Left">389</PropertyVal>
+  <PropertyVal Name="Left">428</PropertyVal>
   <PropertyVal Name="LockBottom">False</PropertyVal>
   <PropertyVal Name="LockLeft">True</PropertyVal>
   <PropertyVal Name="LockRight">False</PropertyVal>
@@ -6505,11 +6585,11 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">20</PropertyVal>
+  <PropertyVal Name="Top">18</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
-  <PropertyVal Name="Width">242</PropertyVal>
+  <PropertyVal Name="Width">462</PropertyVal>
   <ControlIndex>53</ControlIndex>
   <Locked>0</Locked>
   <PartID>1878190079</PartID>
@@ -6581,7 +6661,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The servo will move to this position at the altitude set for the high current output to turn on. It will stay at this position through landing. Set to a value from 0 to 180.</PropertyVal>
-  <PropertyVal Name="Top">294</PropertyVal>
+  <PropertyVal Name="Top">286</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6627,7 +6707,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">294</PropertyVal>
+  <PropertyVal Name="Top">286</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6666,7 +6746,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">551</PropertyVal>
+  <PropertyVal Name="Top">556</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6712,7 +6792,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The number of milliseconds between samples during ascent. This can be as low as 10 but the altitude accuracy is lower and the average sample rate will be closer to 12 milliseconds. Values 14 and greater produce better results. The maximum is 65530 milliseconds, or 65.53 seconds.</PropertyVal>
-  <PropertyVal Name="Top">552</PropertyVal>
+  <PropertyVal Name="Top">556</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6751,7 +6831,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">552</PropertyVal>
+  <PropertyVal Name="Top">556</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6789,7 +6869,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">After landing has been detected, this timer starts. When this time has passed the Mia will shut the OLED display off, increase the time between sounder beeps, and move the servo to its low power position.</PropertyVal>
-  <PropertyVal Name="Top">583</PropertyVal>
+  <PropertyVal Name="Top">586</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6835,7 +6915,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">The number of milliseconds between samples during descent. This can be as low as 10 but the altitude accuracy is lower and the average sample rate will be closer to 12 milliseconds. Values 14 and greater produce better results. The maximum is 65530 milliseconds, or 65.53 seconds.</PropertyVal>
-  <PropertyVal Name="Top">584</PropertyVal>
+  <PropertyVal Name="Top">586</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -6874,7 +6954,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">581</PropertyVal>
+  <PropertyVal Name="Top">586</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6912,7 +6992,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">167</PropertyVal>
+  <PropertyVal Name="Top">166</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6950,7 +7030,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">199</PropertyVal>
+  <PropertyVal Name="Top">196</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -6988,7 +7068,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">228</PropertyVal>
+  <PropertyVal Name="Top">226</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7026,7 +7106,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">260</PropertyVal>
+  <PropertyVal Name="Top">256</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7064,7 +7144,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">294</PropertyVal>
+  <PropertyVal Name="Top">286</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7102,7 +7182,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">324</PropertyVal>
+  <PropertyVal Name="Top">316</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7140,7 +7220,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">356</PropertyVal>
+  <PropertyVal Name="Top">346</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7178,7 +7258,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">388</PropertyVal>
+  <PropertyVal Name="Top">376</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7224,7 +7304,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">388</PropertyVal>
+  <PropertyVal Name="Top">376</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -7263,7 +7343,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">388</PropertyVal>
+  <PropertyVal Name="Top">376</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7301,7 +7381,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip">After landing has been detected, this timer starts. When this time has passed the Mia will shut the OLED display off, increase the time between sounder beeps, and move the servo to its low power position.</PropertyVal>
-  <PropertyVal Name="Top">417</PropertyVal>
+  <PropertyVal Name="Top">406</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -7347,7 +7427,7 @@
   <PropertyVal Name="TextAlignment">0</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">417</PropertyVal>
+  <PropertyVal Name="Top">406</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="ValidationMask"></PropertyVal>
@@ -7386,7 +7466,7 @@
   <PropertyVal Name="TextAlignment">3</PropertyVal>
   <PropertyVal Name="TextColor">&amp;h000000</PropertyVal>
   <PropertyVal Name="Tooltip"></PropertyVal>
-  <PropertyVal Name="Top">417</PropertyVal>
+  <PropertyVal Name="Top">406</PropertyVal>
   <PropertyVal Name="Transparent">False</PropertyVal>
   <PropertyVal Name="Underline">False</PropertyVal>
   <PropertyVal Name="Visible">True</PropertyVal>
@@ -8974,13 +9054,13 @@
   <ItemData>0</ItemData>
  </WarningPreferences>
  <StudioWindowState>
-  <EditBounds><Rect left="0" top="38" width="1428" height="928"/></EditBounds>
+  <EditBounds><Rect left="0" top="38" width="1428" height="1038"/></EditBounds>
   <WindowMaximized>0</WindowMaximized>
   <Editors>
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost.NWS_station_to_measurements</EditorLocation>
+    <EditorLocation>MiaHost.Controls.ConnectToMiaButton.Pressed</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>

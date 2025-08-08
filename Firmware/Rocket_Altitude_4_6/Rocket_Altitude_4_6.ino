@@ -585,11 +585,21 @@
   By: Robert Rau
   Changes: Several speedup fixes. Adjusted launch threshold. 
 
+  Updated: 8/2/2025
+  Rev.: 4.6.27
+  By: Robert Rau
+  Changes: Adjusted launch detect threshold. Birth time updated.
+
+  Updated: 8/8/2025
+  Rev.: 4.6.29
+  By: Robert Rau
+  Changes: Added minimum altitude to apogee detect.
+
  USBPowered
 */
 // Version
-const char VersionString[] = "4.6.26\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1752370788  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.29\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1754648993  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -726,7 +736,7 @@ uint32_t TimeStamp;
 #define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)           //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)          //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
-#define START_LOGGING_ALTITUDE_m 0.18                  //  Altitude threshold (in meters) that we must exceed before starting logging to EEPROM.
+#define START_LOGGING_ALTITUDE_m 4.0                  //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -753,7 +763,7 @@ typedef union {
 } BMP581Pressure;
 BMP581Pressure LatestPressure;
 #define MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m 61        //  This allows for a delta from the launch altitude for landing detection. Must account for landing in a valley, hill, or tree. 61m is 200ft.
-#define PRESURE_SENSOR_NOISE_THRESHOLD_m 0.18         // Measured at just less than 0.15, so I am adding a little margin to cover part to part variation.
+#define PRESURE_SENSOR_NOISE_THRESHOLD_m 0.3         // Measured at just less than 0.15, so I am adding a little margin to cover part to part variation.
 
 //  High current output altitudes
 #define DEFAULT_ALTITUDE_ft 500.0   //  default altitude to trip high current output, 800ft. above field altitude. In feet.
@@ -4087,11 +4097,9 @@ void loop() {
           } else if (FlightModePhaseIndex == 1) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Wait for launch phase
             //  Flight phase 1, wait for altitude to start going up.
- 
-            //getAltitude();
 
             //  Launch Detection: Dual check as noise filter. See if new altitude is enough higher than second previous altitude to detect launch
-            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m / 2))) || (newAltitude_m > fieldAltitude_m + 3.0)) {
+            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m))) || (newAltitude_m > fieldAltitude_m + 20.0)) {
               //  *** OK, passed launch detect, things get busy here. ***************************************************************************
               // This is our "at launch" list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
               {
@@ -4124,7 +4132,6 @@ void loop() {
                 //getAltitude();  //  Get altitude but don't display it, as we are flying, there is nobody to see it.
                 RecordNumber = 4;
                 PopulateFlightRecord(RecordNumber);
-
 
                 WriteRecordAtSamplePeriod(0);
                 //RecordNumber = 2;
@@ -4161,8 +4168,7 @@ void loop() {
             //ApogeeDetected = true;
             //}
             
-            if (newAltitude_m < CurrentAltitude1Ago_m) {   //  A quick test to avoid all the floating point math below.
-            if (((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m)) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
+            if (((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m) && (newAltitude_m > 20.0)) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
               FlightModePhaseIndex = 4;
               //Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
               //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
@@ -4174,7 +4180,6 @@ void loop() {
               OurFlightTimeStamps.ApogeeTime_ms = millis();  //  We record our apogee time for the next servo position change at a fixed time later. See ServoApogeeDuration_ms
               //ApogeeDetected = true;
               //Serial.println("FlightModePhaseIndex = 4");  //  Debug1
-            }
             }
 
             PopulateFlightRecord(RecordNumber);
