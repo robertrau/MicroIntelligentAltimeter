@@ -310,7 +310,7 @@
             (Space left for more word parameters that the "w" command can set. w command writes eight 16 bit values from 216 through 231)
 
 
-            Sketch uses 31672 bytes (97%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
+            Sketch uses 31768 bytes (98%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
     @endverbatim
 
     @author Rich Rau with additions by Bob Rau
@@ -595,11 +595,22 @@
   By: Robert Rau
   Changes: Added minimum altitude to apogee detect.
 
+  Updated: 8/23/2025
+  Rev.: 4.6.30
+  By: Robert Rau
+  Changes: Updated launch detect. Updated apogee detect. Added detailed comments on both. Made user button adjust sea level pressure by 5.0 millibars.
+           Timing updates to DoSensorDisplayLoop().
+
+  Updated: 8/24/2025
+  Rev.: 4.6.31
+  By: Robert Rau
+  Changes: Fixed landing detection (was checking for difference when samples wern't updated due to sample period). Added summary record so we don't lose max altitude.
+
  USBPowered
 */
 // Version
-const char VersionString[] = "4.6.29\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1754648993  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.31\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1756077287  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -711,7 +722,7 @@ uint8_t ServoState;
 // I2C Addresses
 #define I2C_OLED_ADDRESS 0x3C  // 0x3C address for 128x32 OLED
 //  External EEPROM is at 0x50 and 0x51
-#define I2C_BMP581_ADDRESS 0x47                      // 0x47 address for BMP581
+#define I2C_BMP581_ADDRESS 0x47  // 0x47 address for BMP581
 //#define I2C_MC3416_ADDRESS 0x4C                      // 0x4C address for accelerometer option 1 (never tested)
 #define I2C_KX134_ADDRESS 0x1E                       // 0x1E address for accelerometer option 2 (KX134ACR NOT KX134-1211, software not compatible)
 #define I2C_ACCELEROMETER_ADDRESS I2C_KX134_ADDRESS  // Address for selected accelerometer
@@ -732,11 +743,11 @@ uint32_t TimeStamp;
 //uint32_t LastRecordTimeStamp_ms;
 
 // Pressure Altimeter setup
-#define DEFAULT_SEALEVELPRESSURE_hPa (1013.25)         //  The International Standard Atmosphere defines standard sealevel pressure as 1013.25 hectopascal (hPa) or millibars (mb).
-#define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)           //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
-#define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)          //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
+#define DEFAULT_SEALEVELPRESSURE_hPa (1013.25)  //  The International Standard Atmosphere defines standard sealevel pressure as 1013.25 hectopascal (hPa) or millibars (mb).
+#define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)    //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
+#define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)   //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
-#define START_LOGGING_ALTITUDE_m 4.0                  //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
+#define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -762,8 +773,8 @@ typedef union {
   uint32_t PressureFraction;  //  ASSUMING LITTEL END-IAN !!!!!!!
 } BMP581Pressure;
 BMP581Pressure LatestPressure;
-#define MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m 61        //  This allows for a delta from the launch altitude for landing detection. Must account for landing in a valley, hill, or tree. 61m is 200ft.
-#define PRESURE_SENSOR_NOISE_THRESHOLD_m 0.3         // Measured at just less than 0.15, so I am adding a little margin to cover part to part variation.
+#define MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m 61  //  This allows for a delta from the launch altitude for landing detection. Must account for landing in a valley, hill, or tree. 61m is 200ft.
+#define PRESURE_SENSOR_NOISE_THRESHOLD_m 0.3    // Measured at just less than 0.15, so I am adding a little margin to cover part to part variation.
 
 //  High current output altitudes
 #define DEFAULT_ALTITUDE_ft 500.0   //  default altitude to trip high current output, 800ft. above field altitude. In feet.
@@ -880,9 +891,9 @@ bool HasUser2Button = false;
 //boolean HasChargeInput = false;    //  Not used in this version
 
 int User1ButtonAfterReset;
-bool I2CWorking = true;        //  This is a flag indicating that both signals of the I2C bus were high are ready for communications.
+bool I2CWorking = true;  //  This is a flag indicating that both signals of the I2C bus were high are ready for communications.
 
-uint32_t DetachServoForLowPowerTime_ms;   //  This is for the delay from entering low power mode to shutting off the servo pulses.
+uint32_t DetachServoForLowPowerTime_ms;  //  This is for the delay from entering low power mode to shutting off the servo pulses.
 
 bool ThisIsALoggingCycle;  //  This indicates if a iteration through our main loop will include a sample logging.
 
@@ -1209,14 +1220,14 @@ void DoSplashScreen() {
 void DisplayInstructions() {
   display.set1X();
   display.clear();
-  display.println(F("Instruction for Mia operation"));   //  29 char
-  display.print(F("Version: "));                 //  9 char
+  display.println(F("Instruction for Mia operation"));  //  29 char
+  display.print(F("Version: "));                        //  9 char
   display.println(VersionString);
   delay(4000);
 
   display.clear();
-  display.println(F("Buttons:"));             //  8 char
-  display.println(F("Left black button: USER 1"));  //  25 char
+  display.println(F("Buttons:"));                      //  8 char
+  display.println(F("Left black button: USER 1"));     //  25 char
   if (HasUser2Button) {                                //  Only >= 0.01 versions of the Mia board has the Right black button
     display.println(F("Right black button: USER 2"));  //  used for setting high current output altitude threshold    //  26 char
   }
@@ -1224,7 +1235,7 @@ void DisplayInstructions() {
   delay(7000);
 
   display.clear();
-  display.println(F("For accurate altitude the"));   //  25 char
+  display.println(F("For accurate altitude the"));  //  25 char
   display.println(F("user must set the current"));
   display.println(F("sea level pressure. Phone"));
   display.println(F("Apps can tell you this."));
@@ -1281,7 +1292,7 @@ void DoSensorDisplayLoop() {
 
   while (HIGH) {
     maxAltitude_m = PressureToAltitude_m(ReadBMP581LatestPressure(), SeaLevelPressure_hPa);
-    delay(2000);
+    
 
     //FindFieldAltitude_m();
     display.clear();
@@ -1332,7 +1343,7 @@ void DoSensorDisplayLoop() {
       }
     } else if (AltCycle == 3U) {
       //  Display user configuration
-      display.print(F("User Config:"));
+      display.print(F("User Config: "));
       if (ServoNotSounder != 0) {  //  if servo
         display.print(F("Servo "));
       } else {
@@ -1351,6 +1362,7 @@ void DoSensorDisplayLoop() {
     if (AltCycle > 3U) {
       AltCycle = 1U;
     }
+    delay(5000);
   }
 }
 
@@ -1967,7 +1979,6 @@ void WriteRecordAtSamplePeriod(uint8_t ForceWriteNow) {
     TimeStamp1Ago += SamplePeriod_ms;
     EepromAddress = EepromAddress + sizeof(current_measurement.Record);  //  Increment to starting address of next write.
     RecordNumber++;
-
   }
 }
 
@@ -2240,7 +2251,7 @@ float getTemperatureP3() {
 */
 void getAltitude() {
   //  First, update old altitude queue     NOTE: these may be getting updated faster than the sample rate, must fix.   Moved to WriteRecordAtSamplePeriod()
-  //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements. 
+  //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements.
   //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
   //CurrentAltitude1Ago_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
@@ -3683,7 +3694,7 @@ void InitSeaLevelPressureSetMode() {
   display.set2X();
   display.clear();                      // This takes 33ms to run @ 400 kHz I2C speed!
   display.println(F("Set sea level"));  //  takes 1ms plus 0.62ms per character
-  display.println(F("pressure mode"));
+  display.print(F("pressure mode"));
   delay(1000);
   display.clear();  // This takes 33ms to run @ 400 kHz I2C speed!
 
@@ -4058,9 +4069,8 @@ void loop() {
             CurrentAltitude1Ago_m = newAltitude_m;  //
 
             TimeStamp2Ago = TimeStamp1Ago;
-            TimeStamp1Ago += SamplePeriod_ms;
-          }
-          else {
+            TimeStamp1Ago = millis();
+          } else {
             ThisIsALoggingCycle = false;
           }
           getAltitude();
@@ -4076,8 +4086,8 @@ void loop() {
             EEPROM.get(MCU_EEPROM_EXT_EEPROM_ADDR_START, EepromAddress);
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, EEPROMTime);  // Date stamp for the CSV formatted data dump
             PopulateFlightRecord(0);                                 // Collect all initial record data, don't write it yet since we don't know if we will really fly.
-            IncrementMCUEEPROMTime();    //  This just adds 10 seconds to our date-time value so the date stamp for each file is in cronalogical order. We don't know the real time unless we get it from the host interface.
-            LastDisplayedAltitude_m = InvalidAltitude;  //  Invalidate last displayed max altitude.
+            IncrementMCUEEPROMTime();                                //  This just adds 10 seconds to our date-time value so the date stamp for each file is in cronalogical order. We don't know the real time unless we get it from the host interface.
+            LastDisplayedAltitude_m = InvalidAltitude;               //  Invalidate last displayed max altitude.
 
             BuzzerSchedule[2] = INTER_BUZZ_DELAY_ms;  // Restore buzzer to normal from low power mode.
             BuzzerSchedule[6] = INTER_BUZZ_DELAY_ms;
@@ -4098,13 +4108,22 @@ void loop() {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Wait for launch phase
             //  Flight phase 1, wait for altitude to start going up.
 
-            //  Launch Detection: Dual check as noise filter. See if new altitude is enough higher than second previous altitude to detect launch
-            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m))) || (newAltitude_m > fieldAltitude_m + 20.0)) {
+            //  Launch Detection:
+            //      There are two detection methodes that are ORed together. This detection is not affected by the sample rate setting. The two methodes are:
+            //      1) An altitude increasing in 2 consecutive full speed samples. The most recent samples must have seen an increase in altitude of START_LOGGING_ALTITUDE_m
+            //         and the previous pair must have seen 80% of that altitude increase.
+            //      2) The second methode is a simple threshold above ground level. This is meant as a last resort methode if the first methode failes to detect launch due to
+            //         an extreemly slow lift off. Note: This second detection methode will not capture the first few sameples right at lift off.
+            //         Note2: This second detection methode can be triggered by a drop in ambient air pressure common with a low presure weather system (over a large number of minutes).
+            //         Note3: Faulse launch detects may be caused by wind blowing by the pressure hole in your payload section. This may be mitagated by using additional holes.//
+            //                Two holes at 180° will not help as they can both have air blowing by at an tagent.
+            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m * 0.8))) || (newAltitude_m > (fieldAltitude_m + 10.0))) {
               //  *** OK, passed launch detect, things get busy here. ***************************************************************************
-              // This is our "at launch" list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
+              // This is our "at launch" to do list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
               {
                 // 1) Write 1st initial record that has already been populated....
                 WriteRecordAtSamplePeriod(1);
+
                 //  2) ...and 2nd initial record with lat & lon....
                 for (i = 0; i < 32; i++) {
                   CommandCharacter = current_measurement.Bytes[i];
@@ -4131,7 +4150,7 @@ void loop() {
                 // 4) our first live record
                 //getAltitude();  //  Get altitude but don't display it, as we are flying, there is nobody to see it.
                 RecordNumber = 4;
-                PopulateFlightRecord(RecordNumber);
+                PopulateFlightRecord(RecordNumber);    //  This function grabs the current elapse time itself
 
                 WriteRecordAtSamplePeriod(0);
                 //RecordNumber = 2;
@@ -4167,8 +4186,10 @@ void loop() {
             //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
             //ApogeeDetected = true;
             //}
-            
-            if (((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m) && (newAltitude_m > 20.0)) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
+
+            // Apogee Detection:
+            //  We must be decending over the last three samples and we must be above 15 meters above ground level
+            if ((((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m * 2.0) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m)) && (newAltitude_m > (fieldAltitude_m + 15.0))) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
               FlightModePhaseIndex = 4;
               //Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
               //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
@@ -4189,15 +4210,23 @@ void loop() {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Monitor mode. Ran out of EEPROM, just report.
             // Flight phase but we ran out of EEPROM, so just report altitude to OLED.
             display.clearField(100, 0, 3);
-            display.print(F("FUL"));                        //   EEPROM FULL indication in top right corner of display.
+            display.print(F("FUL"));  //   EEPROM FULL indication in top right corner of display.
             //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
             //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
             //CurrentAltitude1Ago_m = newAltitude_m;
             //getAltitude();
             //displayAltitude();  // Don't use OLED to keep 3.0V as clean as possible. Only used for debug.
-            AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
-            LandingAltitude_m = newAltitude_m - fieldAltitude_m;
-            if ((abs(AltitudeDelta) < 1.0) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
+            if (ThisIsALoggingCycle) {
+              AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
+              LandingAltitude_m = newAltitude_m - fieldAltitude_m;
+            }
+            if ((abs(AltitudeDelta) < 0.3) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
+              // Update MCU EEPROM for 'last maximum altitude'
+              float LastMaximumAltitude;
+              EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
+              if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
+                EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
+              }
               // Update display
               displayAltitude();
               DisplayLandedIndication();
@@ -4230,15 +4259,17 @@ void loop() {
             //displayAltitude();    // Only for calibration or debug.
             // We are past apogee, waiting to detect landing.
 
-            // Update MCU EEPROM for last maximum altitude
+            // Update MCU EEPROM for 'last maximum altitude'
             float LastMaximumAltitude;
             EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
             if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
               EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
             }
-
-            AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
-            LandingAltitude_m = newAltitude_m - fieldAltitude_m;
+            
+            if (ThisIsALoggingCycle) {
+              AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
+              LandingAltitude_m = newAltitude_m - fieldAltitude_m;
+            }
 
             // Sample rate update and possible servo position update
             if ((OurFlightTimeStamps.ApogeeTime_ms + ServoApogeeDuration_ms) <= millis()) {
@@ -4252,11 +4283,22 @@ void loop() {
               }
             }
 
-            if ((abs(AltitudeDelta) < 0.6) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m)) {   // If we have not moved 0.6 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
+            // Landing Detection:
+            // All 3 must be true:
+            // The altitude from 3 sample times ago must be within 0.3 meters of each other.
+            // We must be within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m (61 meters) of our launch altitude (we could have landed up or down a hill, tree...)
+            // We see sensor noise indicating any increase in altitude.
+            if ((abs(AltitudeDelta) < 0.3) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m)) {  // If we have not moved 0.3 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
               // We have landed on a planet!  Save our last record.
 
               FlightStatus = FlightStatus & 0xf1ff;
               FlightStatus = FlightStatus | 0x8040 | (ServoLanded_index << 9);
+              PopulateFlightRecord(RecordNumber);
+              WriteRecordAtSamplePeriod(1);
+              
+              // Write summary record (max altitude)
+              FlightStatus = 0x1000;
+              newAltitude_m = maxAltitude_m;
               PopulateFlightRecord(RecordNumber);
               WriteRecordAtSamplePeriod(1);
 
@@ -4420,6 +4462,23 @@ void loop() {
         FlightModePhaseIndex = 0;
       }
       break;
+
+    case SHORT_CLICK_FOUND:
+      if (OperationalMode == AllOperationalModes::SealevelPressureSetMode) {
+      display.clear();  // This takes 33ms to run @ 400 kHz I2C speed!
+      if (SeaLevelPressureSetUpDirection) {
+        SeaLevelPressure_hPa = SeaLevelPressure_hPa + 5.0;
+        // display UP and current sea level pressure
+        display.print(F("UP  "));  //  takes 1ms plus 0.62ms per character
+      } else {
+        // display DN and current sea level pressure
+        SeaLevelPressure_hPa = SeaLevelPressure_hPa - 5.0;
+        display.print(F("DN  "));  //  takes 1ms plus 0.62ms per character
+      }
+      SeaLevelDisplayFinish();
+      }
+
+      break;
   }
 }
 
@@ -4547,12 +4606,12 @@ void loop() {
 
 
 
-  Status bits
+  Status bits (in right half of first word of each logging record)
 
              ┌─────────────────────────────────────────────────────────────── 15   Landing detected
              │   ┌─────────────────────────────────────────────────────────── 14   Apogee detected
              │   │   ┌─────────────────────────────────────────────────────── 13   Abnormal termination
-             │   │   │   ┌─────────────────────────────────────────────────── 12   Unused
+             │   │   │   ┌─────────────────────────────────────────────────── 12   Summary record
              │   │   │   │       ┌─────────────────────────────────────────── 11:9 Flight phase (servo position index)
              │   │   │   │       │       ┌─────────────────────────────────── 8    Location Record
              │   │   │   │       │       │   ┌─────────────────────────────── 7    Unused
