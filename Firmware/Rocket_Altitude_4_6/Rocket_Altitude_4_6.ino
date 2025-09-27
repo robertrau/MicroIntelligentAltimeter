@@ -112,11 +112,13 @@
                     H) Revert to the standard ATMEGA328 Variant. You loose access to D23-D26 which may not matter but this saves a few hundred bytes.
                     I) Remove the host mode help command.
                     J) If a buzzer on-off pattern is not required, you can eliminate the DoBuzzer() function.
-                3) Internaal EEPROM addresses 232 and up are unused.
+                3) Internaal EEPROM addresses 232 and up are unused (except for a debug location at the last 4 bytes).
                 4) Test Point 7 has a hole on the board large enough to easily solder to, it is connected to D3. It is currently unused and available for any purpose.
                 5) Many different sensors, Memory, controllers are available with a QWIIC connector that can be used with the Mia.
+                6) There is no protection from mills() roll over as it period is 49.71 days.
+                7) The Mia is build with a muRata CSTNE8M00GH5L000R0 8.000MHz resonator. It has a 0.07% initial tolerance. This is a maximum error of 2.52 seconds per hour or 0.42 seconds over 10 minutes.
 
-    @date   5/25/2025
+    @date   9/27/2025
 
     @note
     @verbatim
@@ -308,6 +310,8 @@
                 Read and set with "w" command
 
             (Space left for more word parameters that the "w" command can set. w command writes eight 16 bit values from 216 through 231)
+
+            ADDR - 1020: 4 byte debug location. Used to store in-flight data and read it back later.
 
 
             Sketch uses 31768 bytes (98%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
@@ -611,11 +615,16 @@
   By: Robert Rau
   Changes: Small edits to launch detect.
 
+  Updated: 9/27/2025
+  Rev.: 4.6.33
+  By: Robert Rau
+  Changes: Fixed getAltitude() and introduced deltaAltitude and integratedAltitude for launch detect. Compressed Instructions. Fixed maximum altitude summary record in log.
+
  USBPowered
 */
 // Version
-const char VersionString[] = "4.6.32\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1758974504  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.33\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1758977066  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -708,6 +717,7 @@ typedef union {
   unsigned long ApogeeTime_ms;
   unsigned long LandingTime_ms;
 } FlightTimeStamps;
+unsigned long maxAltitudeTimeStamp;
 FlightTimeStamps OurFlightTimeStamps;
 //bool ApogeeDetected = false;
 uint8_t ServoFlightStateArray[7] = { 90, 90, 90, 90, 90, 90, 90 };  // Values must be from 0 to 180. 0:Waiting for launch 1:Ascent 2:Apogee 3:Descent 4:Landed 5:Low power 6:@ high current altitude
@@ -746,6 +756,7 @@ uint32_t TimeStamp;
 #define SAMPLE_PERIOD_PRE_APOGEE_DEFAULT_ms 25
 #define SAMPLE_PERIOD_POST_APOGEE_DEFAULT_ms 50
 //uint32_t LastRecordTimeStamp_ms;
+uint32_t startTime_ms = 0;
 
 // Pressure Altimeter setup
 #define DEFAULT_SEALEVELPRESSURE_hPa (1013.25)  //  The International Standard Atmosphere defines standard sealevel pressure as 1013.25 hectopascal (hPa) or millibars (mb).
@@ -753,11 +764,15 @@ uint32_t TimeStamp;
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)   //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 #define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
+#define START_LOGGING_INTEGRATING_THRESHOLD 0.7        //  Threshold for new launch detect methode 9/27/2025
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
 float newAltitude_m = 0.0;                             //  Latest new altitude above sea level in sensor units (meters)
-float maxAltitude_m = 0.0;                             //  Latest new higher altitude above sea level in meters
+float LastAltitude_m = 0.0;                            //  Previous altitude above sea level measurement, updated in getAltitude() just before new measurement.
+float deltaAltitude_m = 0.0;                           //  Altitude change since last measurement (meters).
+float integratedAltitude = 0.0;                        //  Used for launch detect.
+float maxAltitude_m = 0.0;                             //  Latest new higher altitude above sea level in meters.
 float LastDisplayedAltitude_m;                         //  Used to avoid re-writing the same altitude to the OLED, (above sea level)
 bool SeaLevelPressureSetUpDirection = true;            //  Used for both setting sealevel pressure and altitude threshold for the high current output. True for UP and False for DOWN.
 uint8_t FlightModePhaseIndex;                          //  used in flight mode to keep track of the phase of the flight
@@ -825,6 +840,8 @@ uint32_t DelayToLowPower_ms;
 
 #define MCU_EEPROM_SAMPLE_RATE_PRE_APOGEE 220
 #define MCU_EEPROM_SAMPLE_RATE_POST_APOGEE 222
+
+#define MCU_EEPROM_DEBUG_LOCATION 1020
 
 
 //  External EEPROM stuff
@@ -1225,56 +1242,57 @@ void DoSplashScreen() {
 void DisplayInstructions() {
   display.set1X();
   display.clear();
-  display.println(F("Instruction for Mia operation"));  //  29 char
-  display.print(F("Version: "));                        //  9 char
-  display.println(VersionString);
+  display.print(F("Instruction for Mia operation\nVersion: "));  //  29 char
+  display.print(VersionString);
   delay(4000);
 
   display.clear();
-  display.println(F("Buttons:"));                      //  8 char
-  display.println(F("Left black button: USER 1"));     //  25 char
+  display.println(F("Buttons:\nLeft black button: USER 1"));                      //  8 char
+  //display.println(F("Left black button: USER 1"));     //  25 char
   if (HasUser2Button) {                                //  Only >= 0.01 versions of the Mia board has the Right black button
     display.println(F("Right black button: USER 2"));  //  used for setting high current output altitude threshold    //  26 char
   }
-  display.println(F("Orange Button: Reset"));  //  20 char
+  display.print(F("Orange Button: Reset"));  //  20 char
   delay(7000);
 
   display.clear();
-  display.println(F("For accurate altitude the"));  //  25 char
-  display.println(F("user must set the current"));
-  display.println(F("sea level pressure. Phone"));
-  display.println(F("Apps can tell you this."));
+  display.print(F("For accurate altitude the\nuser must set the current\nsea level pressure. Phone\nApps can tell you this."));  //  25 char
+  //display.println(F("user must set the current"));
+  //display.println(F("sea level pressure. Phone"));
+  //display.println(F("Apps can tell you this."));
   delay(7000);
 
+
   display.clear();
-  display.println(F("To set/save sea level pres."));
-  display.println(F("Long press USER1 button"));
-  display.println(F("Up/Dn: Double click USER1"));
-  display.println(F("Adjust: short click USER1"));
+  display.print(F("\nTo set/save sea level pres.\nLong press USER1 button\nUp/Dn: Double click USER1\nAdjust: short click USER1"));
+  //display.println(F("Long press USER1 button"));
+  //display.println(F("Up/Dn: Double click USER1"));
+  //display.println(F("Adjust: short click USER1"));
   delay(8000);
 
   if (HasUser2Button) {  //  Only >= 0.01 versions of the Mia board has the Right black button
-    display.clear();
-    display.println(F("Set/save Altitude deploy"));
-    display.println(F("Long press USER2 button"));
-    display.println(F("Up/Dn: Double click USER1"));
-    display.println(F("Adjust: short click USER1"));
+    //display.clear();
+    display.print(F("\nSet/save Altitude deploy\nLong press USER2 button\nUp/Dn: Double click USER1\nAdjust: short click USER1"));
+    //display.println(F("Long press USER2 button"));
+    //display.println(F("Up/Dn: Double click USER1"));
+    //display.println(F("Adjust: short click USER1"));
     delay(8000);
   }
 
-  display.clear();
-  display.println(F("Mia defaults to"));
-  display.println(F("FLIGHT MODE. After"));
-  display.println(F("your flight Mia shows"));
-  display.print(F("maximum altitude in ft."));
-  delay(7000);
+  //display.clear();
+  display.print(F("\nMia defaults to\nFLIGHT MODE. After\nyour flight Mia shows\nmaximum altitude in ft."));
+  //display.println(F("FLIGHT MODE. After"));
+  //display.println(F("your flight Mia shows"));
+  //display.print(F("maximum altitude in ft."));
+  delay(8000);
 
   display.clear();
-  display.println(F("USB charges the"));
-  display.println(F("battery."));
-  display.println(F("LED ON:  CHARGING"));
-  display.println(F("LED OFF: DONE"));
-  delay(7000);
+  display.print(F("\nUSB charges the\nbattery.\nLED ON:  CHARGIN\nLED OFF: DONE"));
+  //display.println(F("battery."));
+  //display.println(F("LED ON:  CHARGING"));
+  //display.println(F("LED OFF: DONE"));
+  delay(8000);
+  
 }
 
 
@@ -1833,6 +1851,10 @@ uint8_t AccelKX134ACRCheck() {
 uint8_t AccelKX134ACRInit() {
   if (!HasAccelerometer) {
     return 1;  //  The board has no option for an accelerometer
+    float Zero_float = 0.0;
+    current_measurement.Record.AccelerationX_g = Zero_float;
+    current_measurement.Record.AccelerationY_g = Zero_float;
+    current_measurement.Record.AccelerationZ_g = Zero_float;
   }
   Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
   Wire.write(ACCEL_KX134ACR_CNTL1_ADDR);   // CNTL1 register address for start register address
@@ -2242,27 +2264,27 @@ float getTemperatureP3() {
 
 
 /**
-   @brief  getAltitude   read of pressure from sensor then convert to altitude
+   @brief  getAltitude   Read of pressure from sensor then convert to altitude. Then update delta altitude and maxAltitude.
 
    @details
+  Updates globals:
+    LastAltitude_m
+    deltaAltitude_m
+    maxAltitude_m
 
-   @note
+   @param[in] none
 
-   @param[in]
-   @param[in]
-   @param[out]
-
-   @retval
+   @retval none
 */
 void getAltitude() {
-  //  First, update old altitude queue     NOTE: these may be getting updated faster than the sample rate, must fix.   Moved to WriteRecordAtSamplePeriod()
-  //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements.
-  //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-  //CurrentAltitude1Ago_m = newAltitude_m;
+  //  
+  LastAltitude_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
   newAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
-  if (maxAltitude_m < newAltitude_m) {  // If new altitude is greater then max altitude
-    maxAltitude_m = newAltitude_m;      // Move new altitude into max altitude
+  deltaAltitude_m = LastAltitude_m - newAltitude_m;
+  if (maxAltitude_m < newAltitude_m) {  // If new altitude is greater then max altitude...
+    maxAltitude_m = newAltitude_m;      // ...move new altitude into max altitude
+    maxAltitudeTimeStamp = millis();
   }
 }
 
@@ -2309,11 +2331,6 @@ void PopulateFlightRecord(uint16_t RecordIndexValue) {
   current_measurement.Record.Temperature = getTemperatureP3();
   if (HasAccelerometer) {
     AccelKX134ACRRead();
-  } else {
-    float Zero_float = 0.0;
-    current_measurement.Record.AccelerationX_g = Zero_float;
-    current_measurement.Record.AccelerationY_g = Zero_float;
-    current_measurement.Record.AccelerationZ_g = Zero_float;
   }
   if (RecordIndexValue == 0) {
     // initial, pre-flight record
@@ -2351,10 +2368,6 @@ void PopulatePreLaunchQueueFlightRecord(uint16_t RecordIndexValue, uint32_t Time
   current_measurement.Record.Temperature = getTemperatureP3();
   if (HasAccelerometer) {
     AccelKX134ACRRead();
-  } else {
-    current_measurement.Record.AccelerationX_g = (float)0.0;
-    current_measurement.Record.AccelerationY_g = (float)0.0;
-    current_measurement.Record.AccelerationZ_g = (float)0.0;
   }
   current_measurement.Record.Altitude = newAltitude_m - fieldAltitude_m;                                                                     // for the initial record this is the field altitude
   current_measurement.Record.Status = (0x02 & (digitalRead(HighCurrentOut) << 1)) | (0x08 & (digitalRead(TestPoint7) << 3)) | FlightStatus;  // See bottom of this file for format.
@@ -2902,6 +2915,8 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump
     LastCurrent_time_ms = current_measurement.Record.current_time_ms;
     FirstPassThroughLoop = true;
   }
+  readByteArray(i, current_measurement.Bytes, sizeof(current_measurement.Record));     // Print out max altitude record.
+    print_record(current_measurement);
 }
 
 
@@ -3208,8 +3223,8 @@ void ProcessCommand() {
 
     // Read last max altitude
     else if ((CommandCharacter == 'a')) {
-      EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, maxAltitude_m);  // This max altitude we are reading is already compensated for field altitude, because we could now be at a different location and field altitude.
-      Serial.print(maxAltitude_m * METERS_TO_FEET);
+      EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, MaxAltitude_m);  // This max altitude we are reading is already compensated for field altitude, because we could now be at a different location and field altitude.
+      Serial.print(MaxAltitude_m * METERS_TO_FEET);
       Serial.println(" ft.");
     }
 
@@ -4022,9 +4037,9 @@ void loop() {
           //      1  The pre-launch phase where we wait for our altitude to start increasing. During this wait we are collecting a queue of measurements so we actually log data from just before launch.
           //      2  After detecting launch we advance to 2, flight phase. Continious sensor readings are saved to the logging EEPROM.
           //      3  If the logging EEPROM gets full, we go to phase 3, display maximum altitude only, no logging.
-          //      4  We advance to 4, descent, after detecting apogee.
+          //      4  We advance to 4, descent, after detecting apogee. We start looking for high current output threshold.
           //      5  We get here after detecting landing. We wait for MCU_EEPROM_DELAY_FROM_LANDING_TO_LOW_POWER_MODE seconds then transition to low power mode.
-          //      6  Low power mode
+          //      6  Low power mode.
           //
           /*                                                                                                                                                      
                                                                                                                                                         
@@ -4106,6 +4121,7 @@ void loop() {
             AltitudeHighCurrentOutSetting_m = AltitudeHighCurrentOutSetting_ft / METERS_TO_FEET;
             FlightModePhaseIndex = 1;  // advance to wait for launch phase
             TimeStamp1Ago = millis();
+            startTime_ms = TimeStamp1Ago;   //  current mission elapse time.
             //Serial.println("FlightModePhaseIndex = 1");  //  Debug1
 
 
@@ -4124,11 +4140,20 @@ void loop() {
             //         Note3: Faulse launch detects may be caused by wind blowing by the pressure hole in your payload section. This may be mitagated by using additional holes like 2 holse at 90°.//
             //                Two holes at 180° will not help as they can both have air blowing by at a tagent.
 
-            //   THESE SAMPLES ARE NOT AT THE FULL SPEED SAMPLE PERIOD!!!   ERROR
-            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m * 0.8))) || (newAltitude_m > (fieldAltitude_m + 20.0))) {
+            //  Integrate altitude change with compensation for local pressure change, wind asperation over rocket's pressure port, sensor drift.
+            //  Our time period through the launch detect loop is pretty constant, so delta t can be dropped from the math.
+            if (millis() - startTime_ms > 20000) {     // Make sure we have waited 1 minute since looking for latitude so payload can be assembled without causing a launch event!
+              integratedAltitude = (integratedAltitude * 0.9) + deltaAltitude_m;    //  For now I am using 90% to compensate for drift, wind, pressure change.
+            }
+            else {
+              integratedAltitude = 0;
+            }
+            if ((integratedAltitude > START_LOGGING_INTEGRATING_THRESHOLD) || (newAltitude_m > (fieldAltitude_m + 14.0))) {
               //  *** OK, passed launch detect, things get busy here. ***************************************************************************
               // This is our "at launch" to do list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
               {
+                EEPROM.put(MCU_EEPROM_DEBUG_LOCATION, integratedAltitude);    //  for debug, so we know "which" term made launch detect.
+                
                 // 1) Write 1st initial record that has already been populated....
                 WriteRecordAtSamplePeriod(1);
 
@@ -4183,7 +4208,7 @@ void loop() {
 
             // Apogee Detection:
             //  We must be decending over the last three samples and we must be above 15 meters above ground level
-            if ((((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m * 2.0) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m)) && (newAltitude_m > (fieldAltitude_m + 15.0))) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
+            if ((((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m * 2.0) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m)) && (newAltitude_m > (fieldAltitude_m + 16.0))) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
               FlightModePhaseIndex = 4;
               //Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
               //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
@@ -4211,11 +4236,11 @@ void loop() {
             }
             if ((abs(AltitudeDelta) < 0.3) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
               // Update MCU EEPROM for 'last maximum altitude'
-              float LastMaximumAltitude;
-              EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
-              if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
-                EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
-              }
+              //float LastMaximumAltitude;
+              //EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
+              //if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
+              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
+              //}
               // Update display
               displayAltitude();
               DisplayLandedIndication();
@@ -4244,11 +4269,12 @@ void loop() {
             // We are past apogee, waiting to detect landing.
 
             // Update MCU EEPROM for 'last maximum altitude'
-            float LastMaximumAltitude;
-            EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
-            if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
-              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
-            }
+            //float LastMaximumAltitude;
+            //EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
+            //if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {    //  maxAltitude_m is AGL
+              //EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
+              //maxAltitudeTimeStamp = millis();
+            //}
             
             if (ThisIsALoggingCycle) {
               AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
@@ -4274,7 +4300,7 @@ void loop() {
             // We see sensor noise indicating any increase in altitude.
             if ((abs(AltitudeDelta) < 0.3) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m)) {  // If we have not moved 0.3 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
               // We have landed on a planet!  Save our last record.
-
+              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));  // Update MCU EEPROM for 'last maximum altitude'
               FlightStatus = FlightStatus & 0xf1ff;
               FlightStatus = FlightStatus | 0x8040 | (ServoLanded_index << 9);
               PopulateFlightRecord(RecordNumber);
@@ -4282,8 +4308,8 @@ void loop() {
               
               // Write summary record (max altitude)
               FlightStatus = 0x1000;
-              newAltitude_m = maxAltitude_m;
-              PopulateFlightRecord(RecordNumber);
+              newAltitude_m = maxAltitude_m;  
+              PopulatePreLaunchQueueFlightRecord(RecordNumber, maxAltitudeTimeStamp);
               WriteRecordAtSamplePeriod(1);
 
               EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);  //  Update external EEPROM next address in MCU EEPROM.

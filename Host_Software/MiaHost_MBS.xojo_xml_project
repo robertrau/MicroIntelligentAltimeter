@@ -3695,10 +3695,14 @@
     <SourceLine>CheckLocationBtn.Enabled = False</SourceLine>
     <SourceLine>UpdateSealevelPressureBtn.Enabled = False</SourceLine>
     <SourceLine>UpdateLocationBtn.Enabled = False</SourceLine>
-    <SourceLine>DisconnectFromMiaButton.Enabled = False</SourceLine>
+    <SourceLine>'DisconnectFromMiaButton.Enabled = False</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>NumberOfFlightsFoundLabel.Text = "Communicating with flight computer..."</SourceLine>
     <SourceLine>f = GetDownloadFolder()</SourceLine>
+    <SourceLine>if f = Nil Then</SourceLine>
+    <SourceLine>NumberOfFlightsFoundLabel.Text = ""</SourceLine>
+    <SourceLine>Return</SourceLine>
+    <SourceLine>end If</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>Thread1.run</SourceLine>
     <SourceLine></SourceLine>
@@ -9060,7 +9064,7 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost.Controls.ConnectToMiaButton.Pressed</EditorLocation>
+    <EditorLocation>MiaHost.Controls.DownloadAllFlightsButton.Pressed</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
