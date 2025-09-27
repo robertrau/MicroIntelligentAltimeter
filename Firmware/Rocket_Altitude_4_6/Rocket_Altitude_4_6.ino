@@ -606,11 +606,16 @@
   By: Robert Rau
   Changes: Fixed landing detection (was checking for difference when samples wern't updated due to sample period). Added summary record so we don't lose max altitude.
 
+  Updated: 9/27/2025
+  Rev.: 4.6.32
+  By: Robert Rau
+  Changes: Small edits to launch detect.
+
  USBPowered
 */
 // Version
-const char VersionString[] = "4.6.31\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1756077287  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.32\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1758974504  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -801,12 +806,12 @@ uint32_t UserConfiguration;
 #define UserConfigurationSounderNotServo_mask 0x00000080UL         // Servo mask
 #define MCU_EEPROM_ADDR_AltitudeHighCurrentOut_ft 192              //  AltitudeHighCurrentOut is unique in that it is stored in feet.
 #define MCU_EEPROM_LAST_MAXIMUM_ALTITUDE 196                       // where the last flight's maximum altitude is stored. This value is already compensated for field altitude. In meters.
-#define MCU_EEPROM_SERVO_PRE_LAUNCH 200
-#define MCU_EEPROM_SERVO_ASCENT 201
-#define MCU_EEPROM_SERVO_AT_APOGEE 202
-#define MCU_EEPROM_SERVO_DESCENT 203
-#define MCU_EEPROM_SERVO_POST_LANDING 204
-#define MCU_EEPROM_SERVO_POST_LANDING_LOW_PWR 205
+#define MCU_EEPROM_SERVO_PRE_LAUNCH 200             // MCU EEPROM address where the pre-launch servo position is stored (0 to 180 degrees)
+#define MCU_EEPROM_SERVO_ASCENT 201                 // MCU EEPROM address where the post-launch to apogee servo position is stored (0 to 180 degrees)
+#define MCU_EEPROM_SERVO_AT_APOGEE 202              // MCU EEPROM address where the post-apogee to High current threshold altitude servo position is stored (0 to 180 degrees)
+#define MCU_EEPROM_SERVO_DESCENT 203                // MCU EEPROM address where the post-high current threshold to landing servo position is stored (0 to 180 degrees)
+#define MCU_EEPROM_SERVO_POST_LANDING 204           // MCU EEPROM address where the post-landing to low power timer expiring servo position is stored (0 to 180 degrees)
+#define MCU_EEPROM_SERVO_POST_LANDING_LOW_PWR 205   // MCU EEPROM address where the post-low power timer expiring servo position is stored (0 to 180 degrees)
 #define MCU_EEPROM_SERVO_HC_Out 208
 
 #define MCU_EEPROM_LOW_POWER_BUZ_REST_MULT 206
@@ -825,7 +830,7 @@ uint32_t DelayToLowPower_ms;
 //  External EEPROM stuff
 #define ExternalEEPROMSizeInBytes 262144U       //    262144 Bytes or 8192 flight records
 #define MCU_EEPROM_EXT_EEPROM_ADDR_START 12     // Location in the MCU EEPROM where the next free address is in the external EEPROM
-uint32_t EepromAddress;                         // Address within the external EEPROM
+uint32_t EepromAddress;                         // Address for the next flight record in the external EEPROM
 #define MCU_EEPROM_ADDR_LATITUDE_LONGITUDE 160  // Last known launch location. 24 byte text string <latitude>,<longitude>,0x00
 uint16_t RecordNumber;
 
@@ -1970,8 +1975,8 @@ int8_t AccelKX134ACRReadXOnly() {
  * @return 
  */
 void WriteRecordAtSamplePeriod(uint8_t ForceWriteNow) {
-  if (EepromAddress + 64 > ExternalEEPROMSizeInBytes) {  // Check for room in the external EEPROM (Leaving room for a final record).
-    FlightModePhaseIndex = 3;                            // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode and return.
+  if (EepromAddress + 64 >= ExternalEEPROMSizeInBytes) {  // Check for room in the external EEPROM (Leaving room for a final record & summary record).
+    FlightModePhaseIndex = 3;                            // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode (monitor mode) and return.
     return;
   }
   if (ThisIsALoggingCycle || ForceWriteNow) {
@@ -4109,15 +4114,18 @@ void loop() {
             //  Flight phase 1, wait for altitude to start going up.
 
             //  Launch Detection:
+            //      9/11/2025: Jud had an idea, integrate the altitude and threshold with x meter-seconds, or meter-milliseconds.
             //      There are two detection methodes that are ORed together. This detection is not affected by the sample rate setting. The two methodes are:
-            //      1) An altitude increasing in 2 consecutive full speed samples. The most recent samples must have seen an increase in altitude of START_LOGGING_ALTITUDE_m
+            //      1) An altitude increasing in 2 consecutive full speed samples (not user programmed sample period). The most recent samples must have seen an increase in altitude of START_LOGGING_ALTITUDE_m
             //         and the previous pair must have seen 80% of that altitude increase.
             //      2) The second methode is a simple threshold above ground level. This is meant as a last resort methode if the first methode failes to detect launch due to
             //         an extreemly slow lift off. Note: This second detection methode will not capture the first few sameples right at lift off.
             //         Note2: This second detection methode can be triggered by a drop in ambient air pressure common with a low presure weather system (over a large number of minutes).
-            //         Note3: Faulse launch detects may be caused by wind blowing by the pressure hole in your payload section. This may be mitagated by using additional holes.//
-            //                Two holes at 180° will not help as they can both have air blowing by at an tagent.
-            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m * 0.8))) || (newAltitude_m > (fieldAltitude_m + 10.0))) {
+            //         Note3: Faulse launch detects may be caused by wind blowing by the pressure hole in your payload section. This may be mitagated by using additional holes like 2 holse at 90°.//
+            //                Two holes at 180° will not help as they can both have air blowing by at a tagent.
+
+            //   THESE SAMPLES ARE NOT AT THE FULL SPEED SAMPLE PERIOD!!!   ERROR
+            if ((((newAltitude_m - CurrentAltitude1Ago_m) >= START_LOGGING_ALTITUDE_m) && ((CurrentAltitude1Ago_m - CurrentAltitude2Ago_m) >= (START_LOGGING_ALTITUDE_m * 0.8))) || (newAltitude_m > (fieldAltitude_m + 20.0))) {
               //  *** OK, passed launch detect, things get busy here. ***************************************************************************
               // This is our "at launch" to do list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
               {
@@ -4172,20 +4180,6 @@ void loop() {
           else if (FlightModePhaseIndex == 2) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Flight phase, looking for apogee
             //   flight phase with logging to external EEPROM
-            //CurrentAltitude4Ago_m = CurrentAltitude3Ago_m;
-            //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;
-            //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;  // Record next to last altitude for peak altitude detection.
-            //CurrentAltitude1Ago_m = newAltitude_m;          // Record last altitude for peak altitude detection.
-            //getAltitude();                                  // Get our current altitude and update maximum altitude.
-
-            // servo update
-            //if ((ApogeeDetected == false) && (CurrentAltitude4Ago_m > newAltitude_m)) {
-            // This is the peak of APOGEE!!
-            // We have two apogee detections, a more sensitive one for servo position and a less sensitive one for flight phase management.
-            //Serial.print(F("Phase 2, apogee det 1, apogee detect true, MET_ms="));
-            //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
-            //ApogeeDetected = true;
-            //}
 
             // Apogee Detection:
             //  We must be decending over the last three samples and we must be above 15 meters above ground level
@@ -4211,11 +4205,6 @@ void loop() {
             // Flight phase but we ran out of EEPROM, so just report altitude to OLED.
             display.clearField(100, 0, 3);
             display.print(F("FUL"));  //   EEPROM FULL indication in top right corner of display.
-            //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
-            //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-            //CurrentAltitude1Ago_m = newAltitude_m;
-            //getAltitude();
-            //displayAltitude();  // Don't use OLED to keep 3.0V as clean as possible. Only used for debug.
             if (ThisIsALoggingCycle) {
               AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
               LandingAltitude_m = newAltitude_m - fieldAltitude_m;
@@ -4241,11 +4230,6 @@ void loop() {
 
           else if (FlightModePhaseIndex == 4) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Post apogee looking for landing.
-            //CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  NOTE: all above sea level measurements. All values in the queue are valid from flight Phase 2
-            //CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-            //CurrentAltitude1Ago_m = newAltitude_m;
-            //getAltitude();  //   Get current altitude but don't display maximum altitude until we have landed because nobody can see it yet.
-
 
             // High current output altitude threshold check.
             if (AltitudeHighCurrentOutSetting_m > (newAltitude_m - fieldAltitude_m)) {
