@@ -608,7 +608,7 @@
   Updated: 8/24/2025
   Rev.: 4.6.31
   By: Robert Rau
-  Changes: Fixed landing detection (was checking for difference when samples wern't updated due to sample period). Added summary record so we don't lose max altitude.
+  Changes: Fixed landing detection (was checking for difference when samples wern't updated due to sample period). Added summary record so we don't lose peak altitude.
 
   Updated: 9/27/2025
   Rev.: 4.6.32
@@ -620,11 +620,15 @@
   By: Robert Rau
   Changes: Fixed getAltitude() and introduced deltaAltitude and integratedAltitude for launch detect. Compressed Instructions. Fixed maximum altitude summary record in log.
 
- USBPowered
+  Updated: 9/28/2025
+  Rev.: 4.6.34
+  By: Robert Rau
+  Changes: Initialized both integratedAltitude and deltaAltitude_m in findFieldAltitude().
+
 */
 // Version
-const char VersionString[] = "4.6.33\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1758977066  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.34\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1759065545  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -967,6 +971,7 @@ void setup() {
     Wire.begin();
     Wire.setClock(400000L);
 
+    //  Note to programmers:
     // The I2C timeout feature will prevent lock ups when there is a I2C failure. This feature uses 100s of bytes and does not fit in FlASH with all the current features.
     //  To use the I2C timeout feature you must edit the file:
     //  /Users/<username>/Library/Arduino15/packages/MiniCore/hardware/avr/3.1.1/libraries/Wire/src/Wire_timeout.h  (Unix format, insert your user name)
@@ -1577,6 +1582,8 @@ void FindFieldAltitude_m() {
   fieldAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
   LastDisplayedAltitude_m = InvalidAltitude;  //  Invalidate last displayed max altitude.
   maxAltitude_m = fieldAltitude_m;            //  Update our maximum altitude.
+  integratedAltitude = 0.0;
+  deltaAltitude_m = 0.0;
 }
 
 
@@ -4078,7 +4085,7 @@ void loop() {
      This phase only lasts 0.02 sec.         RSO                  │     Optional, servo to landed.│           Low Power Phase.                          
       Optional, servo to pre-launch          TABLE                │                        |      │     Optional, servo to low power.                   
                                                              Launch Pad                    ╰─────▶|◀─────┘                                              
-
+  NOTE: THERE IS A 60 SECOND DELAY FROM WHEN THE Mia STARTS REPORTING AN ALTITUDE and before it will detect a launch. This allows for payload assembly without creating a false launch before ever getting to the pad.
 */
 
           // Our loop period and our sample period are not linked, we must find out if this trip through our loop will be a logging event. If so, we will update both the old altitude queue and set a flag for the logging function.
@@ -4142,7 +4149,7 @@ void loop() {
 
             //  Integrate altitude change with compensation for local pressure change, wind asperation over rocket's pressure port, sensor drift.
             //  Our time period through the launch detect loop is pretty constant, so delta t can be dropped from the math.
-            if (millis() - startTime_ms > 20000) {     // Make sure we have waited 1 minute since looking for latitude so payload can be assembled without causing a launch event!
+            if (millis() - startTime_ms > 60000) {     // Make sure we have waited 1 minute since looking for latitude so payload can be assembled without causing a launch event!
               integratedAltitude = (integratedAltitude * 0.9) + deltaAltitude_m;    //  For now I am using 90% to compensate for drift, wind, pressure change.
             }
             else {
