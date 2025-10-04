@@ -8009,11 +8009,13 @@
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Sub Opening()</SourceLine>
-   <SourceLine>NameLabel.Bold = TrueVar fullVersion As String</SourceLine>
+   <SourceLine>NameLabel.Bold = True</SourceLine>
+   <SourceLine>Var fullVersion As String</SourceLine>
    <SourceLine>fullVersion = App.MajorVersion.ToString + "." + App.MinorVersion.ToString + "." + App.BugVersion.ToString + "." + App.NonReleaseVersion.ToString</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>VersionText.Text = "Version " + fullVersion</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
@@ -8310,7 +8312,7 @@
    <ItemSource>
     <TextEncoding>134217984</TextEncoding>
     <SourceLine>Sub Opening()</SourceLine>
-    <SourceLine>me.Text = "Built with XOJO version " + XojoVersion.ToString</SourceLine>
+    <SourceLine>me.Text = "Built with XOJO version " + XojoVersionString</SourceLine>
     <SourceLine>End Sub</SourceLine>
    </ItemSource>
   </HookInstance>
@@ -8560,7 +8562,7 @@
   <PropertyVal Name="LockRight">False</PropertyVal>
   <PropertyVal Name="LockTop">True</PropertyVal>
   <PropertyVal Name="Multiline">False</PropertyVal>
-  <PropertyVal Name="Name">Label6</PropertyVal>
+  <PropertyVal Name="Name">XojoVersionText</PropertyVal>
   <PropertyVal Name="Scope">0</PropertyVal>
   <PropertyVal Name="Selectable">False</PropertyVal>
   <PropertyVal Name="Super">DesktopLabel</PropertyVal>
@@ -9069,7 +9071,7 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>AboutWindow.Opening</EditorLocation>
+    <EditorLocation>AboutWindow.Controls.XOJOVersionLabel.Opening</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>324665343</EditingPartID>
     <EditorPath></EditorPath>

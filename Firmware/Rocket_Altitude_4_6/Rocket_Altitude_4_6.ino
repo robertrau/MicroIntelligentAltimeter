@@ -25,7 +25,7 @@
              anyway they want, without requirements of giving back, although we would love you to share your additions! :-)
              This firmware uses the BMP581 altimeter, a Vishay VEMT2523SLX01 as a light sensor for possible roll data, a muRata NXFT15XH103FEAB050 thermistor on connector P3 to
              log flight data. Then the OLED will report maximum altitude above ground level in feet.
-             The 0.0.1 version adds a I2C KX134ACR accelerometer, charge status to Arduino digital input 6, and a second user button.
+             The 0.0.1 version of the Mia board adds a I2C KX134ACR accelerometer, charge status to Arduino digital input 6, and a second user button.
 
              Mia is supported with a host program for Windows, MacOS, Linux, and Raspberry Pi. The host program can:
               Download flight logs
@@ -76,14 +76,14 @@
 //                                                     │  256kB   │  │  Sensor  │  │              │  │         │
 //                                                     └──────────┘  └──────────┘  └──────────────┘  └─────────┘
 //
-// Created with Monodraw
+// Created with Monodraw on macos
 /*
             Five modes of operation are supported:
               FlightMode, BatteryChargeOnly, SerialHost, SealevelPressureSetMode, Set descent altitude for high current output
                 1) Sea level Pressure Set Mode, using only the OLED and buttons to enter the sea level pressure.
                 2) Flight mode, where we wait for lift off, log altitude, light, temperature with a thermistor on connector P3.
                 3) Host connected serial utility mode, this will allow downloading of the EEPROM flight log, clearing the EEPROM, and setting the date-time.
-                4) Battery charge mode, this will indicate charging for 5 seconds then turn off the OLED.
+                4) Battery charge mode, this will display CHARGING for 5 seconds then turn off the OLED.
                 5) Set the altitude for the high current output to be turned on.
 
                 While in Flight mode, there are 5 flight phases:
@@ -98,6 +98,11 @@
               Source code conventions:
                 We use the prefix N_ for active low digital pins.
                 Part way through the project we started adding a units suffix to variables to reduce unit confusion.
+                    meters:       _m
+                    feet:         _ft
+                    seconds:      _s
+                    milliseconds: _ms
+                    kg/mol:       _kgpm
                 Unused MCU pins must be either an output or an input with a pull up or down so the pins don't float and draw excess current.
               Programmer tips:
                 1) This software keeps track of approximate date and time. This helps keep flight logs in order. Please keep the #define BIRTH_TIME_OF_THIS_VERSION up to date with every build.
@@ -141,7 +146,7 @@
                                              Tools -> Port ->  MACOS: similar to /dev/cu.usbserial34859F34317C7 (Arduino Nano ESP32)     Windows:
 
             Now click upload so ArduinoISP is programmed into your Arduino you are using as the programmer (Nano ESP32 in my case).
-            The board you just programmed can be kept as a tool to re-program a bootloader that got corrupted.
+            The board you just programmed can be kept as a tool to re-program your bootloader if it gets corrupted.
 
           The third step is to program the bootloader into your Mia
                   Setup the Arduino IDE:     Tools -> Board -> MiniCore -> ATMEGA328.
@@ -168,7 +173,7 @@
                         │             │                                      
                         │             │                                      
                         │             │                                      
-                        │         O   │                    Programmer Board  
+                        │         O   │                     Your Arduino as a Programmer Board  
                         │   ┌─────┐   │                                      
                         │   │     │  O│◀───  -RESET         D10              
                         │   │ MCU │   │                                      
@@ -625,11 +630,16 @@
   By: Robert Rau
   Changes: Initialized both integratedAltitude and deltaAltitude_m in findFieldAltitude().
 
+  Updated: 10/4/2025
+  Rev.: 4.6.35
+  By: Robert Rau
+  Changes: Corrected and added comments. Details added in sample period section and log format section at end. Made START_LOGGING_INTEGRATING_THRESHOLD more sensitive since we failed at launch detect.
+
 */
 // Version
-const char VersionString[] = "4.6.34\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1759065545  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
-//                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
+const char VersionString[] = "4.6.35\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1759615704  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+//                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
 
@@ -638,13 +648,16 @@ const char VersionString[] = "4.6.34\0";       //  ToDo, put in flash  see: http
 //**************************************************************************************************************************************
 
 // worldly constants
+//    time
 #define SECONDS_TO_MILLISECONDS 1000
 #define SECONDS_TO_MICROSECONDS 1000000
 #define SECONDS_TO_NANOSECONDS 1000000000
 #define NANOSECONDS_TO_MILLISECONDS 0.000001
 #define NANOSECONDS_TO_SECONDS 0.000000001
 #define MHz 1000000                                  //  MHz to Hz
-const float METERS_TO_FEET = 3.280839895;            //  Conversion from meters to feet, from https://www.rapidtables.com/convert/length/meter-to-feet.html
+//    length
+#define METERS_TO_FEET 3.280839895            //  Conversion from meters to feet, from https://www.rapidtables.com/convert/length/meter-to-feet.html
+//     other
 #define AvogadrosNumber 6.0221408e+23                //  Because I could!
 #define MOLAR_MASS_AIR_kgpm 0.0289644                //  Molar mass of Earth’s air [kg/mol].
 #define GRAVITATIONAL_ACCELERATION_ms2 9.80665       //  Gravitational acceleration constant m/s^2.
@@ -762,13 +775,15 @@ uint32_t TimeStamp;
 //uint32_t LastRecordTimeStamp_ms;
 uint32_t startTime_ms = 0;
 
+#define FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms 60000
+
 // Pressure Altimeter setup
 #define DEFAULT_SEALEVELPRESSURE_hPa (1013.25)  //  The International Standard Atmosphere defines standard sealevel pressure as 1013.25 hectopascal (hPa) or millibars (mb).
 #define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)    //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)   //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 #define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
-#define START_LOGGING_INTEGRATING_THRESHOLD 0.7        //  Threshold for new launch detect methode 9/27/2025
+#define START_LOGGING_INTEGRATING_THRESHOLD 0.4        //  Threshold for new launch detect methode 9/27/2025
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -794,7 +809,7 @@ float CurrentPressure;  // used for lowest level functions
 //  Pressure from BMP581 as a array of bytes from the I2C read, or as a 26 bit . 6 bit fraction in Pascals
 typedef union {
   byte PressureBytes[4];
-  uint32_t PressureFraction;  //  ASSUMING LITTEL END-IAN !!!!!!!
+  uint32_t PressureFraction;  //  ASSUMING LITTLE END-IAN !!!!!!!
 } BMP581Pressure;
 BMP581Pressure LatestPressure;
 #define MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m 61  //  This allows for a delta from the launch altitude for landing detection. Must account for landing in a valley, hill, or tree. 61m is 200ft.
@@ -1520,7 +1535,7 @@ uint8_t SetupBMP581() {
 }
 
 /*!
- * @brief Read the last pressure from the BMP581 in millibars (hPa)
+ * @brief Read the last pressure from the BMP581 and return it in millibars (hPa)
  */
 float ReadBMP581LatestPressure() {
   Wire.beginTransmission(I2C_BMP581_ADDRESS);
@@ -1535,7 +1550,7 @@ float ReadBMP581LatestPressure() {
   if (Wire.endTransmission() != 0) {
     return 2;  //
   }
-  LatestPressure.PressureBytes[3] = 0;                       // the forth byte was not written to from I2C
+  LatestPressure.PressureBytes[3] = 0;                       // The BMP581 only supplies 3 bytes of data so the forth byte was not written to from I2C, zero it now.
   return ((float)LatestPressure.PressureFraction) / 6400.0;  //   / 64 for Pa, and then / 100 for millibar (hPa).
 }
 
@@ -4085,10 +4100,30 @@ void loop() {
      This phase only lasts 0.02 sec.         RSO                  │     Optional, servo to landed.│           Low Power Phase.                          
       Optional, servo to pre-launch          TABLE                │                        |      │     Optional, servo to low power.                   
                                                              Launch Pad                    ╰─────▶|◀─────┘                                              
-  NOTE: THERE IS A 60 SECOND DELAY FROM WHEN THE Mia STARTS REPORTING AN ALTITUDE and before it will detect a launch. This allows for payload assembly without creating a false launch before ever getting to the pad.
+  NOTE: THERE IS A 60 SECOND DELAY FROM WHEN THE Mia STARTS REPORTING ALTITUDEs AND before it will detect a launch. This allows for payload assembly without creating a false launch before ever getting to the pad. See FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms.
 */
 
-          // Our loop period and our sample period are not linked, we must find out if this trip through our loop will be a logging event. If so, we will update both the old altitude queue and set a flag for the logging function.
+          
+
+          /*
+          The Mia allows the user to set two sample period for the logging data, one for assent and one for decent. This sample period should be longer than the Arduino loop period, but if not
+          the sample period will be the Arduino loop period. The Arduino loop period is not consistant, it changes because of flight mode, floating point calculations, and EEPROM write duration.
+
+          
+          
+          The V tick marks represent moments in time when we start a new Arduion loop and sample a new altitude, for simplicity, this is shown as a regular interval where in reality this varies.
+          The A tick marks represent the sample events as requested by the user.
+          The x tick marks are the resultant, actual sample events based on the when the getAltitude() call is made and the user period.
+          This example below could represent a average Arduino loop time of 15ms, and a user period of 35ms.
+             Arduino Loop period: V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V
+               Ideal user period:A          A          A          A          A          A          A          A          A          A          A          A          A          A          A          A
+            Actual logged period: x         x              x         x         x         x         x              x         x         x         x         x              x         x         x         x
+            Time --->
+
+            */
+
+
+          // Our loop period and our sample period are not the same, we must find out if this trip through our loop will be a logging event. If so, we will update both the old altitude queue and set a flag for the logging function.
           if (millis() >= (TimeStamp1Ago + SamplePeriod_ms)) {
             ThisIsALoggingCycle = true;
             CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
@@ -4103,7 +4138,7 @@ void loop() {
           getAltitude();
 
           if (FlightModePhaseIndex == 0) {
-            //  ^^^^^^^^^^^^^^^^^^^^^^^   Initialize for flight.  We get here from 3 places: power up, USB power removal. First collect initial data.
+            //  ^^^^^^^^^^^^^^^^^^^^^^^   Initialize for flight.  We get here from 2 places: power up, USB power removal. First collect initial data.
             SetUpMiaFromMCUEEPROM();  //  SamplePeriod_ms is setup on returning from SetUpMiaFromMCUEEPROM().
             //ApogeeDetected = false;
             display.clear();  // Keep 3.0V power as clean as possible during the findinng of field altitude, reduce OLED noise on 3.0 volt power.
@@ -4113,7 +4148,7 @@ void loop() {
             EEPROM.get(MCU_EEPROM_EXT_EEPROM_ADDR_START, EepromAddress);
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, EEPROMTime);  // Date stamp for the CSV formatted data dump
             PopulateFlightRecord(0);                                 // Collect all initial record data, don't write it yet since we don't know if we will really fly.
-            IncrementMCUEEPROMTime();                                //  This just adds 10 seconds to our date-time value so the date stamp for each file is in cronalogical order. We don't know the real time unless we get it from the host interface.
+            IncrementMCUEEPROMTime();                                // This just adds 10 seconds to our date-time value so the date stamp for each file is in chronological order. We don't know the real time unless we get it from the host interface.
             LastDisplayedAltitude_m = InvalidAltitude;               //  Invalidate last displayed max altitude.
 
             BuzzerSchedule[2] = INTER_BUZZ_DELAY_ms;  // Restore buzzer to normal from low power mode.
@@ -4149,7 +4184,7 @@ void loop() {
 
             //  Integrate altitude change with compensation for local pressure change, wind asperation over rocket's pressure port, sensor drift.
             //  Our time period through the launch detect loop is pretty constant, so delta t can be dropped from the math.
-            if (millis() - startTime_ms > 60000) {     // Make sure we have waited 1 minute since looking for latitude so payload can be assembled without causing a launch event!
+            if (millis() - startTime_ms > FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms) {     // Make sure we have waited 1 minute since looking for latitude so payload can be assembled without causing a launch event!
               integratedAltitude = (integratedAltitude * 0.9) + deltaAltitude_m;    //  For now I am using 90% to compensate for drift, wind, pressure change.
             }
             else {
@@ -4223,7 +4258,7 @@ void loop() {
                 MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
               }
               FlightStatus = FlightStatus & 0xf1ff;
-              FlightStatus = FlightStatus | (ServoApogee_index << 9) | 0x4000;
+              FlightStatus = FlightStatus | (ServoApogee_index << 9) | 0x4000;  //   0x4000 is apogee detected status bit
               OurFlightTimeStamps.ApogeeTime_ms = millis();  //  We record our apogee time for the next servo position change at a fixed time later. See ServoApogeeDuration_ms
               //ApogeeDetected = true;
               //Serial.println("FlightModePhaseIndex = 4");  //  Debug1
@@ -4503,6 +4538,12 @@ void loop() {
 /*
   Logging EEPROM format. All records are 32 bytes.
 
+  A normal flight log contains:
+  Record 0, a launch site information record containing field altitude and date-time.
+  Record 1, a launch site information record containing latitude and longitude.
+  Records 2 through the end of the flight logging time, altitude, acceleration, and temperature/sensor data.
+  Record 'last', a summmary record containing the time stamp of the actual apogee sample's time stamp and altitude.
+
             / ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
            │  │                  Record Index.                  ││                   Status bits                   │
            │  │      Record index 0 is launch conditions.       ││  A collection of 15 bits indicating states of   │
@@ -4619,6 +4660,43 @@ void loop() {
             \ └────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
+            / ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
+           │  │                  Record Index.                  ││                   Status bits                   │
+           │  │ Record Indices 2 through the end are flight log ││  A collection of 14 bits indicating states of   │
+           │  │           data at the sample period.            ││ internal and external conditions, and phases of │
+           │  │                                                 ││     the flight. Summary bit set.                │
+           │  │<------------------ uint16_t ------------------> ││<------------------ uint16_t ------------------> │
+           │  └─────────────────────────────────────────────────┘└─────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+           │  │                                Time in milliseconds of maximum altitude                            │
+           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
+           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+           │  │                                       Altitude at apogee                                           │
+           │  │ <-------------------------------------------- float ---------------------------------------------> │
+           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  Record   │  │                                         Invalid                                                    │
+  last     │  │ <-------------------------------------------- float ---------------------------------------------> │
+           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+           │  │                                         Invalid                                                    │
+           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
+           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+           │  │                                         Invalid                                                    │
+           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
+           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+           │  │                                         Invalid                                                    │
+           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
+           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
+           │  │                                         Invalid                                                    │
+           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
+           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           \
+
 
 
 
@@ -4628,7 +4706,7 @@ void loop() {
              ┌─────────────────────────────────────────────────────────────── 15   Landing detected
              │   ┌─────────────────────────────────────────────────────────── 14   Apogee detected
              │   │   ┌─────────────────────────────────────────────────────── 13   Abnormal termination
-             │   │   │   ┌─────────────────────────────────────────────────── 12   Summary record
+             │   │   │   ┌─────────────────────────────────────────────────── 12   Summary record (This is the last record recorded in a flight, its time stamp is out of order, it represents the time of the peak altitude)
              │   │   │   │       ┌─────────────────────────────────────────── 11:9 Flight phase (servo position index)
              │   │   │   │       │       ┌─────────────────────────────────── 8    Location Record
              │   │   │   │       │       │   ┌─────────────────────────────── 7    Unused
