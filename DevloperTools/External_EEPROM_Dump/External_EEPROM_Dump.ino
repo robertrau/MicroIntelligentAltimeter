@@ -1063,9 +1063,9 @@ void PrintRecord(Measurement& measurement) {  // record dump
   uint32_t ShortEEPROMTime;
 
   SerialPrintDecimalAndHex(measurement.Record.RecordIndex, 2);
-  Serial.print(" | ");
+  Serial.print(" , ");
   SerialPrintHex(measurement.Record.Status, 2);
-  Serial.print(" | ");
+  Serial.print(" , ");
 
   if ((measurement.Record.RecordIndex == 1) && (measurement.Record.Status == 0x100)) {
     int x;
@@ -1073,7 +1073,7 @@ void PrintRecord(Measurement& measurement) {  // record dump
       SerialPrintHexShort(measurement.Bytes[x], 1);
       Serial.print(" ");
     }
-    Serial.print(" | ");
+    Serial.print(" , ");
     for (x = 4; (x < 28) & (measurement.Bytes[x] != 0); x++) {
       Serial.print((char)measurement.Bytes[x]);
     }
@@ -1082,20 +1082,24 @@ void PrintRecord(Measurement& measurement) {  // record dump
   } else {
 
     SerialPrintDecimalAndHex(measurement.Record.current_time_ms, 4);
-    Serial.print(" | ");
+    Serial.print(" , ");
     SerialPrintFloat(measurement.Record.Altitude * METERS_TO_FEET);
-    Serial.print(" | ");
+    Serial.print(" , ");
     SerialPrintFloat(measurement.Record.Temperature);
-    Serial.print(" | ");
+    Serial.print(" , ");
     SerialPrintDecimalAndHex(measurement.InitRecord.SeaLevelPressureX4, 4);  //  SeaLevelPressureX4 or LightVoltage
-    Serial.print(" | ");
+    Serial.print(" , ");
     ShortEEPROMTime = measurement.InitRecord.LinuxDateTime & 0xffffffff;
     SerialPrintDecimalAndHex(ShortEEPROMTime, 4);
-    Serial.print(" | ");
+    Serial.print(" , ");
     Serial.print(measurement.Record.AccelerationX_g);
-    Serial.print(" | ");
+    //Serial.print(" (");
+    //Serial.print((uint32_t)measurement.Record.AccelerationX_g);
+    Serial.print(" , ");
     Serial.print(measurement.Record.AccelerationY_g);
-    Serial.print(" | ");
+   // Serial.print(" (");
+    //Serial.print((uint32_t)measurement.Record.AccelerationY_g);
+    Serial.print(" , ");
     Serial.print(measurement.Record.AccelerationZ_g);
   }
 }
@@ -1107,10 +1111,10 @@ void loop() {
   readByteArray(EepromAddress, current_measurement.Bytes, 32);
   if (current_measurement.Record.RecordIndex == 0) {
     Serial.println("");
-    Serial.println(F(" Addr         Index            Status        Mission Time         Altitude       Temp           Light/Sealevel        Linux Time-Date         X      Y      Z"));
+    Serial.println(F(" Addr   ,     Index,  ,        Status    ,   Mission Time,  ,     Altitude   ,   Temp     ,     Light/Sealevel,  ,    Linux Time-Date,  ,     X  ,      Y  ,      Z"));
   }
   SerialPrintHex(EepromAddress, 3);
-  Serial.print(F(" | "));
+  Serial.print(F(" , "));
   PrintRecord(current_measurement);
   Serial.println("");
   EepromAddress = EepromAddress + 32;

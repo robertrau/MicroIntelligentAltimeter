@@ -9,9 +9,9 @@
 #include <EEPROM.h>  // Arduino on chip EEPROM (1k byte)  Used for date, time, setup parameters, more, see below.
 
 /**
-    @file   Rocket_Altitude_4_6.ino
+    @file   DiagnosticLogger.ino
 
-    @brief  Firmware for the Mia, version 0.0.0 and 0.0.1, Micro Integellient Altimeter, rocket flight computer. Using the BMP581 pressure sensor and ST M24M02E EEPROM.
+    @brief  Firmware for the Mia, version 0.0.0 and 0.0.1, Micro Integellient Altimeter, Continiously logs records, wrapping from the end back to the beginning of EEPROM, stopping at an altitude achieved.
 
     @details Micro Integellient Altimete (Mia) is a rocket flight computer with several sensors, serial port interface, and EEPROM data logging.
              Mia was designed for young kids to answer the question "How high did my rocket go?" Mia answers this question with a pressure sensor and a temperature sensor.
@@ -102,7 +102,6 @@
                     feet:         _ft
                     seconds:      _s
                     milliseconds: _ms
-                    gravity (Gs): _g
                     kg/mol:       _kgpm
                 Unused MCU pins must be either an output or an input with a pull up or down so the pins don't float and draw excess current.
               Programmer tips:
@@ -636,15 +635,15 @@
   By: Robert Rau
   Changes: Corrected and added comments. Details added in sample period section and log format section at end. Made START_LOGGING_INTEGRATING_THRESHOLD more sensitive since we failed at launch detect.
 
-  Updated: 10/13/2025
-  Rev.: 4.6.36
+  Updated: 10/8/2025
+  Rev.: 1.00
   By: Robert Rau
-  Changes: Measurements now collected at one time point. Code clean up. Comment clean up.
+  Changes: Taken over as DiagnosticLogger
 
 */
 // Version
-const char VersionString[] = "4.6.36\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1760407341  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "1.0.0\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1759947253  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -741,7 +740,6 @@ typedef union {
   unsigned long LandingTime_ms;
 } FlightTimeStamps;
 unsigned long maxAltitudeTimeStamp;
-unsigned long MeasurementTimeStamp;
 FlightTimeStamps OurFlightTimeStamps;
 //bool ApogeeDetected = false;
 uint8_t ServoFlightStateArray[7] = { 90, 90, 90, 90, 90, 90, 90 };  // Values must be from 0 to 180. 0:Waiting for launch 1:Ascent 2:Apogee 3:Descent 4:Landed 5:Low power 6:@ high current altitude
@@ -803,13 +801,6 @@ float LastDisplayedAltitude_m;                         //  Used to avoid re-writ
 bool SeaLevelPressureSetUpDirection = true;            //  Used for both setting sealevel pressure and altitude threshold for the high current output. True for UP and False for DOWN.
 uint8_t FlightModePhaseIndex;                          //  used in flight mode to keep track of the phase of the flight
 const float InvalidAltitude = -10000.0;
-//float CurrentAltitude4Ago_m;  // used for pre-launch queue, apogee detection
-float CurrentAltitude1Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
-float CurrentAltitude2Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
-float CurrentAltitude3Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
-uint32_t TimeStamp1Ago;       // used for pre-launch queue
-uint32_t TimeStamp2Ago;       // used for pre-launch queue
-uint32_t TimeStamp3Ago;       // used for pre-launch queue
 float AltitudeHighCurrentOutSetting_ft;
 float AltitudeHighCurrentOutSetting_m;
 float CurrentPressure;  // used for lowest level functions
@@ -824,7 +815,7 @@ BMP581Pressure LatestPressure;
 
 //  High current output altitudes
 #define DEFAULT_ALTITUDE_ft 500.0   //  default altitude to trip high current output, 800ft. above field altitude. In feet.
-#define MAXIMUM_ALTITUDE_ft 10000.0  //  Maximum altitude allowed for high current output, 10000ft. above field altitude. In feet.
+#define MAXIMUM_ALTITUDE_ft 5000.0  //  Maximum altitude allowed for high current output, 5000ft. above field altitude. In feet.
 #define MINIMUM_ALTITUDE_ft 300.0   //  Minimum altitude allowed for high current output, 300ft. above field altitude. In feet.
 
 // Internal MCU EEPROM stuff
@@ -877,6 +868,8 @@ uint32_t EepromAddress;                         // Address for the next flight r
 #define MCU_EEPROM_ADDR_LATITUDE_LONGITUDE 160  // Last known launch location. 24 byte text string <latitude>,<longitude>,0x00
 uint16_t RecordNumber;
 
+uint32_t RecordCounter = 0;
+
 //  This type, Measurement, defines the format of every time-stamped sensor measurement record (pre and post launch) for the external EEPROM. See the bottom of this file for format details.
 typedef union {
   struct {                     // *** This structure is for the in flight data records
@@ -906,7 +899,6 @@ typedef union {
 Measurement current_measurement;  // This struct is populated for every pre-flight/in-flight logging EEPROM record.
 uint16_t FlightStatus;
 
-uint16_t P3ADRaw;
 float P3Voltage_mV;             // voltage on P3 connector
 uint8_t TemperatureNotVoltage;  // 1: Temperature, 0: Voltage
 
@@ -1355,8 +1347,7 @@ void DoSensorDisplayLoop() {
     display.print(ReadBMP581LatestPressure(), 1);
     display.println(F("mb"));
     display.print(F("Temp:"));
-    P3ADRaw = analogRead(AnalogInputP3);
-    DisplayTemperature_F = getTemperatureP3(P3ADRaw);
+    DisplayTemperature_F = getTemperatureP3();
     display.print((int16_t)(DisplayTemperature_F - 32) * 5 / 9);
     display.print(F(" C  "));
     display.print((int16_t)DisplayTemperature_F);
@@ -1594,9 +1585,6 @@ float PressureToAltitude_m(float Pressure_mb, float SeaLevelPressure_hPa) {
 */
 #define NUMBER_OF_READINGS_TO_AVERAGE 30
 void FindFieldAltitude_m() {
-  //   prep for finding field altitude
-  display.clear();  //  don't want OLED display noise on the power supply when we get field altitude
-  delay(50);
   //  Find field ground level, average 30 readings
 
   float CurrentPressure;
@@ -1611,6 +1599,8 @@ void FindFieldAltitude_m() {
   maxAltitude_m = fieldAltitude_m;            //  Update our maximum altitude.
   integratedAltitude = 0.0;
   deltaAltitude_m = 0.0;
+  LastAltitude_m = fieldAltitude_m;
+  newAltitude_m = fieldAltitude_m;
 }
 
 
@@ -1946,57 +1936,12 @@ uint8_t AccelKX134ACRInit() {
 #define ACCEL_KX134ACR_XOUTL_ADDR 0x06
 
 uint8_t AccelKX134ACRRead() {
-  if (!HasAccelerometer) {
-    return 1;  //  The board has no option for an accelerometer.
-  }
-  Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
-  Wire.write(ACCEL_KX134ACR_XOUTL_ADDR);  // Starting address for 6 bytes of acceleration data
-  if (Wire.endTransmission() != 0) {
-    return 1;  //  The accelerometer failed to ack the who am I register address, needs power cycle.
-  }
 
-  int16_t Accel_Result;
-  int16_t AccelX = 0;                              //  The Mia default orientation is USB connector down, so the X axis is populated from the Z registers. See comments at very end of file for orientation.
-  int16_t AccelY = 0;                              //  The Mia default orientation is USB connector down, so the Y axis is populated from the Y registers.
-  int16_t AccelZ = 0;                              //  The Mia default orientation is USB connector down, so the Z axis is populated from the X registers.
-  Wire.requestFrom(I2C_ACCELEROMETER_ADDRESS, 6);  // Request 6 bytes from KX134ACR's X, Y, and Z registers.
-  uint8_t x = 0;
-  AccelX = 0;
-  AccelY = 0;
-  AccelZ = 0;
-  while (Wire.available()) {  // Peripheral may send less than requested.
-    x++;
-    Accel_Result = Wire.read();
-    Accel_Result = Accel_Result & 0xff;
-    switch (x) {
-      case 1:
-        AccelZ = Accel_Result;  //  XOUTL
-        break;
-      case 2:
-        AccelZ = AccelZ | (Accel_Result << 8);  //  XOUTH
-        break;
-      case 3:
-        AccelY = Accel_Result;  //  YOUTL
-        break;
-      case 4:
-        AccelY = AccelY | (Accel_Result << 8);  //  YOUTH
-        break;
-      case 5:
-        AccelX = Accel_Result;  //  ZOUTL
-        break;
-      case 6:
-        AccelX = AccelX | (Accel_Result << 8);  //  ZOUTH
-        break;
-    }
-  }
-  Wire.endTransmission();
+  current_measurement.Record.AccelerationX_g = integratedAltitude;
+  current_measurement.Record.AccelerationY_g = deltaAltitude_m;
+  current_measurement.Record.AccelerationZ_g = 3.0;  //0.0;
 
-  float mgTog = 0.001953125;
-  current_measurement.Record.AccelerationX_g = (float)AccelX * mgTog;
-  current_measurement.Record.AccelerationY_g = (float)AccelY * mgTog;
-  current_measurement.Record.AccelerationZ_g = (float)AccelZ * mgTog;
-
-  return x - 6;
+  return 0;
 }
 
 
@@ -2031,16 +1976,9 @@ int8_t AccelKX134ACRReadXOnly() {
  * @return 
  */
 void WriteRecordAtSamplePeriod(uint8_t ForceWriteNow) {
-  if (EepromAddress + 64 >= ExternalEEPROMSizeInBytes) {  // Check for room in the external EEPROM (Leaving room for a final record & summary record).
-    FlightModePhaseIndex = 3;                            // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode (monitor mode) and return.
-    return;
-  }
-  if (ThisIsALoggingCycle || ForceWriteNow) {
     writeByteArray(EepromAddress, current_measurement.Bytes, sizeof(current_measurement.Record));  //  Writing out pre-populated measurement record.
-    TimeStamp1Ago += SamplePeriod_ms;
-    EepromAddress = EepromAddress + sizeof(current_measurement.Record);  //  Increment to starting address of next write.
+    EepromAddress = (EepromAddress + sizeof(current_measurement.Record)) & 0x3ffff;  //  Increment to starting address of next write, wrap around for DiagnosticLogger.
     RecordNumber++;
-  }
 }
 
 
@@ -2266,6 +2204,7 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
     CurrentAddress = CurrentAddress + EEPROMWriteMaximumChunkSize;
     ArrayPointer = ArrayPointer + EEPROMWriteMaximumChunkSize;
   }
+  RecordCounter++;
   return ErrorReturn;
 }
 
@@ -2282,13 +2221,15 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
 
    @retval float  Temperature in degrees F
 */
-float getTemperatureP3(uint16_t ADRaw) {
+float getTemperatureP3() {
+  uint16_t P3ADRaw;
   float Temperature;
-  P3Voltage_mV = ADRaw * 3000.0 / 1023.0;  // Voltage, im millivolts, on connector P3.
+  P3ADRaw = analogRead(AnalogInputP3);
+  P3Voltage_mV = P3ADRaw * 3000.0 / 1023.0;  // Voltage, im millivolts, on connector P3.
   if (TemperatureNotVoltage) {
-    Temperature = ADToTemperature(ADRaw);  //  Return temperature on P3.
+    Temperature = ADToTemperature(P3ADRaw);  //  Return temperature on P3.
   } else {
-    Temperature = ADRaw * 0.001;  //  Return volts on P3.
+    Temperature = P3ADRaw * 0.001;  //  Return volts on P3.
   }
   return Temperature;
 }
@@ -2313,7 +2254,7 @@ void getAltitude() {
   LastAltitude_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
   newAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
-  deltaAltitude_m = LastAltitude_m - newAltitude_m;
+  deltaAltitude_m = newAltitude_m - LastAltitude_m;  //          move to rocket
   if (maxAltitude_m < newAltitude_m) {  // If new altitude is greater then max altitude...
     maxAltitude_m = newAltitude_m;      // ...move new altitude into max altitude
     maxAltitudeTimeStamp = millis();
@@ -2357,11 +2298,14 @@ void displayAltitude() {
 */
 void PopulateFlightRecord(uint16_t RecordIndexValue) {
   current_measurement.Record.RecordIndex = RecordIndexValue;
-  current_measurement.Record.current_time_ms = MeasurementTimeStamp;
-  current_measurement.Record.Temperature = getTemperatureP3(P3ADRaw);
-  if (HasAccelerometer) {
-    AccelKX134ACRRead();
-  }
+  TimeStamp = millis();
+  current_measurement.Record.current_time_ms = TimeStamp;
+  getAltitude();  // grab the latest result (closest to our time stamp)
+  integratedAltitude = (integratedAltitude * 0.99) + deltaAltitude_m;   //  For now I am using 99% to compensate for drift, but this only works for after launch.      move to rocket
+  current_measurement.Record.Temperature = getTemperatureP3();
+  
+  AccelKX134ACRRead();    // This writes integratedAltitude and deltaAltitude_m to the log
+  
   if (RecordIndexValue == 0) {
     // initial, pre-flight record
     current_measurement.Record.Altitude = fieldAltitude_m;                                                                             // for the initial record this is the field altitude
@@ -2385,7 +2329,7 @@ void PopulateFlightRecord(uint16_t RecordIndexValue) {
 
    @details
 
-   @note  Accelerometer should already be populated
+   @note
 
    @param[in] uint16_t RecordIndexValue - The record index number for this flight (index 0 is initial conditions)
 
@@ -2395,7 +2339,10 @@ void PopulatePreLaunchQueueFlightRecord(uint16_t RecordIndexValue, uint32_t Time
   current_measurement.Record.RecordIndex = RecordIndexValue;
   current_measurement.Record.current_time_ms = TimeStamp;
   //LastRecordTimeStamp_ms = TimeStamp;
-  current_measurement.Record.Temperature = getTemperatureP3(P3ADRaw);
+  current_measurement.Record.Temperature = getTemperatureP3();
+  if (HasAccelerometer) {
+    AccelKX134ACRRead();
+  }
   current_measurement.Record.Altitude = newAltitude_m - fieldAltitude_m;                                                                     // for the initial record this is the field altitude
   current_measurement.Record.Status = (0x02 & (digitalRead(HighCurrentOut) << 1)) | (0x08 & (digitalRead(TestPoint7) << 3)) | FlightStatus;  // See bottom of this file for format.
   current_measurement.Record.LightVoltage = (uint32_t)analogRead(LightSensor) * (uint32_t)3000 / (uint32_t)1023.0;                           // uint32_t light millivolts
@@ -3858,22 +3805,10 @@ void loop() {
   uint8_t ThisUSER1Click;
   uint8_t ThisUSER2Click;
   static unsigned long OLEDBlankTime;
-  float AltitudeDelta;
-  float LandingAltitude_m;
+  //float AltitudeDelta;
+  //float LandingAltitude_m;
 
-  // Make sure, that if we have left flight mode, that we have an end record in our external EEPROM.
-  if (((current_measurement.Record.Status & 0x40) != 0x40) && (OperationalMode != AllOperationalModes::FlightMode)) {
-    // Then we didn't write an end record.
-    if (EepromAddress + 32 > ExternalEEPROMSizeInBytes) {
-      EepromAddress = ExternalEEPROMSizeInBytes - 32;
-    }
-    current_measurement.Record.Status = 0x0040 | 0x2000;  //  Last record of current flight OR Abnormal termination
-                                                          // This is the bits: 0: initial record (with field altitude and sea level pressure). 1:PD7_On. 2:BuzzerOn. 3:PD3_TP7. 4:Altitude in feet. 5: Temperature in °C.
-                                                          //   6: Last record of current flight   8: Second initial record (with lat & lon)   9-11: Servo position    12: Abnormal termination  14: Apogee detected  15: Landing detected.
-    current_measurement.Record.current_time_ms = millis();
-    writeByteArray(EepromAddress, current_measurement.Bytes, sizeof(current_measurement.Record));  //  Writing out pre-populated measurement record.
-  }
-
+  
   // Decode USER1 (DISP) button command, if any
   ThisUSER1Click = ReadDISPButton();
   switch (ThisUSER1Click) {
@@ -3926,7 +3861,6 @@ void loop() {
       break;
 
 
-
     case LONG_CLICK_FOUND:
       noTone(BuzzerOut);
       if (OperationalMode == AllOperationalModes::FlightMode) {
@@ -3942,6 +3876,8 @@ void loop() {
         display.clear();
         display.print(F("SAVED"));  //  takes 1ms plus 0.62ms per character
         delay(600);
+        display.clear();  //  don't want OLED display noise on the power supply when we get field altitude
+        delay(50);
         FindFieldAltitude_m();
         ReadDISPButton(-1);  //  reset button decode and start fresh
         if (USBPowered()) {
@@ -3959,6 +3895,8 @@ void loop() {
         display.clear();
         display.print(F("SAVED"));  //  takes 1ms plus 0.62ms per character
         delay(600);
+        display.clear();  //  don't want OLED display noise on the power supply when we get field altitude
+        delay(50);
         FindFieldAltitude_m();
         ReadDISPButton(-1);  //  reset button decode and start fresh
         if (USBPowered()) {
@@ -3980,7 +3918,9 @@ void loop() {
     case DOUBLE_CLICK_FOUND:
       if (OperationalMode == AllOperationalModes::FlightMode) {
         DoBuzzer(0);
+        display.clear();  // keep 3.0V power as clean as possible, reduce OLED noise.
         IncrementMCUEEPROMTime();
+        delay(50);
         FindFieldAltitude_m();
         digitalWrite(HighCurrentOut, LOW);
         FlightModePhaseIndex = 0;
@@ -4108,49 +4048,23 @@ void loop() {
           The Mia allows the user to set two sample period for the logging data, one for assent and one for decent. This sample period should be longer than the Arduino loop period, but if not
           the sample period will be the Arduino loop period. The Arduino loop period is not consistant, it changes because of flight mode, floating point calculations, and EEPROM write duration.
 
+          */
           
-          
-          The V tick marks represent moments in time when we start a new Arduion loop and sample a new altitude, for simplicity, this is shown as a regular interval where in reality this varies.
-          The A tick marks represent the sample events as requested by the user.
-          The x tick marks are the resultant, actual sample events based on the when the getAltitude() call is made and the user period.
-          This example below could represent a average Arduino loop time of 15ms, and a user period of 35ms.
-             Arduino Loop period: V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V
-               Ideal user period:A          A          A          A          A          A          A          A          A          A          A          A          A          A          A          A
-            Actual logged period: x         x              x         x         x         x         x              x         x         x         x         x              x         x         x         x
-            Time --->
-
-            */
-
-
-          // Our loop period and our sample period are not the same, we must find out if this trip through our loop will be a logging event. If so, we will update both the old altitude queue and set a flag for the logging function.
-          if (millis() >= (TimeStamp1Ago + SamplePeriod_ms)) {
             ThisIsALoggingCycle = true;
-            CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  all above sea level measurements
-            CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
-            CurrentAltitude1Ago_m = newAltitude_m;  //
+          
+          //
 
-            TimeStamp2Ago = TimeStamp1Ago;
-            TimeStamp1Ago = millis();
-          } else {
-            ThisIsALoggingCycle = false;
-          }
-
-          // Get current measurements
-          MeasurementTimeStamp = millis();
-          getAltitude();
-          if (HasAccelerometer) {
-            AccelKX134ACRRead();
-          }
-          P3ADRaw = analogRead(AnalogInputP3);
-
+          
 
           if (FlightModePhaseIndex == 0) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Initialize for flight.  We get here from 2 places: power up, USB power removal. First collect initial data.
             SetUpMiaFromMCUEEPROM();  //  SamplePeriod_ms is setup on returning from SetUpMiaFromMCUEEPROM().
             //ApogeeDetected = false;
-            FindFieldAltitude_m();  // Get a fresh field altitude.
+            display.clear();  // Keep 3.0V power as clean as possible during the finding of field altitude, reduce OLED noise on 3.0 volt power.
+            delay(50);
+            FindFieldAltitude_m();  // Get a fresh field altitude. Also sets integratedAltitude to zero.
 
-            EEPROM.get(MCU_EEPROM_EXT_EEPROM_ADDR_START, EepromAddress);
+            EepromAddress = 0;
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, EEPROMTime);  // Date stamp for the CSV formatted data dump
             PopulateFlightRecord(0);                                 // Collect all initial record data, don't write it yet since we don't know if we will really fly.
             IncrementMCUEEPROMTime();                                // This just adds 10 seconds to our date-time value so the date stamp for each file is in chronological order. We don't know the real time unless we get it from the host interface.
@@ -4159,82 +4073,46 @@ void loop() {
             BuzzerSchedule[2] = INTER_BUZZ_DELAY_ms;  // Restore buzzer to normal from low power mode.
             BuzzerSchedule[6] = INTER_BUZZ_DELAY_ms;
 
-
             if (ServoNotSounder) {  //   if servo...
               MiaServo.write(ServoFlightStateArray[ServoWaitingForLaunch_index]);
             }
 
             FlightStatus = 0;  // initialize flight status word of logging flight record
             AltitudeHighCurrentOutSetting_m = AltitudeHighCurrentOutSetting_ft / METERS_TO_FEET;
+            getAltitude();  //  Needed to initialize lastAltitude     move to rocket
             FlightModePhaseIndex = 1;  // advance to wait for launch phase
-            TimeStamp1Ago = millis();
-            startTime_ms = TimeStamp1Ago;   //  current mission elapse time.
+
+            startTime_ms = millis();   //  current mission elapse time.
             //Serial.println("FlightModePhaseIndex = 1");  //  Debug1
 
 
           } else if (FlightModePhaseIndex == 1) {
-            //  ^^^^^^^^^^^^^^^^^^^^^^^   Wait for launch phase
-            //  Flight phase 1, wait for altitude to start going up.
-
-            //  Launch Detection:
-            //      9/11/2025: Jud had an idea, integrate the altitude and threshold with x meter-seconds, or meter-milliseconds.
-            //      There are two detection methodes that are ORed together. This detection is not affected by the sample rate setting. The two methodes are:
-            //      1) An altitude increasing in 2 consecutive full speed samples (not user programmed sample period). The most recent samples must have seen an increase in altitude of START_LOGGING_ALTITUDE_m
-            //         and the previous pair must have seen 80% of that altitude increase.
-            //      2) The second methode is a simple threshold above ground level. This is meant as a last resort methode if the first methode failes to detect launch due to
-            //         an extreemly slow lift off. Note: This second detection methode will not capture the first few sameples right at lift off.
-            //         Note2: This second detection methode can be triggered by a drop in ambient air pressure common with a low presure weather system (over a large number of minutes).
-            //         Note3: Faulse launch detects may be caused by wind blowing by the pressure hole in your payload section. This may be mitagated by using additional holes like 2 holse at 90°.//
-            //                Two holes at 180° will not help as they can both have air blowing by at a tangent.
+            //  ^^^^^^^^^^^^^^^^^^^^^^^   Wait for 60 second timer
 
             //  Integrate altitude change with compensation for local pressure change, wind asperation over rocket's pressure port, sensor drift.
             //  Our time period through the launch detect loop is pretty constant, so delta t can be dropped from the math.
-            if (millis() - startTime_ms > FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms) {     // Make sure we have waited 1 minute since looking for latitude so payload can be assembled without causing a launch event!
-              integratedAltitude = (integratedAltitude * 0.9) + deltaAltitude_m;    //  For now I am using 90% to compensate for drift, wind, pressure change.
-            }
-            else {
-              integratedAltitude = 0;
-            }
-            if ((integratedAltitude > START_LOGGING_INTEGRATING_THRESHOLD) || (newAltitude_m > (fieldAltitude_m + 14.0))) {
-              //  *** OK, passed launch detect, things get busy here. ***************************************************************************
-              // This is our "at launch" to do list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
-              {
-                EEPROM.put(MCU_EEPROM_DEBUG_LOCATION, integratedAltitude);    //  for debug, so we know "which" term made launch detect.
+            
+            if ((millis() > startTime_ms + FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms) ) {     //   wait one minute before logging
+              //  *** OK, passed 1 minute wait, we start logging. ***************************************************************************
                 
-                // 1) Write 1st initial record that has already been populated....
-                WriteRecordAtSamplePeriod(1);
+                // 1) Write 1st initial record
+                WriteRecordAtSamplePeriod(1);   //   all ready pre-populated in flight phase 0
 
-                //  2) ...and 2nd initial record with lat & lon....
-                for (i = 0; i < 32; i++) {
-                  CommandCharacter = current_measurement.Bytes[i];
-                  EEPROM.get(i + MCU_EEPROM_ADDR_LATITUDE_LONGITUDE, CommandCharacter);
-                  current_measurement.Bytes[i] = CommandCharacter;
-                  if ((CommandCharacter == 0) && (i > 10)) {  // If this is the end of string delimiter, stop copying, we got all we need.
-                    break;
-                  }
-                }
-                current_measurement.Record.Status = 0x0100;
-                WriteRecordAtSamplePeriod(1);
+                //  2) display that we have started
+                display.clear();
+                display.println(F("Started"));
+                display.print(RecordCounter);
 
                 // 3) ...the 2 queued up records....
-                newAltitude_m = CurrentAltitude2Ago_m;
-                PopulatePreLaunchQueueFlightRecord(2, TimeStamp2Ago);
-                WriteRecordAtSamplePeriod(1);
-                newAltitude_m = CurrentAltitude1Ago_m;
 
                 FlightStatus = ServoAscent_index << 9;
 
-                PopulatePreLaunchQueueFlightRecord(3, TimeStamp1Ago);
-                WriteRecordAtSamplePeriod(1);
 
                 // 4) our first live record
-                //getAltitude();  //  Get altitude but don't display it, as we are flying, there is nobody to see it.
-                RecordNumber = 4;
+                RecordNumber = 1;
                 PopulateFlightRecord(RecordNumber);    //  This function grabs the current elapse time itself
 
-                WriteRecordAtSamplePeriod(0);
-                //RecordNumber = 2;
-                display.clear();  //  no need to draw power with the OLED since we are flying, and we want to keep the 3.0V bus clean
+                WriteRecordAtSamplePeriod(1);
 
                 // servo update
                 if (ServoNotSounder) {
@@ -4242,191 +4120,38 @@ void loop() {
                 }
                 FlightModePhaseIndex = 2;  // Advance to flight phase
                 //Serial.println("FlightModePhaseIndex = 2");  //  Debug1
-              }
             } else {
+              getAltitude();  //     needed since we are not calling populateFlightRecord      move to rocket
               displayAltitude();  //  Want to see the altitude while preping the rocket.
             }
           }
 
 
           else if (FlightModePhaseIndex == 2) {
-            //  ^^^^^^^^^^^^^^^^^^^^^^^   Flight phase, looking for apogee
+          
+            //  ^^^^^^^^^^^^^^^^^^^^^^^   Flight phase, looking for evidence of a launch
             //   flight phase with logging to external EEPROM
 
-            // Apogee Detection:
-            //  We must be decending over the last three samples and we must be above 15 meters above ground level
-            if ((((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m * 2.0) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m)) && (newAltitude_m > (fieldAltitude_m + 16.0))) {  //   If we are past apogee (we have descended for two consecutive samples with measurements greater than sensor noise, advance to descent phase.
-              FlightModePhaseIndex = 4;
-              //Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
-              //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
-              if ((ServoNotSounder)) {
-                MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
-              }
-              FlightStatus = FlightStatus & 0xf1ff;
-              FlightStatus = FlightStatus | (ServoApogee_index << 9) | 0x4000;  //   0x4000 is apogee detected status bit
-              OurFlightTimeStamps.ApogeeTime_ms = millis();  //  We record our apogee time for the next servo position change at a fixed time later. See ServoApogeeDuration_ms
-              //ApogeeDetected = true;
-              //Serial.println("FlightModePhaseIndex = 4");  //  Debug1
+            // Altitude Detection (this stops logging):
+            
+            if ((newAltitude_m - fieldAltitude_m) > 15) {  //   If we are past 15 meters, stop logging
+              FlightModePhaseIndex = 6;
             }
 
             PopulateFlightRecord(RecordNumber);
-            WriteRecordAtSamplePeriod(0);
-
-          } else if (FlightModePhaseIndex == 3) {
-            //  ^^^^^^^^^^^^^^^^^^^^^^^   Monitor mode. Ran out of EEPROM, just report.
-            // Flight phase but we ran out of EEPROM, so just report altitude to OLED.
-            display.clearField(100, 0, 3);
-            display.print(F("FUL"));  //   EEPROM FULL indication in top right corner of display.
-            if (ThisIsALoggingCycle) {
-              AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
-              LandingAltitude_m = newAltitude_m - fieldAltitude_m;
-            }
-            if ((abs(AltitudeDelta) < 0.3) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
-              // Update MCU EEPROM for 'last maximum altitude'
-              //float LastMaximumAltitude;
-              //EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
-              //if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {
-              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
-              //}
-              // Update display
-              displayAltitude();
-              DisplayLandedIndication();
-              //  We don't update FlightStatus since nothing is getting recorded.
-              FlightModePhaseIndex = 5;
-              //Serial.println("FlightModePhaseIndex = 5");
-              //Serial.print("Flight Phase=");
-              //Serial.println(FlightModePhaseIndex);
-            }
-          }
-
-
-          else if (FlightModePhaseIndex == 4) {
-            //  ^^^^^^^^^^^^^^^^^^^^^^^   Post apogee looking for landing.
-
-            // High current output altitude threshold check.
-            if (AltitudeHighCurrentOutSetting_m > (newAltitude_m - fieldAltitude_m)) {
-              digitalWrite(HighCurrentOut, HIGH);  // High current output ON.
-              FlightStatus = FlightStatus & 0xf1ff;
-              FlightStatus = FlightStatus | ServoHighCurrent_index << 9;
-              if (ServoNotSounder) {
-                MiaServo.write(ServoFlightStateArray[ServoHighCurrent_index]);
-              }
-            }
-            //displayAltitude();    // Only for calibration or debug.
-            // We are past apogee, waiting to detect landing.
-
-            // Update MCU EEPROM for 'last maximum altitude'
-            //float LastMaximumAltitude;
-            //EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, LastMaximumAltitude);
-            //if (LastMaximumAltitude != (maxAltitude_m - fieldAltitude_m)) {    //  maxAltitude_m is AGL
-              //EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));
-              //maxAltitudeTimeStamp = millis();
-            //}
-            
-            if (ThisIsALoggingCycle) {
-              AltitudeDelta = CurrentAltitude3Ago_m - newAltitude_m;
-              LandingAltitude_m = newAltitude_m - fieldAltitude_m;
-            }
-
-            // Sample rate update and possible servo position update
-            if ((OurFlightTimeStamps.ApogeeTime_ms + ServoApogeeDuration_ms) <= millis()) {
-              //Serial.print(F("Phase 4, finished apogee to descent,  MET_ms="));
-              //Serial.println(millis());
-              EEPROM.get(MCU_EEPROM_SAMPLE_RATE_POST_APOGEE, SamplePeriod_ms);  //  Change to descent sensor data sample period.
-              FlightStatus = FlightStatus & 0xf1ff;
-              FlightStatus = FlightStatus | (ServoDescent_index << 9);
-              if (ServoNotSounder) {
-                MiaServo.write(ServoFlightStateArray[ServoDescent_index]);
-              }
-            }
-
-            // Landing Detection:
-            // All 3 must be true:
-            // The altitude from 3 sample times ago must be within 0.3 meters of each other.
-            // We must be within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m (61 meters) of our launch altitude (we could have landed up or down a hill, tree...)
-            // We see sensor noise indicating any increase in altitude.
-            if ((abs(AltitudeDelta) < 0.3) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m)) {  // If we have not moved 0.3 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
-              // We have landed on a planet!  Save our last record.
-              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));  // Update MCU EEPROM for 'last maximum altitude'
-              FlightStatus = FlightStatus & 0xf1ff;
-              FlightStatus = FlightStatus | 0x8040 | (ServoLanded_index << 9);
-              PopulateFlightRecord(RecordNumber);
-              WriteRecordAtSamplePeriod(1);
-              
-              // Write summary record (max altitude)
-              FlightStatus = 0x1000;
-              newAltitude_m = maxAltitude_m;  
-              PopulatePreLaunchQueueFlightRecord(RecordNumber, maxAltitudeTimeStamp);
-              WriteRecordAtSamplePeriod(1);
-
-              EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);  //  Update external EEPROM next address in MCU EEPROM.
-
-              digitalWrite(HighCurrentOut, LOW);  // High current output OFF.
-
-              // Update display
-              //displayAltitude();
-              DisplayLandedIndication();
-
-              // servo update
-              if (ServoNotSounder) {
-                MiaServo.write(ServoFlightStateArray[ServoLanded_index]);
-              }
-              OurFlightTimeStamps.LandingTime_ms = millis();
-              FlightModePhaseIndex = 5;
-              //Serial.println("FlightModePhaseIndex = 5");   // Debug1
-
-            } else {
-              PopulateFlightRecord(RecordNumber);
-              WriteRecordAtSamplePeriod(0);
-            }
-          }
-
-
-          else if (FlightModePhaseIndex == 5) {
-            //  ^^^^^^^^^^^^^^^^^^^^^^^   Landed, start buzzer or position servo and wait for transition to low power mode.
-
-            //  Check and see if we go to low power flight mode yet
-            displayAltitude();
-            DoBuzzer(1);
-
-            if ((OurFlightTimeStamps.LandingTime_ms + DelayToLowPower_ms <= millis())) {
-
-              // In low power mode. Shut off display, move servo to low power position, increase time between times sounder is on.
+            WriteRecordAtSamplePeriod(1);
+            if((RecordCounter % 20) == 0) {
               display.clear();
-              if (ServoNotSounder) {
-                // servo update
-                MiaServo.write(ServoFlightStateArray[ServoLowPower_index]);
-              } else {
-
-                EEPROM.get(MCU_EEPROM_LOW_POWER_BUZ_REST_MULT, Mult);
-                LowPowerSounderMultiplier = BuzzerSchedule[2] * Mult;
-                if (LowPowerSounderMultiplier > 0xfffe) {
-                  LowPowerSounderMultiplier = 0xfffe;
-                }
-                BuzzerSchedule[2] = (uint16_t)LowPowerSounderMultiplier;
-
-                LowPowerSounderMultiplier = BuzzerSchedule[6] * Mult;
-                if (LowPowerSounderMultiplier > 0xfffe) {
-                  LowPowerSounderMultiplier = 0xfffe;
-                }
-                BuzzerSchedule[6] = (uint16_t)LowPowerSounderMultiplier;
-              }
-              FlightModePhaseIndex = 6;
-              DetachServoForLowPowerTime_ms = millis() + 500;
-
-              //Serial.println("FlightModePhaseIndex = 6");  // Debug1
-            } else {
-              //  Landed but not in low power mode yet, just let buzzer/servo do what they are doing.
-              //displayAltitude();   //  display maximum altitude after landing and before low power mode.
+              display.print(RecordCounter);
             }
 
 
           } else if (FlightModePhaseIndex == 6) {
-            DoBuzzer(1);
-            if (millis() > DetachServoForLowPowerTime_ms) {
-              MiaServo.detach();
-            }
-            //  ^^^^^^^^^^^^^^^^^^^^^^^   Staying in  low power mode.
+
+            //  just wait.
+            display.clear();
+            display.println(F("Done"));
+            display.print(RecordCounter);  //  takes 1ms plus 0.62ms per character
           }
 
           //  invalid FlightModePhaseIndex
@@ -4503,6 +4228,8 @@ void loop() {
         display.clear();
         display.print(F("SAVED"));  //  Takes 1ms plus 0.62ms per character.
         delay(600);
+        display.clear();  //  Clear all OLED pixels so we reduce electrical noise on the 3.0 volt power supply for the pressure sensor when we get field altitude.
+        delay(50);
         FindFieldAltitude_m();
         ReadDISPButton(-1);  //  Reset "button decode" and start fresh.
         if (USBPowered()) {
@@ -4541,12 +4268,9 @@ void loop() {
 /*
   Logging EEPROM format. All records are 32 bytes.
 
-  A normal flight log contains:
-  Record 0, a launch site information record containing field altitude and date-time.
-  Record 1, a launch site information record containing latitude and longitude.
+  A normal diagnostic log contains:
+  Record 0, a launch site information record containing field altitude and date-time. This record may get overwritten for long logs.
   Records 2 through the end of the flight logging time, altitude, acceleration, and temperature/sensor data.
-  Record 'last', a summmary record containing the time stamp of the actual apogee sample's time stamp and altitude.
-
             / ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
            │  │                  Record Index.                  ││                   Status bits                   │
            │  │      Record index 0 is launch conditions.       ││  A collection of 15 bits indicating states of   │
@@ -4585,46 +4309,6 @@ void loop() {
             \
 
 
-            /
-           │  ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
-           │  │                  Record Index.                  ││                   Status bits                   │
-           │  │  Record index 1 is the launch location string.  ││  A collection of 14 bits indicating states of   │
-           │  │                                                 ││ internal and external conditions, and phases of │
-           │  │                                                 ││                   the flight.                   │
-           │  │<------------------ uint16_t ------------------> ││<------------------ uint16_t ------------------> │
-           │  └─────────────────────────────────────────────────┘└─────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                       Latitude and longitude string. Characters 1 through 4.                       │
-           │  │<--------------------------------------------- char ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                       Latitude and longitude string. Characters 5 through 8.                       │
-           │  │<--------------------------------------------- char ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-  Record 1 │  │                      Latitude and longitude string. Characters 9 through 12.                       │
-           │  │<--------------------------------------------- char ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                      Latitude and longitude string. Characters 13 through 16.                      │
-           │  │<--------------------------------------------- char ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                      Latitude and longitude string. Characters 17 through 20.                      │
-           │  │<--------------------------------------------- char ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                      Latitude and longitude string. Characters 21 through 24.                      │
-           │  │<--------------------------------------------- char ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │ Latitude and longitude string. Characters 25 through 27. The last byte of the string must be zero. │
-           │  │<--------------------------------------------- char ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-            \
-
-
-
             / ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
            │  │                  Record Index.                  ││                   Status bits                   │
            │  │ Record Indices 2 through the end are flight log ││  A collection of 14 bits indicating states of   │
@@ -4642,7 +4326,7 @@ void loop() {
            │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
            │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
   Records  │  │                                         Temperature in °F                                          │
-  2 to end │  │ <-------------------------------------------- float ---------------------------------------------> │
+  1 to end │  │ <-------------------------------------------- float ---------------------------------------------> │
            │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
            │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
            │  │                              Voltage from light sensor in millivolts.                              │
@@ -4663,57 +4347,18 @@ void loop() {
             \ └────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 
-            / ┌─────────────────────────────────────────────────┐┌─────────────────────────────────────────────────┐
-           │  │                  Record Index.                  ││                   Status bits                   │
-           │  │ Record Indices 2 through the end are flight log ││  A collection of 14 bits indicating states of   │
-           │  │           data at the sample period.            ││ internal and external conditions, and phases of │
-           │  │                                                 ││     the flight. Summary bit set.                │
-           │  │<------------------ uint16_t ------------------> ││<------------------ uint16_t ------------------> │
-           │  └─────────────────────────────────────────────────┘└─────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                Time in milliseconds of maximum altitude                            │
-           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                       Altitude at apogee                                           │
-           │  │ <-------------------------------------------- float ---------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-  Record   │  │                                         Invalid                                                    │
-  last     │  │ <-------------------------------------------- float ---------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                         Invalid                                                    │
-           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                         Invalid                                                    │
-           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                         Invalid                                                    │
-           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                         Invalid                                                    │
-           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           \
-
-
-
 
 
   Status bits (in right half of first word of each logging record)
 
-             ┌─────────────────────────────────────────────────────────────── 15   Landing detected
+             ┌─────────────────────────────────────────────────────────────── 15   Unused
              │   ┌─────────────────────────────────────────────────────────── 14   Apogee detected
              │   │   ┌─────────────────────────────────────────────────────── 13   Abnormal termination
-             │   │   │   ┌─────────────────────────────────────────────────── 12   Summary record (This is the last record recorded in a flight, its time stamp is out of order, it represents the time of the peak altitude)
+             │   │   │   ┌─────────────────────────────────────────────────── 12   Unused
              │   │   │   │       ┌─────────────────────────────────────────── 11:9 Flight phase (servo position index)
              │   │   │   │       │       ┌─────────────────────────────────── 8    Location Record
              │   │   │   │       │       │   ┌─────────────────────────────── 7    Unused
-             │   │   │   │       │       │   │   ┌─────────────────────────── 6    Last record of current flight
+             │   │   │   │       │       │   │   ┌─────────────────────────── 6    Unused
              │   │   │   │       │       │   │   │   ┌─────────────────────── 5    Log Temperature units = °C
              │   │   │   │       │       │   │   │   │   ┌─────────────────── 4    Log Altitude units = feet
              │   │   │   │       │       │   │   │   │   │   ┌─────────────── 3    Test point 7 (Digital 3)
