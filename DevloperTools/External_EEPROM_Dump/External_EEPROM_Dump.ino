@@ -337,10 +337,15 @@
   By: Robert Rau
   Changes: Added printing of MCU EEPROM debug location in float, uint32, int32, and uint16.
 
+  Updated: 11/9/2025
+  Rev.: 1.0.2
+  By: Robert Rau
+  Changes: Changed floating point print resolution from 2  to 8 decimals.
+
 */
 // Version
-const char VersionString[] = "1.0.1\0";        //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1759066867  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "1.0.2\0";        //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1762699687  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck()
 
 
@@ -1044,7 +1049,7 @@ void SerialPrintFloat(float Value) {
   if (Value >= 0.0) {
     Serial.print(" ");
   }
-  Serial.print(Value);
+  Serial.print(Value, 8);
 }
 
 
@@ -1092,15 +1097,15 @@ void PrintRecord(Measurement& measurement) {  // record dump
     ShortEEPROMTime = measurement.InitRecord.LinuxDateTime & 0xffffffff;
     SerialPrintDecimalAndHex(ShortEEPROMTime, 4);
     Serial.print(" , ");
-    Serial.print(measurement.Record.AccelerationX_g);
+    Serial.print(measurement.Record.AccelerationX_g, 8);
     //Serial.print(" (");
     //Serial.print((uint32_t)measurement.Record.AccelerationX_g);
     Serial.print(" , ");
-    Serial.print(measurement.Record.AccelerationY_g);
+    Serial.print(measurement.Record.AccelerationY_g, 8);
    // Serial.print(" (");
     //Serial.print((uint32_t)measurement.Record.AccelerationY_g);
     Serial.print(" , ");
-    Serial.print(measurement.Record.AccelerationZ_g);
+    Serial.print(measurement.Record.AccelerationZ_g, 8);
   }
 }
 

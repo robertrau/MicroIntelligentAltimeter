@@ -1562,6 +1562,8 @@ float ReadBMP581LatestPressure() {
    Calculates altitude in meters.
    Formula from Bosch BMP180 data sheet and also used in Adafruit's BMP3XX library.
 
+   @note This formula does not compensate for actual temperature.
+
     @param[in]  Pressure_mb  float    Pressure at current altitude
     @param[in]  SeaLevelPressure_hPa  float    Sea-level pressure in hPa
 
@@ -2254,9 +2256,11 @@ void getAltitude() {
   LastAltitude_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
   newAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
-  deltaAltitude_m = newAltitude_m - LastAltitude_m;  //          move to rocket
+
+  deltaAltitude_m = newAltitude_m - LastAltitude_m;  //   
+
   if (maxAltitude_m < newAltitude_m) {  // If new altitude is greater then max altitude...
-    maxAltitude_m = newAltitude_m;      // ...move new altitude into max altitude
+    maxAltitude_m = newAltitude_m;      // ...copy new altitude into max altitude
     maxAltitudeTimeStamp = millis();
   }
 }
@@ -2267,7 +2271,7 @@ void getAltitude() {
 
    @details  Does not update display if it has not changed.
 
-   @note  Does not do a clear screen to reduce flicker
+   @note  Does not do a clear screen so flicker is reduced
 
    @param[in]  maxAltitude_m as global
    @param[in]  LastDisplayedAltitude_m as global
@@ -2301,7 +2305,7 @@ void PopulateFlightRecord(uint16_t RecordIndexValue) {
   TimeStamp = millis();
   current_measurement.Record.current_time_ms = TimeStamp;
   getAltitude();  // grab the latest result (closest to our time stamp)
-  integratedAltitude = (integratedAltitude * 0.99) + deltaAltitude_m;   //  For now I am using 99% to compensate for drift, but this only works for after launch.      move to rocket
+  integratedAltitude = (integratedAltitude * 0.95) + deltaAltitude_m;   //  For now I am using 95% to compensate for drift, but this only works for after launch.      move to rocket
   current_measurement.Record.Temperature = getTemperatureP3();
   
   AccelKX134ACRRead();    // This writes integratedAltitude and deltaAltitude_m to the log
