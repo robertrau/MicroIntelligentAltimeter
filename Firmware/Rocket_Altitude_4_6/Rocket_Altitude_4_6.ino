@@ -232,12 +232,12 @@
             The on chip EEPROM has a date and time field. These have no way of being current except for getting updated from a host computer
             It is not intended that these are accurate dates, but they are a source of "your data log was ON or AFTER this date"
 
-            ADDR = 0: The time field is not a real time in any sense, but is incremented 10 seconds for each power cycle/flight. This allow the "time stamp" to keep logs in order
+            ADDR = 0: int64_t, The time field is not a real time in any sense, but is incremented 10 seconds for each power cycle/flight. This allow the "time stamp" to keep logs in order
                 and you know your data log was ON or AFTER the date in the log. After reset this field is check to be after the "born on" date, and a valid number.
                 The format is a standard Linux signed time in seconds, but in 64 bit format. The Linux time 0 is midnight UTC on 1 January 1970. This should be as a "TAI" value.
                 UTC time is sometimes also refered to as Greenwich Mean Time (GMT) or Coordinated Universal Time.  It is the time at the Royal Observatory in Greenwich, London.
-                The EEPROM location supports 64 bits to avoid the year 2038 problem, but the software is not 64 bit ready.
-                The Mia host application also updates this time to the current time.
+                The EEPROM location supports 64 bits to avoid the year 2038 problem, but some of the software is not 64 bit ready.
+                The Mia host application also updates this time to the current time. The MSB is at EEPROM address 7 and the LSB is at EEPROM address 0. Bytes 4-7 will be zeros until the year 2038.
 
             ADDR = 8: The last Known air pressure at sea level. This is a float.
 
@@ -654,14 +654,18 @@
   Updated: 11/16/2025
   Rev.: 4.6.39
   By: Robert Rau
-  Changes: Comment cleanup. Fixed bug in set date-time host command. Added some int64_t casts in date-timne comparisons.
+  Changes: Comment cleanup. Fixed bug in set date-time host command. Added some int64_t casts in date-time comparisons.
+
+  Updated: 11/18/2025
+  Rev.: 4.6.40
+  By: Robert Rau
+  Changes: Added 64 bit cast to EEPROM.put for linux time in MCUEEPROMTimeCheck(). comment cleanup
 
 */
 // Version
-const char VersionString[] = "4.6.39\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1763346896  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.40\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1763520000  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
-
 
 
 //**************************************************************************************************************************************
@@ -1726,9 +1730,21 @@ void MCUEEPROMAltitudeCheck() {
    @retval   none
 */
 void MCUEEPROMTimeCheck() {
+  //int32_t loww;
+  //int32_t highw;
+  //EEPROMTime = (int64_t)BIRTH_TIME_OF_THIS_VERSION;
+  //loww = EEPROMTime & 0xffffffff;
+  //highw = EEPROMTime >> 32;
+  //Serial.print(highw);
+  //Serial.print(" ");
+  //Serial.println(loww);
   EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, EEPROMTime);
+  //loww = EEPROMTime & 0xffffffff;
+  //highw = EEPROMTime >> 32;  Serial.print(highw);
+  //Serial.print(" ");
+  //Serial.println(loww);
   if (EEPROMTime < (int64_t)BIRTH_TIME_OF_THIS_VERSION) {  //     don't need to check for empty EEPROM, 0xffffffffffffffff, since that is negitive
-    EEPROM.put(MCU_EEPROM_ADDR_DEFAULT_TIME_s, BIRTH_TIME_OF_THIS_VERSION);
+    EEPROM.put(MCU_EEPROM_ADDR_DEFAULT_TIME_s, (int64_t)BIRTH_TIME_OF_THIS_VERSION);   //    11/18/2025   missing cast
   }
 }
 
@@ -4401,7 +4417,7 @@ void loop() {
               // We see sensor noise indicating any increase in altitude.
               // We ahve detected landed LANDING_CONDITION_COUNTER_THRESHOLD times.
 
-              if ((abs(AltitudeDelta) < 0.2) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m) && (LandingConditionCounter > LANDING_CONDITION_COUNTER_THRESHOLD)) {  // If we have not moved 0.1 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
+              if ((abs(AltitudeDelta) < 0.2) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m) && (LandingConditionCounter > LANDING_CONDITION_COUNTER_THRESHOLD)) {  // If we have not moved 0.2 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
                 // We have landed on a planet!  Save our last record.
                 EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));  // Update MCU EEPROM for 'last maximum altitude'
                 FlightStatus = FlightStatus & 0xf1ff;
