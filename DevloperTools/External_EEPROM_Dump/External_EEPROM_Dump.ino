@@ -677,6 +677,30 @@ void setup() {
     SerialPrintHexShort(EEPROMByte, 1);
     Serial.print(" ");
   }
+
+  Serial.println("");
+  
+  // Print UNIX time
+  int32_t UNIXTime32;
+  EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, UNIXTime32);
+  Serial.print("UNIX Time:");
+  Serial.println(UNIXTime32);
+
+  // Print Sea level Pressure
+  float SeaLevelFloat;
+  EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP, SeaLevelFloat);
+  Serial.print("Sealevel pressure:");
+  Serial.print(SeaLevelFloat);
+  Serial.println("mb");
+
+  // Print next available address in external EEPROM
+  uint32_t addr32;
+  EEPROM.get(MCU_EEPROM_EXT_EEPROM_ADDR_START, addr32);
+  Serial.print("Next available address in external EEPROM:");
+  Serial.println(addr32);
+
+
+  // Print Debug location
   Serial.println("");
   Serial.print(F("Debug location in MCU EEPROM (1020) as float:"));
 
@@ -694,7 +718,7 @@ void setup() {
   EEPROM.get(MCU_EEPROM_DEBUG_LOCATION, debugint32);
   Serial.print(debugint32);
 
-  uint32_t debugUint16;
+  uint16_t debugUint16;
   Serial.print("  as uint16_t:");
   EEPROM.get(MCU_EEPROM_DEBUG_LOCATION, debugUint16);
   Serial.print(debugUint16);

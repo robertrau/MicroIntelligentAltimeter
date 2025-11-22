@@ -650,6 +650,7 @@
    <SourceLine>else</SourceLine>
    <SourceLine>' Couldn't establish that there is a Mia to connect to.</SourceLine>
    <SourceLine>msgbox("Failed to open serial port.")</SourceLine>
+   <SourceLine>ConnectToMiaButton.Caption = "Connect to Mia"</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
@@ -1263,7 +1264,7 @@
    <SourceLine>TypeText = "notFound"</SourceLine>
    <SourceLine>end try</SourceLine>
    <SourceLine>// msgbox(TypeText)</SourceLine>
-   <SourceLine>if TypeText.Contains("NotFound") Then</SourceLine>
+   <SourceLine>if TypeText.Contains("NotFound") Then    // check if the station is not found.</SourceLine>
    <SourceLine>return -1000</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
@@ -9230,7 +9231,7 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost</EditorLocation>
+    <EditorLocation>MiaHost.ConnectToMia_Meth</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
