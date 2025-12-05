@@ -1061,7 +1061,7 @@
    <SourceLine>d.CollectOutputData = true</SourceLine>
    <SourceLine>d.SetOptionHTTPHeader array("User-Agent: test/1.0")   //  added 11/30/2024 per Christian @ MBS</SourceLine>
    <SourceLine>d.OptionIPResolve = d.kIPRESOLVE_V4  // prevent ipv6 as NWS has had some trouble with ipv6</SourceLine>
-   <SourceLine>d.OptionFollowLocation = true   // required</SourceLine>
+   <SourceLine>d.OptionFollowLocation = 1   // required  11/24/2025 changed from true to 1 due to MBS 25.5</SourceLine>
    <SourceLine>d.OptionMaxRedirs = 5             //  5 may be excessive</SourceLine>
    <SourceLine>d.OptionSSLVerifyHost = 2 // verify server</SourceLine>
    <SourceLine>d.OptionSSLVerifyPeer = 1 // proofs certificate is authentic</SourceLine>
@@ -9231,7 +9231,7 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost.ConnectToMia_Meth</EditorLocation>
+    <EditorLocation>MiaHost.NWS_url_to_json</EditorLocation>
     <EditorPath></EditorPath>
     <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
