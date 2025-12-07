@@ -695,10 +695,15 @@
   By: Robert Rau
   Changes: Fixed 'd' command. Comment cleanup.
 
+  Updated: 12/7/2025
+  Rev.: 4.6.47
+  By: Robert Rau
+  Changes: Removed buggy abnormal termination detect and added an update to the end of logging MCU EEPROM address for every 200 samples instead. Fixed 'd' command end of flight log detect. Still have bugs in write byte array to logging EEPROM.
+
 */
 // Version
-const char VersionString[] = "4.6.46\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1764905303  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.47\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1765146224  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -749,8 +754,8 @@ const char VersionString[] = "4.6.46\0";       //  ToDo, put in flash  see: http
 //  D0 is used as RxD for serial communications with host
 //  D1 is used as TxD for serial communications with host
 #define SERIAL_BAUD 1000000U  //  1 megabuad for Host communications.
-#define N_DispButton 2       //  Active low USER1 button input, must enable pull up resistor.
-#define TestPoint7 3         //  Just a solder pad.  Must enable pull up resistor or make an output.
+#define N_DispButton 2        //  Active low USER1 button input, must enable pull up resistor.
+#define TestPoint7 3          //  Just a solder pad.  Must enable pull up resistor or make an output.
 #define UnusedD4 4
 #define N_OLEDReset 5        //  Active low reset pulse to OLED display, minimum reset pulse width 3 microseconds.
 #define N_BatteryCharging 6  //  Connected to the -CHG signal on Mia board version 0.0.1
@@ -794,11 +799,11 @@ uint8_t SounderRequiresFrequency;
 //std::array<uint16_t> BuzzerSchedule[8] = {
 uint16_t BuzzerSchedule[8] = {
   // this is an array of durations (in milliseconds) and frequencies (in Hz). Index 2 and 6 must be durations of 'no tone'. This is required for low power mode to know which delays to increase.
-  1500, BuzzerFrequency1,  // Do BuzzerFrequency1 until 1500ms
+  1500, BuzzerFrequency1,   // Do BuzzerFrequency1 until 1500ms
   INTER_BUZZ_DELAY_ms, 0U,  // A half second gap
-  1500, BuzzerFrequency2,  // 1.5 seconds
+  1500, BuzzerFrequency2,   // 1.5 seconds
   INTER_BUZZ_DELAY_ms, 0U   // A half second gap
-};                         // then repeat
+};                          // then repeat
 
 uint8_t ServoNotSounder;
 uint32_t LowPowerSounderMultiplier;
@@ -939,7 +944,7 @@ uint32_t DelayToLowPower_ms;
 #define MCU_EEPROM_SAMPLE_RATE_PRE_APOGEE 220
 #define MCU_EEPROM_SAMPLE_RATE_POST_APOGEE 222
 
-#define MCU_EEPROM_DEBUG_LOCATION 1020
+#define MCU_EEPROM_DEBUG_LOCATION 1020      #  This is the address of the last 32 bit (long/float) of the MCU EEPROM. May be used for whatever the developer needs during debugging.
 
 
 //  External EEPROM stuff
@@ -957,7 +962,7 @@ typedef union {
     uint32_t current_time_ms;  // This is time from when the Mia is turned on, mission elapsed time. In milliseconds. This is not related to the Linux time stamp at MCU EEPROM addr 0.
     float Altitude;            //  Altitude above Field altitude in meters.
     float Temperature;         //  Using analog connector P3.
-    uint32_t LightVoltage;
+    uint32_t LightVoltage;     // In millivolts.
     float AccelerationX_g;  //  Not on first version of Mia.
     float AccelerationY_g;  //  Not on first version of Mia.
     float AccelerationZ_g;  //  Not on first version of Mia.
@@ -1017,6 +1022,9 @@ bool I2CWorking = true;  //  This is a flag indicating that both signals of the 
 uint32_t DetachServoForLowPowerTime_ms;  //  This is for the delay from entering low power mode to shutting off the servo pulses.
 
 bool ThisIsALoggingCycle;  //  This indicates if a iteration through our main loop will include a sample logging.
+
+uint16_t FlightLoopCounter;
+uint16_t LastLogAddressWritten;
 
 /**********************************************************************************************************************************************
    Arduino setup
@@ -1230,7 +1238,7 @@ void SetUpMiaFromMCUEEPROM() {
 
   //  **********  Servo setup  *****************************************************************************
   if (UserConfigurationSounderNotServo_mask & UserConfiguration) {  //  UserConfiguration bit 7, 0=Servo output, 1=buzzer output
-    ServoNotSounder = 0U;                                            // buzzer
+    ServoNotSounder = 0U;                                           // buzzer
   } else {
     ServoNotSounder = 1U;  // servo
   }
@@ -1347,8 +1355,8 @@ void DisplayInstructions() {
 
   display.clear();
   display.println(F("Buttons:\nLeft black button: USER 1"));  //  34 char
-  if (HasUser2Button) {                                //  Only >= 0.01 versions of the Mia board has the Right black button
-    display.println(F("Right black button: USER 2"));  //  used for setting high current output altitude threshold    //  26 char
+  if (HasUser2Button) {                                       //  Only >= 0.01 versions of the Mia board has the Right black button
+    display.println(F("Right black button: USER 2"));         //  used for setting high current output altitude threshold    //  26 char
   }
   display.print(F("Orange Button: Reset"));  //  20 char
   delay(7000U);
@@ -1995,7 +2003,7 @@ uint8_t AccelKX134ACRInit() {
   }
 
   Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
-  Wire.write(ACCEL_KX134ACR_LP_CNTL_ADDR);       // LP_CNTL register address for start register address.
+  Wire.write(ACCEL_KX134ACR_LP_CNTL_ADDR);        // LP_CNTL register address for start register address.
   Wire.write(0x8b | (ACCEL_KX134ACR_AVC << 4U));  //  LP_CNTL: 2 samples averaged.
   if (Wire.endTransmission() != 0) {
     return 1;  //  The accelerometer failed to ack a write during configuration.
@@ -2009,7 +2017,7 @@ uint8_t AccelKX134ACRInit() {
   }
 
   Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
-  Wire.write(ACCEL_KX134ACR_CNTL1_ADDR);         // CNTL1 register address to make the accelerometer active.
+  Wire.write(ACCEL_KX134ACR_CNTL1_ADDR);          // CNTL1 register address to make the accelerometer active.
   Wire.write(0xc0 | (ACCEL_KX134ACR_64G << 3U));  //  CNTL1: high resolution operating mode.
   if (Wire.endTransmission() != 0U) {
     return 1;  //  The accelerometer failed to ack a write during configuration.
@@ -2116,7 +2124,7 @@ int8_t AccelKX134ACRReadXOnly() {
  */
 void WriteRecordAtSamplePeriod(uint8_t ForceWriteNow) {
   if ((EepromAddress + (sizeof(current_measurement.Bytes) * 2U)) >= ExternalEEPROMSizeInBytes) {  // Check for room in the external EEPROM (Leaving room for a final record & summary record).
-    FlightModePhaseIndex = 3U;                             // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode (monitor mode) and return.
+    FlightModePhaseIndex = 3U;                                                                    // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode (monitor mode) and return.
     return;
   }
   if (ThisIsALoggingCycle || (ForceWriteNow == 1U)) {
@@ -2286,7 +2294,7 @@ int8_t M24M02E_Setup() {
  * @return 0=success    1=fail
  */
 int8_t readByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
-  uint8_t UIntTemp;    //  for DEBUGGING
+  uint8_t UIntTemp;  //  Temporary for I2C bytes.
   memset(data, 0, indexCount);
   //Wire.endTransmission(true);
   //delay(1);
@@ -2296,7 +2304,7 @@ int8_t readByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
   Wire.write(UIntTemp);
   UIntTemp = (uint8_t)(address & 0xFF);
   Wire.write(UIntTemp);
-  Wire.endTransmission(false);    //  11/28/2025 Do not send a I2C STOP after the address. Send repeated START as in M24M02E-F data sheet table 18 random address read
+  Wire.endTransmission(false);  //  11/28/2025 Do not send a I2C STOP after the address. Send repeated START as in M24M02E-F data sheet table 18 random address read
 
   UIntTemp = (uint8_t)(M24M02E_DEVICE_ID(address, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
   Wire.requestFrom(UIntTemp, indexCount, 0U);  // The Arduino documentation says stop, the third argument, is boolean, minicore requires a int (0 or 1)
@@ -2329,8 +2337,8 @@ int8_t readByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
  *
  * @return 0:Write completed. 1:Data too long to fit in transmit buffer. 2:Received NACK on transmit of address. 3:Received NACK on transmit of data. 4:Other error. 5:Timeout. 6:Exceeded EEPROM size.
  */
-#define ArduinoWireBufferSize 32  // this size is different for other processors on Arduino boards, can we use TWI_BUFFER_SIZE?
-#define EEPROMWireAddressOverhead 4   //  command and 2 address bytes. Threw in an extra for margin.
+#define ArduinoWireBufferSize 32     // This is the buffer size for an Arduino mini, it is different for other processors on Arduino boards, can we change TWI_BUFFER_SIZE to avoid two write cycles?
+#define EEPROMWireAddressOverhead 4  //  command and 2 address bytes. Threw in an extra for margin.
 #define EEPROMWriteMaximumChunkSize (ArduinoWireBufferSize - EEPROMWireAddressOverhead)
 int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
   int16_t ByteCountRemaining;
@@ -2341,21 +2349,26 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
   CurrentAddress = address;
   ArrayPointer = 0;
   for (ByteCountRemaining = indexCount; ByteCountRemaining > 0; ByteCountRemaining = ByteCountRemaining - EEPROMWriteMaximumChunkSize) {
+    Serial.print(">");
+    Serial.println(ByteCountRemaining);
     //M24M02E_PollForWriteDone();  // See data sheet section 6.2.6
     Wire.beginTransmission((uint8_t)M24M02E_DEVICE_ID(CurrentAddress, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
-    Wire.write((uint8_t)((CurrentAddress & 0x00FF00) >> 8U));  // AND off address MSB & bottom byte
-    Wire.write((uint8_t)(CurrentAddress & 0xFF));
+    Wire.write((uint8_t)((CurrentAddress & 0x00FF00) >> 8U));  // Isolate A15..A8 for next I2C byte.
+    Wire.write((uint8_t)(CurrentAddress & 0xFF));           // Isolate A7..A0 for last address I2C byte.
 
-    //digitalWrite(TestPoint7, LOW);    //  Debug/validation trigger scope at beginning of write
+    //digitalWrite(TestPoint7, LOW);    //  Debug/validation trigger scope at beginning of write.
     //digitalWrite(TestPoint7, HIGH);
     //digitalWrite(TestPoint7, LOW);
     uint8_t x;
+    Serial.print(".");
     for (x = 0; x < ByteCountRemaining; x++) {
       if ((CurrentAddress + x) >= ExternalEEPROMSizeInBytes) {
         ErrorReturn = 6U;
         break;
       }
       Wire.write(data[ArrayPointer + x]);
+      Serial.print(ArrayPointer + x);
+      Serial.print(" ");
     }
     ErrorReturn = ErrorReturn + Wire.endTransmission(true);  //  Terminate the transfer and start the actual write cycle with a I2C STOP condition per section 6.1.2 in the data sheet.
     if (ErrorReturn != 0) {
@@ -2365,6 +2378,7 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
     CurrentAddress = CurrentAddress + EEPROMWriteMaximumChunkSize;
     ArrayPointer = ArrayPointer + EEPROMWriteMaximumChunkSize;
   }
+  Serial.println("");
   return ErrorReturn;
 }
 
@@ -2434,7 +2448,7 @@ void getAltitude() {
 */
 void displayAltitude() {
   if (maxAltitude_m != LastDisplayedAltitude_m) {
-    display.clearField(0U, 0U, 1U);      // home cursor
+    display.clearField(0U, 0U, 1U);   // home cursor
     display.println(F("Altitude "));  //  takes 1ms plus 0.62ms per character
     display.print((maxAltitude_m - fieldAltitude_m) * METERS_TO_FEET);
     display.print(F(" ft   "));
@@ -2461,22 +2475,23 @@ void PopulateFlightRecord(uint16_t RecordIndexValue) {
   if (HasAccelerometer) {
     AccelKX134ACRRead();
   }
+  
   if (RecordIndexValue == 0U) {
     // initial, pre-flight record
 
     //Serial.print("RecordIndexValue Init=");  // debug
     //Serial.println(RecordIndexValue);
 
-    current_measurement.InitRecord.Altitude = fieldAltitude_m;                                                                             // for the initial record this is the field altitude
+    current_measurement.InitRecord.Altitude = fieldAltitude_m;                                                                                       // for the initial record this is the field altitude
     current_measurement.InitRecord.Status = 0x0001 | (0x0002 & ((digitalRead(HighCurrentOut) << 1U))) | (0x0008 & (digitalRead(TestPoint7) << 3U));  //  This is the bits: 0:ON,InitialRecord (with field altitude and sea level pressure). 1:HighCurrentOut_On. 2:OFF,BuzzerOn. 3:PD3_TP7. 8:OFF,Second Init record with lat & lon
-                                                                                                                                           //   4:OFF,Log Altitude in feet. 5:OFF,Temperature in °C.   15:OFF,Landing detected   14:OFF,Apogee detected
+                                                                                                                                                     //   4:OFF,Log Altitude in feet. 5:OFF,Temperature in °C.   15:OFF,Landing detected   14:OFF,Apogee detected
 
     //Serial.print("SeaLevelPressure_hPa=");  // debug
     //Serial.println(SeaLevelPressure_hPa);
 
     current_measurement.InitRecord.SeaLevelPressure_float = SeaLevelPressure_hPa;  //
     current_measurement.InitRecord.LinuxDateTime = EEPROMTime;
-    current_measurement.InitRecord.spare = 0;
+    current_measurement.InitRecord.spare = 0U;
   } else {
 
     //Serial.print("RecordIndexValue flt=");  // debug
@@ -2485,9 +2500,8 @@ void PopulateFlightRecord(uint16_t RecordIndexValue) {
     // flight record
     current_measurement.Record.Altitude = newAltitude_m - fieldAltitude_m;
     current_measurement.Record.Status = (0x02 & (digitalRead(HighCurrentOut) << 1U)) | (0x08 & (digitalRead(TestPoint7) << 3U)) | FlightStatus;  //  See bottom of this file for format.
-    current_measurement.Record.LightVoltage = ((uint32_t)analogRead(LightSensor) * (uint32_t)3000) >> 10U;                                      // the shift introduces only 1 part in 1023 error.       (uint32_t)analogRead(LightSensor) * (uint32_t)3000 / (uint32_t)1023.0;  // uint32_t light millivolts
+    current_measurement.Record.LightVoltage = ((uint32_t)analogRead(LightSensor) * (uint32_t)3000) >> 10U;                                       // the shift introduces only 1 part in 1023 error.       (uint32_t)analogRead(LightSensor) * (uint32_t)3000 / (uint32_t)1023.0;  // uint32_t light millivolts
   }
-  
 }
 
 
@@ -2507,9 +2521,9 @@ void PopulatePreLaunchQueueFlightRecord(uint16_t RecordIndexValue, uint32_t Time
   current_measurement.Record.current_time_ms = TimeStamp;
   //LastRecordTimeStamp_ms = TimeStamp;
   current_measurement.Record.Temperature = getTemperatureP3(P3ADRaw);
-  current_measurement.Record.Altitude = newAltitude_m - fieldAltitude_m;                                                                     // for the initial record this is the field altitude
+  current_measurement.Record.Altitude = newAltitude_m - fieldAltitude_m;                                                                       // for the initial record this is the field altitude
   current_measurement.Record.Status = (0x02 & (digitalRead(HighCurrentOut) << 1U)) | (0x08 & (digitalRead(TestPoint7) << 3U)) | FlightStatus;  // See bottom of this file for format.
-  current_measurement.Record.LightVoltage = (uint32_t)analogRead(LightSensor) * (uint32_t)3000 / (uint32_t)1023.0;                           // uint32_t light millivolts
+  current_measurement.Record.LightVoltage = (uint32_t)analogRead(LightSensor) * (uint32_t)3000 / (uint32_t)1023.0;                             // uint32_t light millivolts
 }
 
 
@@ -2879,24 +2893,30 @@ float ADToTemperature(uint16_t ADReading) {
   return (dig);
   } */
 
+void SerialPrintSpaces(uint8_t count) {
+  for (i = 0; i < count; i++) {
+    Serial.print(F(" "));
+  }
+}
+
 
 void PrintReturnLinefeed() {
-  Serial.print("\r\n");
+  Serial.print(F("\r\n"));
 }
 
 
 void PrintPrompt() {
-  Serial.print("\r\n>");
+  Serial.print(F("\r\n>"));
 }
 
 
 void PrintComma() {
-  Serial.print(",");
+  Serial.print(F(","));
 }
 
 
 void PrintQuestionMarks() {
-  Serial.print("??\n");
+  Serial.print(F("??\n"));
 }
 
 
@@ -2968,7 +2988,7 @@ void PrintInitRecord(Measurement& measurement) {  // CSV format record dump
   PrintComma();
   Serial.print(measurement.InitRecord.SeaLevelPressure_float);
   PrintComma();
-  ShortEEPROMTime = measurement.InitRecord.LinuxDateTime & 0xffffffff;   //  short time format can hold date-times up to the year 2038
+  ShortEEPROMTime = measurement.InitRecord.LinuxDateTime & 0xffffffff;  //  short time format can hold date-times up to the year 2038
   Serial.print(ShortEEPROMTime);
   PrintComma();
   Serial.print(measurement.InitRecord.spare);
@@ -2992,8 +3012,8 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
   uint32_t i;
   uint32_t ShortEEPROMTime;
   uint16_t StatusField;
-  uint32_t LastCurrent_time_ms;
-  bool FirstPassThroughLoop;
+  //uint32_t LastCurrent_time_ms;
+  //bool FirstPassThroughLoop;
 
   //   Header
   Serial.print(F(",,with ver. ,"));  //  Header for the CSV formatted data dump
@@ -3008,7 +3028,7 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
   i = StartEEPROMAddress;
   Serial.println(F("Initial conditions"));
   Serial.println(F("Index,Status,Milliseconds,Field Alt,Temp,Sea Level Pres,Flight Linux Time,spare,Latitude,Longitude"));  //  Dump a CSV file of the logs
-  readByteArray(i, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));
+  readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
   //Serial.print(i);   //   debug
   //Serial.print("<>");   //   debug
   i = i + sizeof(current_measurement.Record);
@@ -3017,9 +3037,9 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
   // Now check for location initial record.
   uint8_t LocIndex;
   char LocCharacter;
-  readByteArray(i, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));
+  readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
   i = i + sizeof(current_measurement.Record);
-  if ((current_measurement.Bytes[2] == (byte)0) && (current_measurement.Bytes[3] == (byte)1)) {  // checking for status = 0x0100
+  if ((current_measurement.Bytes[2] == (byte)0) && (current_measurement.Bytes[3] == (byte)1)) {  // checking for status = 0x0100 (lat, long record)
     // We have a location initial record.
     PrintComma();
     LocCharacter = current_measurement.Bytes[4];
@@ -3037,30 +3057,30 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
   // Flight Log output
   Serial.println(F("Index,Status,Milliseconds,Alt,Temp,Light,X,Y,Z"));  //  Column headers for CSV file of the logs
 
-  readByteArray(i, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));  //  read just to init LastCurrent_time_ms
-  LastCurrent_time_ms = current_measurement.Record.current_time_ms;
-  FirstPassThroughLoop = false;
+  readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));  //  read just to init LastCurrent_time_ms
+  //LastCurrent_time_ms = current_measurement.Record.current_time_ms;
+  //FirstPassThroughLoop = false;
   StatusField = 0U;
-  while ((StatusField & 0x40) == 0) {  // loop until a 'last record of flight' status is found
-    readByteArray(i, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));
-    //Serial.print(i);   //   debug
-    //Serial.print("<>");   //   debug
+  while ((StatusField & 0x0041) == 0) {  // Loop until a 'last record of flight' status is found or until a 'start record of the next flight' is found.
+    
+    // Read from logging EEPROM and print the next flight record.
+    readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
     i = i + sizeof(current_measurement.Record);
-    print_record(current_measurement);
-
-    // Print out warning if it looks like there is a missing end of flight record
-    if ((FirstPassThroughLoop == false) && (((current_measurement.Record.current_time_ms - LastCurrent_time_ms) > 60) || (current_measurement.Record.current_time_ms < LastCurrent_time_ms))) {
-      Serial.println(F("No landing record"));
-    }
 
     StatusField = current_measurement.Record.Status;
-    LastCurrent_time_ms = current_measurement.Record.current_time_ms;
-    FirstPassThroughLoop = true;
+
+    if (StatusField != 0x0001) {
+      print_record(current_measurement);
+    }
+
+    //LastCurrent_time_ms = current_measurement.Record.current_time_ms;
+    //FirstPassThroughLoop = true;
   }
-  readByteArray(i, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));  // Print out max altitude record.
-    //Serial.print(i);   //   debug
-    //Serial.print("<>");   //   debug
-  print_record(current_measurement);
+
+  readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));  // Print out flight summary record.
+  if ((StatusField & 0x1000) == 0x1000) {      // If there is a flight summary record, print it.
+    print_record(current_measurement);
+  }
 }
 
 
@@ -3075,9 +3095,9 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
    @retval boolean TRUE if on USB power, FALSE if not on USB power
 */
 bool USBPowered() {
-  //return false;  //   DEBUG
-  uint16_t USBADRaw = analogRead(USBVbus);
-  return (USBADRaw > USB_VOLTS_THRESHOLD_TO_ADCOUNTS);
+  return false;  //   Uncomment this so flight code can send debug serial to the serial monitor in the IDE (host more will be unavailable).
+  //uint16_t USBADRaw = analogRead(USBVbus);
+  //return (USBADRaw > USB_VOLTS_THRESHOLD_TO_ADCOUNTS);
 }
 
 
@@ -3086,22 +3106,17 @@ bool USBPowered() {
 
    @details Backspace is supported. End of line is a 'return' character. Returned string is zero delimited.
 
-   @bug  This may fail with high character rates that may cause more than one character to be read by Serial.read().
-
-   @param[in]
-   @param[in]
    @param[out] receivedChars as global
 
    @retval none
 */
+#define BackSpace '\010'
 void CaptureCommandLine() {
   char endMarker = '\r';
-  char BackSpace = '\010';  //  control H, 0x08      // Should this be a define?    FIX
   char ReceivedCharacter;
 
   while (Serial.available() > 0 && newData == false) {
-    ReceivedCharacter = Serial.read();  //  Need to wrap this is a little queue, de-queue function because when a computer sends a command at
-    //  a megabaud we may get more than 1 character. ???  TODO    Change to Serial.readBytes(ReceivedCharacter, 1) ???
+    ReceivedCharacter = Serial.read();  // Serial.read() returns a single character.
 
     if (ReceivedCharacter != endMarker) {
       if (ReceivedCharacter == BackSpace) {
@@ -3135,7 +3150,7 @@ void CaptureCommandLine() {
 
    @param[in]  hex character
 
-   @retval Integer from 0 through 15
+   @retval Integer success: from 0 through 15      fail: 16
 */
 int HexToNibble(char hexChar) {
   if (hexChar >= '0' && hexChar <= '9') {
@@ -3145,7 +3160,7 @@ int HexToNibble(char hexChar) {
   } else if (hexChar >= 'a' && hexChar <= 'f') {
     return hexChar - 'a' + 10;
   } else {
-    return 0;  // Return zero for an invalid hex character.
+    return 16;  // Return invalid nibble, 16, for an invalid hex character.
   }
 }
 
@@ -3165,9 +3180,14 @@ int HexToNibble(char hexChar) {
 uint32_t HexidecimalStringToInteger(char* ptr, int Length) {
   uint32_t ConvertedInteger;
   int8_t j;
+  uint8_t HexTemp;
   for (j = 0; j < Length; j++) {
     ConvertedInteger = ConvertedInteger << 4;
-    ConvertedInteger = ConvertedInteger | HexToNibble(*ptr);
+    HexTemp = HexToNibble(*ptr);
+    if (HexTemp > 15U) {
+      PrintQuestionMarks();  //  Upon finding this error the command will report ?? but will continue.
+    }
+    ConvertedInteger = ConvertedInteger | HexTemp;
     ptr++;
   }
   return ConvertedInteger;
@@ -3234,7 +3254,7 @@ void ProcessCommand() {
     //  isolate command character and parameter
     CommandCharacter = receivedChars[0];
     if ((ReceiveBufferIndex >= 3) && (CommandCharacter != 'o')) {  // The o command is just a string of text (lat & lon), so don't convert to numerical argument.
-      Argument1_i = atol(receivedChars + 2);                       // This will need to support long long (64 bit) before the year 2038 for the UNIX date.
+      Argument1_i = atol(receivedChars + 2);                       // This will need to support long long (64 bit) before the year 2038 for the UNIX date. atoll() may work.
     } else {
       Argument1_i = 0;
     }
@@ -3251,32 +3271,37 @@ void ProcessCommand() {
 
     // list all flights
     else if (CommandCharacter == 'l') {
-      Serial.print(F("Flight No., Field Alt (ft), Temperature (F), Sea Level Pres (mb), Flight Date, Number of records, Peak Altitude"));
+      Serial.print(F("Flight No., Field Alt (ft), Temperature (°F), Sea Level Pres (mb), Flight Date, Record count, Peak Altitude"));  // Header for list of flights.
       FlightNumber = 1;
       i = 0U;
       Status = 0U;
       MaxAltitude_m = 0.0;
       EEPROM.get(MCU_EEPROM_EXT_EEPROM_ADDR_START, LastEEPROMAddressInLog);  //  get the address where the next log would start
       while ((Status != 0xffff) && (i < ExternalEEPROMSizeInBytes) && (i < LastEEPROMAddressInLog)) {
-        readByteArray(i, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));
+        readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
         Status = current_measurement.InitRecord.Status;
         if (((current_measurement.InitRecord.Status & 0x1) == 1U) && (current_measurement.InitRecord.Status != 0xffff)) {  // if begin record...
           MaxAltitude_m = 0.0;
           if (FlightNumber <= 9U) {
-            Serial.print(" ");
+            Serial.print(F(" "));
           }
-          Serial.println("");
+          //Serial.println("");
+          PrintReturnLinefeed();
           Serial.print(FlightNumber);
           Serial.print(F(":           "));
           Serial.print(current_measurement.InitRecord.Altitude * METERS_TO_FEET);
-          Serial.print(F("        "));
+          //Serial.print(F("        "));   //  8 spaces
+          SerialPrintSpaces(8U);
           Serial.print(current_measurement.InitRecord.Temperature);
-          Serial.print(F("          "));
+          //Serial.print(F("          "));   //  10 spaces
+          SerialPrintSpaces(10U);
           Serial.print(current_measurement.InitRecord.SeaLevelPressure_float);
-          Serial.print(F("        "));
+          //Serial.print(F("        "));   //  8 spaces
+          SerialPrintSpaces(8U);
           ShortEEPROMTime = current_measurement.InitRecord.LinuxDateTime & 0xffffffff;
           Serial.print(ShortEEPROMTime);
-          Serial.print(F("       "));
+          //Serial.print(F("       "));    //  7 spaces
+          SerialPrintSpaces(7U);
           LastStartingIndex = i;
           FlightNumber++;
           ReadyForEndRecord = true;
@@ -3286,13 +3311,15 @@ void ProcessCommand() {
           Serial.print(NumberOfRecordsInFlight);
 
           if (NumberOfRecordsInFlight < 100U) {  //  line up our columns
-            Serial.print(" ");
+            //Serial.print(" ");
+            SerialPrintSpaces(1U);
           }
           if (NumberOfRecordsInFlight < 1000U) {
-            Serial.print(" ");
+            SerialPrintSpaces(1U);
           }
 
-          Serial.print("             ");
+          //Serial.print("             ");   //  13 spaces
+          SerialPrintSpaces(13U);
           Serial.print(int(MaxAltitude_m * METERS_TO_FEET));
           ReadyForEndRecord = false;
         } else {
@@ -3321,12 +3348,12 @@ void ProcessCommand() {
         FlightNumber = 1U;
         while (FlightNumber != (uint16_t)Argument1_i) {
           i = i + sizeof(current_measurement.Record);
-          readByteArray(i, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));
+          readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
           if (((current_measurement.InitRecord.Status & 0x0001) == 0x0001) && (current_measurement.InitRecord.RecordIndex == 0)) {
             // beginning of flight log found
             FlightNumber++;
           }
-          
+
         }  //  end of while
       }
       PrintCSVFile(i);
@@ -3365,14 +3392,14 @@ void ProcessCommand() {
         EEPROM.put(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + IndexToLatLon + 2, receivedChars[IndexToLatLon]);  //  Starting at MCU EEPROM address plus 4 to skip over record and status fields.
         IndexToLatLon++;
       }
-      EEPROM.put(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + IndexToLatLon + 2, '\0');
+      EEPROM.put(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + IndexToLatLon + 2, '\0');  // Add end of string delimiter.
     }
 
     // Read last max altitude
     else if ((CommandCharacter == 'a')) {
       EEPROM.get(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, MaxAltitude_m);  // This max altitude we are reading is already compensated for field altitude, because we could now be at a different location and field altitude.
       Serial.print(MaxAltitude_m * METERS_TO_FEET);
-      Serial.println(" ft.");
+      Serial.println(F(" ft."));
     }
 
     // Read and set altitude threshold for high current output.
@@ -3382,7 +3409,7 @@ void ProcessCommand() {
       } else {
         EEPROM.get(MCU_EEPROM_ADDR_AltitudeHighCurrentOut_ft, maxAltitude_m);  // This is really in feet.
         Serial.print(maxAltitude_m);
-        Serial.println(" ft.");
+        Serial.println(F(" ft."));
       }
     }
 
@@ -3396,7 +3423,8 @@ void ProcessCommand() {
           EEPROM.get(MCU_EEPROM_SERVO_PRE_LAUNCH + i, x);
           SerialPrint2DigitHex(x);
         }
-        Serial.println("");
+        //Serial.println("");
+        PrintReturnLinefeed();
       } else {
         if (ReceiveBufferIndex != 34U) {
           PrintQuestionMarks();
@@ -3424,7 +3452,8 @@ void ProcessCommand() {
           EEPROM.get(MCU_EEPROM_BUZZER_1_FREQ + j, x);
           SerialPrint2DigitHex(x);
         }
-        Serial.println("");
+        //Serial.println("");
+        PrintReturnLinefeed();
       } else {
         if (ReceiveBufferIndex != 34U) {
           PrintQuestionMarks();
@@ -3453,7 +3482,8 @@ void ProcessCommand() {
           EEPROM.get(MCU_EEPROM_USER_CONFIGURATION + j, x);
           SerialPrint2DigitHex(x);
         }
-        Serial.println("");
+        //Serial.println("");
+        PrintReturnLinefeed();
       } else {
         if (ReceiveBufferIndex != 10U) {
           PrintQuestionMarks();
@@ -3544,7 +3574,7 @@ void DisplayLandedIndication() {
 */
 void SerialPrint2DigitHex(uint8_t IntForOutput) {
   if (IntForOutput < 16) {
-    Serial.print("0");
+    Serial.print(F("0"));
   }
   Serial.print(IntForOutput, HEX);
 }
@@ -4255,6 +4285,18 @@ void loop() {
 
             TimeStamp2Ago = TimeStamp1Ago;
             TimeStamp1Ago = millis();
+
+            // Make sure that, if our flight doesn't trigger apogee detect or landing detect, that the end of log address is updated so we can recover most of our flight log anyway.
+            if (FlightModePhaseIndex >= 2U) {
+            if ((FlightLoopCounter % 200) == 0) {  //  For every 200 samples recorded we update the end of log address.
+              if (LastLogAddressWritten != EepromAddress) {
+                EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);
+                LastLogAddressWritten = EepromAddress;
+              }
+            }
+            FlightLoopCounter++;
+            }
+
           } else {
             ThisIsALoggingCycle = false;
           }
@@ -4268,6 +4310,7 @@ void loop() {
           P3ADRaw = analogRead(AnalogInputP3);
 
 
+
           if (FlightModePhaseIndex == 0U) {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Initialize for flight.  We get here from 2 places: power up, USB power removal. First collect initial data.
             SetUpMiaFromMCUEEPROM();  //  SamplePeriod_ms is setup on returning from SetUpMiaFromMCUEEPROM().
@@ -4278,18 +4321,21 @@ void loop() {
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, EEPROMTime);                         // Date stamp for the inital record. Our closest approxmation for launch time.
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP, SeaLevelPressure_hPa);  //  SeaLevelPressure_hPa is updated for initial record.
 
+            // 
+            LastLogAddressWritten = EepromAddress;
+
             //Serial.print("EEPROMTime=");  // debug
             //Serial.println((int32_t)EEPROMTime);
 
             //Serial.print("SeaLevelPressure_hPa=");  // debug
             //Serial.println(SeaLevelPressure_hPa);
 
-            IncrementMCUEEPROMTime();                   // This just adds 10 seconds to our date-time value so the date stamp for each file is in chronological order.
+            IncrementMCUEEPROMTime();  // This just adds 10 seconds to our date-time value so the date stamp for each file is in chronological order.
             // We don't know the real time unless we get it from the host interface.
-            
+
             RecordNumber = 0;
             //FlightStatus = 0x0001;
-            PopulateFlightRecord(0U);                   // Collect all initial record data, don't write it yet since we don't know if we will really fly.
+            PopulateFlightRecord(0U);  // Collect all initial record data, don't write it yet since we don't know if we will really fly.
 
             LastDisplayedAltitude_m = InvalidAltitude;  //  Invalidate last displayed max altitude.
 
@@ -4304,10 +4350,15 @@ void loop() {
 
             FlightStatus = 0;  // initialize flight status word of logging flight record
             AltitudeHighCurrentOutSetting_m = AltitudeHighCurrentOutSetting_ft / METERS_TO_FEET;
-            FlightModePhaseIndex = 1U;  // advance to wait for launch phase
+
+            current_measurement.Record.AccelerationX_g = 0.0;  //  In case there is no accelerometer.
+            current_measurement.Record.AccelerationY_g = 0.0;
+            current_measurement.Record.AccelerationZ_g = 0.0;  
+
             TimeStamp1Ago = millis();
             startTime_ms = TimeStamp1Ago;  //  current mission elapse time.
             //Serial.println("FlightModePhaseIndex = 1");  //  Debug1
+            FlightModePhaseIndex = 1U;  // advance to wait for launch phase
 
 
           } else if (FlightModePhaseIndex == 1U) {
@@ -4334,65 +4385,65 @@ void loop() {
             if ((integratedAltitude > START_LOGGING_INTEGRATING_THRESHOLD) || (newAltitude_m > (fieldAltitude_m + START_LOGGING_ALTITUDE_THRESHOLD))) {
               //  *** OK, passed launch detect, things get busy here. ***************************************************************************
               // This is our "at launch" to do list:  1) Write 1st initial record. 2) Write 2nd initial record.  3) Write the 2 queued up records. 4) First live record. (See bottom of this file for format).
-              
-                //EEPROM.put(MCU_EEPROM_DEBUG_LOCATION, integratedAltitude);    //  for debug, so we know "which" term made launch detect.
 
-                // 1) Write 1st initial record that has already been populated....
+              //EEPROM.put(MCU_EEPROM_DEBUG_LOCATION, integratedAltitude);    //  for debug, so we know "which" term made launch detect.
 
-                //Serial.print("FlightModePhaseIndex == 1U: current_measurement.InitRecord.SeaLevelPressure_float=");  // debug
-                //Serial.println(current_measurement.InitRecord.SeaLevelPressure_float);
+              // 1) Write 1st initial record that has already been populated....
 
-                WriteRecordAtSamplePeriod(1U);
+              //Serial.print("FlightModePhaseIndex == 1U: current_measurement.InitRecord.SeaLevelPressure_float=");  // debug
+              //Serial.println(current_measurement.InitRecord.SeaLevelPressure_float);
 
-                // Serial.print("1RecIdx0=");  // debug
-                // Serial.println(current_measurement.Record.RecordIndex);  // debug
-                // readByteArray(0U, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));  // Print out max altitude record.  // debug
-                // Serial.print("2RecIdx0=");  // debug
-                // Serial.println(current_measurement.Record.RecordIndex);  // debug
+              WriteRecordAtSamplePeriod(1U);
 
-                //  2) ...and 2nd initial record with lat & lon....
-                for (i = 0; i < 32; i++) {
-                  CommandCharacter = current_measurement.Bytes[i];
-                  EEPROM.get(i + MCU_EEPROM_ADDR_LATITUDE_LONGITUDE, CommandCharacter);
-                  current_measurement.Bytes[i] = CommandCharacter;
-                  if ((CommandCharacter == 0) && (i > 10)) {  // If this is the end of string delimiter, stop copying, we got all we need.
-                    break;
-                  }
+              // Serial.print("1RecIdx0=");  // debug
+              // Serial.println(current_measurement.Record.RecordIndex);  // debug
+              // readByteArray(0U, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));  // Print out max altitude record.  // debug
+              // Serial.print("2RecIdx0=");  // debug
+              // Serial.println(current_measurement.Record.RecordIndex);  // debug
+
+              //  2) ...and 2nd initial record with lat & lon....
+              for (i = 0; i < 32; i++) {
+                CommandCharacter = current_measurement.Bytes[i];
+                EEPROM.get(i + MCU_EEPROM_ADDR_LATITUDE_LONGITUDE, CommandCharacter);
+                current_measurement.Bytes[i] = CommandCharacter;
+                if ((CommandCharacter == 0) && (i > 10)) {  // If this is the end of string delimiter, stop copying, we got all we need.
+                  break;
                 }
-                current_measurement.Record.Status = 0x0100;
-                WriteRecordAtSamplePeriod(1U);
+              }
+              current_measurement.Record.Status = 0x0100;
+              WriteRecordAtSamplePeriod(1U);
 
-                // 3) ...the 2 queued up records....
-                newAltitude_m = CurrentAltitude2Ago_m;
-                PopulatePreLaunchQueueFlightRecord(2, TimeStamp2Ago);
-                WriteRecordAtSamplePeriod(1U);
-                newAltitude_m = CurrentAltitude1Ago_m;
+              // 3) ...the 2 queued up records....
+              newAltitude_m = CurrentAltitude2Ago_m;
+              PopulatePreLaunchQueueFlightRecord(2, TimeStamp2Ago);
+              WriteRecordAtSamplePeriod(1U);
+              newAltitude_m = CurrentAltitude1Ago_m;
 
-                FlightStatus = ServoAscent_index << 9;
+              FlightStatus = ServoAscent_index << 9;
 
-                PopulatePreLaunchQueueFlightRecord(3, TimeStamp1Ago);
-                WriteRecordAtSamplePeriod(1U);
+              PopulatePreLaunchQueueFlightRecord(3, TimeStamp1Ago);
+              WriteRecordAtSamplePeriod(1U);
 
-                // 4) our first live record
-                RecordNumber = 4U;
-                PopulateFlightRecord(RecordNumber);  //  This function grabs the current elapse time itself
+              // 4) our first live record
+              RecordNumber = 4U;
+              PopulateFlightRecord(RecordNumber);  //  This function grabs the current elapse time itself
 
-                WriteRecordAtSamplePeriod(0);
-                //RecordNumber = 2;
-                display.clear();  //  No need to draw power with the OLED since we are flying, and we want to keep the 3.0V bus clean.
+              WriteRecordAtSamplePeriod(0);
+              //RecordNumber = 2;
+              display.clear();  //  No need to draw power with the OLED since we are flying, and we want to keep the 3.0V bus clean.
 
-                // servo update
-                if (ServoNotSounder) {
-                  MiaServo.write(ServoFlightStateArray[ServoAscent_index]);
-                }
-                FlightModePhaseIndex = 2U;  // Advance to flight phase
-                //Serial.println("FlightModePhaseIndex = 2");  //  Debug1
+              // servo update
+              if (ServoNotSounder) {
+                MiaServo.write(ServoFlightStateArray[ServoAscent_index]);
+              }
+              FlightModePhaseIndex = 2U;  // Advance to flight phase
+              //Serial.println("FlightModePhaseIndex = 2");  //  Debug1
 
-                readByteArray(0, current_measurement.Bytes, (uint8_t) sizeof(current_measurement.Record));
-                float test1;
-                test1 = current_measurement.InitRecord.SeaLevelPressure_float;
-                Serial.print(F("SP="));
-                Serial.println(test1);
+              readByteArray(0, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
+              float test1;
+              test1 = current_measurement.InitRecord.SeaLevelPressure_float;
+              Serial.print(F("SP="));
+              Serial.println(test1);
             } else {
               displayAltitude();  //  Want to see the altitude while preping the rocket.
             }
@@ -4405,7 +4456,7 @@ void loop() {
 
             // Apogee Detection:
             //  We must be decending over the last four samples and we must be above 12 meters above launch level
-            if ((((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m / 2) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m / 2) && ((CurrentAltitude3Ago_m - CurrentAltitude2Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m / 2)) && (newAltitude_m > (fieldAltitude_m + 12.0))) { 
+            if ((((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m / 2) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m / 2) && ((CurrentAltitude3Ago_m - CurrentAltitude2Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_m / 2)) && (newAltitude_m > (fieldAltitude_m + 12.0))) {
               FlightModePhaseIndex = 4U;
               //Serial.print(F("Phase 2, apogee det 2, apogee detect true, MET_ms="));
               //Serial.println(OurFlightTimeStamps.ApogeeTime_ms);
