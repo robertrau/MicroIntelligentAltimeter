@@ -700,10 +700,15 @@
   By: Robert Rau
   Changes: Removed buggy abnormal termination detect and added an update to the end of logging MCU EEPROM address for every 200 samples instead. Fixed 'd' command end of flight log detect. Still have bugs in write byte array to logging EEPROM.
 
+  Updated: 12/7/2025
+  Rev.: 4.6.48
+  By: Robert Rau
+  Changes: Fixed WriteByteArray(). Fixed 'd' command.
+
 */
 // Version
-const char VersionString[] = "4.6.47\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1765146224  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.48\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1765160132  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -2345,13 +2350,29 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
   uint32_t CurrentAddress;
   uint8_t ArrayPointer;
   uint8_t ErrorReturn;
+  uint8_t LoopCount;
+  uint8_t ByteCountRemainingThisCycle;
   ErrorReturn = 0;
   CurrentAddress = address;
   ArrayPointer = 0;
-  for (ByteCountRemaining = indexCount; ByteCountRemaining > 0; ByteCountRemaining = ByteCountRemaining - EEPROMWriteMaximumChunkSize) {
-    Serial.print(">");
-    Serial.println(ByteCountRemaining);
-    //M24M02E_PollForWriteDone();  // See data sheet section 6.2.6
+  ByteCountRemaining = indexCount;
+  LoopCount = (indexCount / EEPROMWriteMaximumChunkSize) + 1U;
+  for (i = 0; i < LoopCount; i++) {
+
+    //Serial.print(">");
+   // Serial.println(ByteCountRemaining);
+ 
+     if (ByteCountRemaining >= EEPROMWriteMaximumChunkSize) {
+      ByteCountRemainingThisCycle = EEPROMWriteMaximumChunkSize;
+    } else {
+      ByteCountRemainingThisCycle = ByteCountRemaining;
+    }
+    ByteCountRemaining = ByteCountRemaining - ByteCountRemainingThisCycle;
+
+    //Serial.print(">>");
+    //Serial.println(ByteCountRemainingThisCycle);
+ 
+   //M24M02E_PollForWriteDone();  // See data sheet section 6.2.6
     Wire.beginTransmission((uint8_t)M24M02E_DEVICE_ID(CurrentAddress, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
     Wire.write((uint8_t)((CurrentAddress & 0x00FF00) >> 8U));  // Isolate A15..A8 for next I2C byte.
     Wire.write((uint8_t)(CurrentAddress & 0xFF));           // Isolate A7..A0 for last address I2C byte.
@@ -2360,15 +2381,15 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
     //digitalWrite(TestPoint7, HIGH);
     //digitalWrite(TestPoint7, LOW);
     uint8_t x;
-    Serial.print(".");
-    for (x = 0; x < ByteCountRemaining; x++) {
+    //Serial.print(".");
+    for (x = 0; x < ByteCountRemainingThisCycle; x++) {
       if ((CurrentAddress + x) >= ExternalEEPROMSizeInBytes) {
         ErrorReturn = 6U;
         break;
       }
       Wire.write(data[ArrayPointer + x]);
-      Serial.print(ArrayPointer + x);
-      Serial.print(" ");
+      //Serial.print(ArrayPointer + x);
+      //Serial.print(" ");
     }
     ErrorReturn = ErrorReturn + Wire.endTransmission(true);  //  Terminate the transfer and start the actual write cycle with a I2C STOP condition per section 6.1.2 in the data sheet.
     if (ErrorReturn != 0) {
@@ -3061,7 +3082,7 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
   //LastCurrent_time_ms = current_measurement.Record.current_time_ms;
   //FirstPassThroughLoop = false;
   StatusField = 0U;
-  while ((StatusField & 0x0041) == 0) {  // Loop until a 'last record of flight' status is found or until a 'start record of the next flight' is found.
+  while (((StatusField & 0x0001) == 0) && ((StatusField & 0x1000) != 0x1000)) {  // Loop until a 'summary record'  is found or until a 'start record of the next flight' is found.
     
     // Read from logging EEPROM and print the next flight record.
     readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
@@ -3077,10 +3098,6 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
     //FirstPassThroughLoop = true;
   }
 
-  readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));  // Print out flight summary record.
-  if ((StatusField & 0x1000) == 0x1000) {      // If there is a flight summary record, print it.
-    print_record(current_measurement);
-  }
 }
 
 
@@ -3095,9 +3112,9 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
    @retval boolean TRUE if on USB power, FALSE if not on USB power
 */
 bool USBPowered() {
-  return false;  //   Uncomment this so flight code can send debug serial to the serial monitor in the IDE (host more will be unavailable).
-  //uint16_t USBADRaw = analogRead(USBVbus);
-  //return (USBADRaw > USB_VOLTS_THRESHOLD_TO_ADCOUNTS);
+  //return false;  //   Uncomment this so flight code can send debug serial to the serial monitor in the IDE (host more will be unavailable).
+  uint16_t USBADRaw = analogRead(USBVbus);
+  return (USBADRaw > USB_VOLTS_THRESHOLD_TO_ADCOUNTS);
 }
 
 
@@ -4437,13 +4454,6 @@ void loop() {
                 MiaServo.write(ServoFlightStateArray[ServoAscent_index]);
               }
               FlightModePhaseIndex = 2U;  // Advance to flight phase
-              //Serial.println("FlightModePhaseIndex = 2");  //  Debug1
-
-              readByteArray(0, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
-              float test1;
-              test1 = current_measurement.InitRecord.SeaLevelPressure_float;
-              Serial.print(F("SP="));
-              Serial.println(test1);
             } else {
               displayAltitude();  //  Want to see the altitude while preping the rocket.
             }
