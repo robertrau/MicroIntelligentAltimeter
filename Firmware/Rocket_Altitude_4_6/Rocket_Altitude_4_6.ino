@@ -257,11 +257,12 @@
                 Bit  0  BMP390 pressure/temperature sensor
                 Bit  1  Optical sensor with VEMT2523SLX01 and 1.00kΩ pull up resistor
                 Bit  2  Memsic MC3416 Accelerometer
-                Bit  3  Kionix KX134 Accelerometer
+                Bit  3  Kionix KX134 Accelerometer.  (11/29/2025: this sensor is going end of life, see bit 8 below).
                 Bit  4  1: 10 kΩ thermistor, muRata NXFT15XH103FEAB050, plugged in P3   0:Record voltage from P3
                 Bit  5  BMP581 pressure/temperature sensor
                 Bit  6  For output digital 9, SounderRequiresFrequency
                 Bit  7  For output digital 9, 0=Servo output, 1=buzzer output
+                Bit  8  Memsic MXC3638AL Accelerometer
 
             ADDR = 148: The sensor specific block has the following:   NOT IMPLEMENTED
                 (Should we put the BMP581 sample rate, IIR filter coeff & oversampling stuff here? No, not yet.)
@@ -324,7 +325,7 @@
             ADDR - 1020: 4 byte debug location. Used to store in-flight data and read it back later.
 
 
-            Sketch uses 31870 bytes (98%) of program storage space. Maximum is 32384 bytes.   This is a lot, see programmer tips above.
+            Sketch uses 32022 bytes (98%) of program storage space.   This is a lot, see programmer tips above.
     @endverbatim
 
     @author Rich Rau with additions by Bob Rau
@@ -705,9 +706,14 @@
   By: Robert Rau
   Changes: Fixed WriteByteArray(). Fixed 'd' command.
 
+  Updated: 12/8/2025
+  Rev.: 4.6.49
+  By: Robert Rau
+  Changes: Comment updates. 't' command now reads sea level pressure too.
+
 */
 // Version
-const char VersionString[] = "4.6.48\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+const char VersionString[] = "4.6.49\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
 #define BIRTH_TIME_OF_THIS_VERSION 1765160132  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
@@ -920,6 +926,7 @@ uint8_t LandingConditionCounter;
 //                Bit  5  BMP581 pressure/temperature sensor              <-- SOLDERED ON THE BOARD, NOT AN OPTION ANYMORE, 1
 //                Bit  6  For output digital 9, SounderRequiresFrequency  <--OPTION, default ON, 1
 //                Bit  7  For output digital 9, 0=Servo output, 1=buzzer output  <--OPTION, default buzzer, 1
+//                Bit  8  Memsic MXC3638AL Accelerometer
 uint32_t UserConfiguration;
 #define UserConfigurationRequiredFeatures 0x00000022UL             //Current production board build with defaults.
 #define UserConfigurationDefaultFeatures 0x00000072UL              //Current production board build with defaults.
@@ -968,9 +975,9 @@ typedef union {
     float Altitude;            //  Altitude above Field altitude in meters.
     float Temperature;         //  Using analog connector P3.
     uint32_t LightVoltage;     // In millivolts.
-    float AccelerationX_g;  //  Not on first version of Mia.
-    float AccelerationY_g;  //  Not on first version of Mia.
-    float AccelerationZ_g;  //  Not on first version of Mia.
+    float AccelerationX_g;     //  Not on first version of Mia.
+    float AccelerationY_g;     //  Not on first version of Mia.
+    float AccelerationZ_g;     //  Not on first version of Mia.
   } Record;
   byte Bytes[sizeof(Record)];      // *** This structure is for writing the records to the external EEPROM
   struct {                         // *** This structure is for the initial record before each flight.
@@ -2360,9 +2367,9 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
   for (i = 0; i < LoopCount; i++) {
 
     //Serial.print(">");
-   // Serial.println(ByteCountRemaining);
- 
-     if (ByteCountRemaining >= EEPROMWriteMaximumChunkSize) {
+    // Serial.println(ByteCountRemaining);
+
+    if (ByteCountRemaining >= EEPROMWriteMaximumChunkSize) {
       ByteCountRemainingThisCycle = EEPROMWriteMaximumChunkSize;
     } else {
       ByteCountRemainingThisCycle = ByteCountRemaining;
@@ -2371,11 +2378,11 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
 
     //Serial.print(">>");
     //Serial.println(ByteCountRemainingThisCycle);
- 
-   //M24M02E_PollForWriteDone();  // See data sheet section 6.2.6
+
+    //M24M02E_PollForWriteDone();  // See data sheet section 6.2.6
     Wire.beginTransmission((uint8_t)M24M02E_DEVICE_ID(CurrentAddress, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
     Wire.write((uint8_t)((CurrentAddress & 0x00FF00) >> 8U));  // Isolate A15..A8 for next I2C byte.
-    Wire.write((uint8_t)(CurrentAddress & 0xFF));           // Isolate A7..A0 for last address I2C byte.
+    Wire.write((uint8_t)(CurrentAddress & 0xFF));              // Isolate A7..A0 for last address I2C byte.
 
     //digitalWrite(TestPoint7, LOW);    //  Debug/validation trigger scope at beginning of write.
     //digitalWrite(TestPoint7, HIGH);
@@ -2496,7 +2503,7 @@ void PopulateFlightRecord(uint16_t RecordIndexValue) {
   if (HasAccelerometer) {
     AccelKX134ACRRead();
   }
-  
+
   if (RecordIndexValue == 0U) {
     // initial, pre-flight record
 
@@ -3045,22 +3052,22 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
   Serial.print(ShortEEPROMTime);
   PrintReturnLinefeed();
 
-  // Initial conditions
+  // Read flight conditions initial record.
   i = StartEEPROMAddress;
   Serial.println(F("Initial conditions"));
-  Serial.println(F("Index,Status,Milliseconds,Field Alt,Temp,Sea Level Pres,Flight Linux Time,spare,Latitude,Longitude"));  //  Dump a CSV file of the logs
+  Serial.println(F("Index,Status,Milliseconds,Field Alt,Temp,Sea Level Pres,Flight Linux Time,spare,Latitude,Longitude"));  //  Column headings for the flight initial conditions.
   readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
   //Serial.print(i);   //   debug
   //Serial.print("<>");   //   debug
   i = i + sizeof(current_measurement.Record);
   PrintInitRecord(current_measurement);
 
-  // Now check for location initial record.
+  // Now read location initial record.
   uint8_t LocIndex;
   char LocCharacter;
   readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
   i = i + sizeof(current_measurement.Record);
-  if ((current_measurement.Bytes[2] == (byte)0) && (current_measurement.Bytes[3] == (byte)1)) {  // checking for status = 0x0100 (lat, long record)
+  if ((current_measurement.Bytes[2] == (byte)0) && (current_measurement.Bytes[3] == (byte)1)) {  // Checking for status = 0x0100 (lat, long record).
     // We have a location initial record.
     PrintComma();
     LocCharacter = current_measurement.Bytes[4];
@@ -3075,29 +3082,26 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
   PrintReturnLinefeed();
 
 
-  // Flight Log output
-  Serial.println(F("Index,Status,Milliseconds,Alt,Temp,Light,X,Y,Z"));  //  Column headers for CSV file of the logs
+  // Continue with flight Log output.
+  Serial.println(F("Index,Status,Milliseconds,Alt,Temp,Light,X,Y,Z"));  //  Column headings for the flight log data.
 
-  readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));  //  read just to init LastCurrent_time_ms
+  //readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));  //  read just to init LastCurrent_time_ms   <---    12/8/2025   WAS THIS NEEDED???????  FIX
   //LastCurrent_time_ms = current_measurement.Record.current_time_ms;
   //FirstPassThroughLoop = false;
   StatusField = 0U;
   while (((StatusField & 0x0001) == 0) && ((StatusField & 0x1000) != 0x1000)) {  // Loop until a 'summary record'  is found or until a 'start record of the next flight' is found.
-    
+
     // Read from logging EEPROM and print the next flight record.
     readByteArray(i, current_measurement.Bytes, (uint8_t)sizeof(current_measurement.Record));
     i = i + sizeof(current_measurement.Record);
 
     StatusField = current_measurement.Record.Status;
 
-    if (StatusField != 0x0001) {
+    if (StatusField != 0x0001) {     //  If this last record is the first record for the next flight, don't print. Otherwise it is a summary record for this flight, so print.
       print_record(current_measurement);
     }
 
-    //LastCurrent_time_ms = current_measurement.Record.current_time_ms;
-    //FirstPassThroughLoop = true;
   }
-
 }
 
 
@@ -3150,7 +3154,7 @@ void CaptureCommandLine() {
         }
       }
     } else {
-      receivedChars[ReceiveBufferIndex] = '\0';  // terminate the string   // 'return' support
+      receivedChars[ReceiveBufferIndex] = '\0';  // Terminate the command line string.
       newData = true;
     }
     if (!USBPowered()) {  //   If the USB cable has been pulled, we go back to flight mode
@@ -3231,10 +3235,11 @@ Host commands:
                        Bit  1  Optical sensor with VEMT2523SLX01 and 1.00kΩ 1% pull up resistor
                        Bit  2  Memsic MC3416 Accelerometer (no support)
                        Bit  3  Kionix KX134ACR Accelerometer. (11/29/2025: this sensor is going end of life).
-                       Bit  4  1: 10 kΩ thermistor, muRata NXFT15XH103FEAB050, plugged in P3 (Mia provides a 10.0 k 0.1% pull up ressistor)   0:Record voltage from P3
+                       Bit  4  1: 10 kΩ thermistor, muRata NXFT15XH103FEAB050, plugged in P3 (Mia provides a 10.0 k 0.1% pull up resistor)   0:Record voltage from P3
                        Bit  5  BMP581 pressure/temperature sensor
                        Bit  6  For output digital 9, SounderRequiresFrequency
                        Bit  7  For output digital 9, 0=Servo output, 1=buzzer output
+                       Bit  8  Memsic MXC3638AL Accelerometer
   u hhhhhhhh      Set user configuration long word. See bit assignments above. Must be exactly 8 hex characters of data.
   p               Read byte parameters.
   p hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        Set byte parameters. Must be exactly 32 hex characters of data. The first byte is at MCU EEPROM address 200 and each byte
@@ -3396,7 +3401,9 @@ void ProcessCommand() {
           PrintQuestionMarks();
         }
       } else {
-        //Serial.println(F("OK"));  //  Pressure value appears to be there
+        EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP, SeaLevelPressure_hPa);
+        Serial.print(SeaLevelPressure_hPa);
+        Serial.println(F(" mb"));
       }
     }
 
@@ -4305,13 +4312,13 @@ void loop() {
 
             // Make sure that, if our flight doesn't trigger apogee detect or landing detect, that the end of log address is updated so we can recover most of our flight log anyway.
             if (FlightModePhaseIndex >= 2U) {
-            if ((FlightLoopCounter % 200) == 0) {  //  For every 200 samples recorded we update the end of log address.
-              if (LastLogAddressWritten != EepromAddress) {
-                EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);
-                LastLogAddressWritten = EepromAddress;
+              if ((FlightLoopCounter % 200) == 0) {  //  For every 200 samples recorded we update the end of log address. (We don't want to write this too often or we will wear out the MCU EEPROM)
+                if (LastLogAddressWritten != EepromAddress) {
+                  EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);
+                  LastLogAddressWritten = EepromAddress;
+                }
               }
-            }
-            FlightLoopCounter++;
+              FlightLoopCounter++;
             }
 
           } else {
@@ -4338,7 +4345,7 @@ void loop() {
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_TIME_s, EEPROMTime);                         // Date stamp for the inital record. Our closest approxmation for launch time.
             EEPROM.get(MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP, SeaLevelPressure_hPa);  //  SeaLevelPressure_hPa is updated for initial record.
 
-            // 
+            //
             LastLogAddressWritten = EepromAddress;
 
             //Serial.print("EEPROMTime=");  // debug
@@ -4370,7 +4377,7 @@ void loop() {
 
             current_measurement.Record.AccelerationX_g = 0.0;  //  In case there is no accelerometer.
             current_measurement.Record.AccelerationY_g = 0.0;
-            current_measurement.Record.AccelerationZ_g = 0.0;  
+            current_measurement.Record.AccelerationZ_g = 0.0;
 
             TimeStamp1Ago = millis();
             startTime_ms = TimeStamp1Ago;  //  current mission elapse time.

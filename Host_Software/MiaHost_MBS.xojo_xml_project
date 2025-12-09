@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<RBProject version="2025r2.1" FormatVersion="2" MinIDEVersion="20210300">
+<RBProject version="2024r4.2" FormatVersion="2" MinIDEVersion="20210300">
 <block type="Project" ID="0">
- <ProjectSavedInVers>2025.021</ProjectSavedInVers>
+ <ProjectSavedInVers>2024.042</ProjectSavedInVers>
  <IDEVersion>20240402</IDEVersion>
  <MajorVersion>0</MajorVersion>
  <MinorVersion>1</MinorVersion>
- <SubVersion>11</SubVersion>
+ <SubVersion>12</SubVersion>
  <Release>0</Release>
  <NonRelease>0</NonRelease>
  <Region></Region>
- <ShortVersion>0.1.11-beta</ShortVersion>
+ <ShortVersion>0.1.12-beta</ShortVersion>
  <LongVersion>2025</LongVersion>
  <InfoVersion>MisHost - download flight logs from Mia Flight Computer</InfoVersion>
  <AutoIncVersion>0</AutoIncVersion>
@@ -50,9 +50,6 @@
  <WindowsVersions>{35138b9a-5d96-4fbd-8e2d-a2440225f93a}|{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}|{1f676c76-80e1-4239-95bb-83d0f6d0da78}|{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}</WindowsVersions>
  <WindowsRunAs>0</WindowsRunAs>
  <MacMinimumVersion>10.13</MacMinimumVersion>
- <PlistEntries></PlistEntries>
- <MASCategory></MASCategory>
- <AppSpecificPassword></AppSpecificPassword>
 </block>
 <block type="Module" ID="600807423">
  <ObjName>App</ObjName>
@@ -92,11 +89,6 @@
  </HookInstance>
  <PropertyVal Name="MenuBar">1657671679</PropertyVal>
  <ViewBehavior>
-  <ViewProperty>
-   <ObjName>ProcessID</ObjName>
-   <PropertyGroup>Behavior</PropertyGroup>
-   <ItemType>Integer</ItemType>
-  </ViewProperty>
   <ViewProperty>
    <ObjName>Name</ObjName>
    <PropertyGroup>ID</PropertyGroup>
@@ -599,6 +591,7 @@
    <SourceLine></SourceLine>
    <SourceLine>Serial1.XmitWait</SourceLine>
    <SourceLine>Serial1.Write(CommandString)</SourceLine>
+   <SourceLine></SourceLine>
    <SourceLine>Serial1.Flush</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>End Sub</SourceLine>
@@ -1061,7 +1054,7 @@
    <SourceLine>d.CollectOutputData = true</SourceLine>
    <SourceLine>d.SetOptionHTTPHeader array("User-Agent: test/1.0")   //  added 11/30/2024 per Christian @ MBS</SourceLine>
    <SourceLine>d.OptionIPResolve = d.kIPRESOLVE_V4  // prevent ipv6 as NWS has had some trouble with ipv6</SourceLine>
-   <SourceLine>d.OptionFollowLocation = 1   // required  11/24/2025 changed from true to 1 due to MBS 25.5</SourceLine>
+   <SourceLine>d.OptionFollowLocation = True   // required  11/24/2025 changed from true to 1 due to MBS 25.5</SourceLine>
    <SourceLine>d.OptionMaxRedirs = 5             //  5 may be excessive</SourceLine>
    <SourceLine>d.OptionSSLVerifyHost = 2 // verify server</SourceLine>
    <SourceLine>d.OptionSSLVerifyPeer = 1 // proofs certificate is authentic</SourceLine>
@@ -1334,23 +1327,7 @@
    <SourceLine>SeaLevelPressure_hPa = CalculatePressureWithLapseRate(StationPressure_hPa, LocalTemperature_C, LocalElevation_m, 0.0, -0.0065)</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine>'</SourceLine>
-   <SourceLine>'if HaveBarometricPressure and HaveStationElevation and HaveStationTemperature and (HaveSeaLevelPressure = False) then</SourceLine>
-   <SourceLine>'LocalTemperature_K = LocalTemperature_C + 273.15</SourceLine>
-   <SourceLine>'WallaceHobbsH = (SPECIFIC_GAS_CONSTANT_JdivKkg * LocalTemperature_K) / GRAVITATIONAL_ACCELERATION_m_ss  // J s^2 / m kg</SourceLine>
-   <SourceLine>'SeaLevelPressure_Pa = StationBarometricPressure_Pa * (Pow(Math_e, (LocalElevation_m / WallaceHobbsH)))</SourceLine>
-   <SourceLine>'elseif HaveSeaLevelPressure = False then</SourceLine>
-   <SourceLine>'SeaLevelPressure_Pa = 0</SourceLine>
-   <SourceLine>'end if</SourceLine>
-   <SourceLine>'</SourceLine>
-   <SourceLine>'if HaveBarometricPressure and HaveStationElevation then</SourceLine>
-   <SourceLine>'//   from here https://www.weather.gov/epz/wxcalc_stationpressure</SourceLine>
-   <SourceLine>'StationGroundLevelPressure_mb = (StationBarometricPressure_Pa / 100) * pow(( 288.0 - ( LapseRate_C_m * LocalElevation_m)) / 288.0, (1.0 / 0.190284))</SourceLine>
-   <SourceLine>'HaveStationGroundLevelPressure = True</SourceLine>
-   <SourceLine>'end if</SourceLine>
+   <SourceLine>'//  see https://www.weather.gov/epz/wxcalc_stationpressure</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>// Update User Interface</SourceLine>
    <SourceLine>if HaveSeaLevelPressure then</SourceLine>
@@ -1363,9 +1340,9 @@
    <SourceLine>LocalElevation_feet = LocalElevation_m * METERS_TO_FEET</SourceLine>
    <SourceLine>//msgbox("LocalElevation_feet" + str(LocalElevation_feet))     //  debug</SourceLine>
    <SourceLine>MiaHost.LocalGroundLevelAltLabel1.Text = "Local ground level altitude: " + str(LocalElevation_m) + "m  or " + str(LocalElevation_feet) + "ft."</SourceLine>
-   <SourceLine>if SeaLevelPressure_Pa &lt;&gt; 0 then </SourceLine>
-   <SourceLine>MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + str(SeaLevelPressure_Pa / 100.0) + "mb"</SourceLine>
-   <SourceLine>end if</SourceLine>
+   <SourceLine>'if SeaLevelPressure_Pa &lt;&gt; 0 then </SourceLine>
+   <SourceLine>'MiaHost.SealevelPressureLabel.Text = "Sealevel pressure: " + str(SeaLevelPressure_Pa / 100.0) + "mb"</SourceLine>
+   <SourceLine>'end if</SourceLine>
    <SourceLine>if HaveStationGroundLevelPressure then</SourceLine>
    <SourceLine>LocalGroundLevelPresLabel.Text = LocalGroundLevelPresLabel.Text + " " + StationGroundLevelPressure_mb.ToString("####.00") + "mb"</SourceLine>
    <SourceLine>else</SourceLine>
@@ -1374,7 +1351,7 @@
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>return floor(SeaLevelPressure_Pa + 0.5)</SourceLine>
+   <SourceLine>return floor((SeaLevelPressure_hPa * 100) + 0.5)</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
    <SourceLine></SourceLine>
@@ -2955,6 +2932,7 @@
   <ItemFlags>0</ItemFlags>
   <IsShared>0</IsShared>
  </Property>
+ <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="MenuBarVisible">False</PropertyVal>
  <PropertyVal Name="MenuBar">1657671679</PropertyVal>
  <PropertyVal Name="Backdrop">0</PropertyVal>
@@ -2967,7 +2945,6 @@
  <PropertyVal Name="MacProcID">0</PropertyVal>
  <PropertyVal Name="Composite">False</PropertyVal>
  <PropertyVal Name="Resizeable">True</PropertyVal>
- <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="HasFullScreenButton">False</PropertyVal>
  <PropertyVal Name="HasMinimizeButton">True</PropertyVal>
  <PropertyVal Name="HasMaximizeButton">True</PropertyVal>
@@ -2981,13 +2958,6 @@
  <PropertyVal Name="Height">750</PropertyVal>
  <PropertyVal Name="Width">909</PropertyVal>
  <ViewBehavior>
-  <ViewProperty>
-   <ObjName>HasTitleBar</ObjName>
-   <Visible>1</Visible>
-   <PropertyGroup>Frame</PropertyGroup>
-   <PropertyValue>True</PropertyValue>
-   <ItemType>Boolean</ItemType>
-  </ViewProperty>
   <ViewProperty>
    <ObjName>Name</ObjName>
    <Visible>1</Visible>
@@ -3660,6 +3630,7 @@
     <SourceLine>SealevelPressureInfo.Text = "Weather data from NWS station: " + StationIDs(4) + ".  "</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine>SeaLevelPressure_Pa = NWS_station_to_measurements(StationURL)</SourceLine>
+    <SourceLine>msgbox("SeaLevelPressure_Pa = "+str(SeaLevelPressure_Pa))</SourceLine>
     <SourceLine>if SeaLevelPressure_Pa = -1000 Then</SourceLine>
     <SourceLine>SealevelPressureInfo.Text = "NWS station not found."</SourceLine>
     <SourceLine>end if</SourceLine>
@@ -8166,6 +8137,7 @@
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
  </HookInstance>
+ <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="MenuBarVisible">False</PropertyVal>
  <PropertyVal Name="MenuBar"></PropertyVal>
  <PropertyVal Name="Backdrop">0</PropertyVal>
@@ -8178,7 +8150,6 @@
  <PropertyVal Name="MacProcID">0</PropertyVal>
  <PropertyVal Name="Composite">False</PropertyVal>
  <PropertyVal Name="Resizeable">False</PropertyVal>
- <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="HasFullScreenButton">False</PropertyVal>
  <PropertyVal Name="HasMinimizeButton">False</PropertyVal>
  <PropertyVal Name="HasMaximizeButton">False</PropertyVal>
@@ -8192,13 +8163,6 @@
  <PropertyVal Name="Height">321</PropertyVal>
  <PropertyVal Name="Width">356</PropertyVal>
  <ViewBehavior>
-  <ViewProperty>
-   <ObjName>HasTitleBar</ObjName>
-   <Visible>1</Visible>
-   <PropertyGroup>Frame</PropertyGroup>
-   <PropertyValue>True</PropertyValue>
-   <ItemType>Boolean</ItemType>
-  </ViewProperty>
   <ViewProperty>
    <ObjName>Name</ObjName>
    <Visible>1</Visible>
@@ -8859,6 +8823,7 @@
  <ItemFlags>1</ItemFlags>
  <IsInterface>0</IsInterface>
  <Compatibility></Compatibility>
+ <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="MenuBarVisible">False</PropertyVal>
  <PropertyVal Name="MenuBar"></PropertyVal>
  <PropertyVal Name="Backdrop">0</PropertyVal>
@@ -8871,7 +8836,6 @@
  <PropertyVal Name="MacProcID">0</PropertyVal>
  <PropertyVal Name="Composite">False</PropertyVal>
  <PropertyVal Name="Resizeable">True</PropertyVal>
- <PropertyVal Name="HasTitleBar">True</PropertyVal>
  <PropertyVal Name="HasFullScreenButton">False</PropertyVal>
  <PropertyVal Name="HasMinimizeButton">True</PropertyVal>
  <PropertyVal Name="HasMaximizeButton">True</PropertyVal>
@@ -8885,13 +8849,6 @@
  <PropertyVal Name="Height">348</PropertyVal>
  <PropertyVal Name="Width">1018</PropertyVal>
  <ViewBehavior>
-  <ViewProperty>
-   <ObjName>HasTitleBar</ObjName>
-   <Visible>1</Visible>
-   <PropertyGroup>Frame</PropertyGroup>
-   <PropertyValue>True</PropertyValue>
-   <ItemType>Boolean</ItemType>
-  </ViewProperty>
   <ViewProperty>
    <ObjName>Name</ObjName>
    <Visible>1</Visible>
@@ -9231,9 +9188,8 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation>MiaHost.NWS_url_to_json</EditorLocation>
+    <EditorLocation></EditorLocation>
     <EditorPath></EditorPath>
-    <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
    </Editor>
    <SelectedTab>0</SelectedTab>
