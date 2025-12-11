@@ -711,10 +711,15 @@
   By: Robert Rau
   Changes: Comment updates. 't' command now reads sea level pressure too.
 
+  Updated: 12/10/2025
+  Rev.: 4.6.50
+  By: Robert Rau
+  Changes: Speeded up logging EEPROM writes. we now collect records with 8 to 15 milliseconds between samples.
+
 */
 // Version
-const char VersionString[] = "4.6.49\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1765160132  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.50\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1765420337  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -1075,6 +1080,13 @@ void setup() {
   pinMode(UnusedD26, INPUT_PULLUP);  //   328PB only, Will read as a 1
 
   digitalWrite(TestPoint7, LOW);
+
+
+
+    digitalWrite(TestPoint7, LOW);    //  Debug/validation trigger scope at beginning of write.
+    digitalWrite(TestPoint7, HIGH);
+    digitalWrite(TestPoint7, LOW);
+
 
   //  Before starting I2C, we check that both pins are high? If not report I2C failure on serial port? (OLED will not be accessable).
   if ((digitalRead(A4) == LOW) || (digitalRead(A5) == LOW)) {  // Check that SDA and SCL are both resting high
@@ -2183,35 +2195,35 @@ void WriteRecordAtSamplePeriod(uint8_t ForceWriteNow) {
 
 #define M24M02E_DEVICE_ID(UserEEPROMAddress, M24M02E_DEVICE_MEM_ID) ((UserEEPROMAddress >> 16U) | M24M02E_DEVICE_MEM_ID)
 
-/**
- * @brief The function polls the M24M02E to see if the write cycle is complete
- *
- *
- * @return Write completed on time (milliseconds to complete), Write failed to complete (-1), Write completed late (-2)
- */
-int8_t M24M02E_PollForWriteDone() {
-  unsigned long BeginTime_ms = millis();
-  unsigned long GiveUpTime_ms = BeginTime_ms + M24M02E_WRITE_TIME_ms + 3U;  //  We give the M24M02E-F three extra milliseconds to finish because returning without an I2C acknoledge leaves the M24M02E-F I2C in an unknown state.
-  unsigned long Now_ms = millis();
-  while (GiveUpTime_ms >= Now_ms) {
-    //Wire.beginTransmission(M24M02E_DEVICE_SELECT_CODE_MEM_BASE);
-    if (Wire.endTransmission() == 0) {
-      //  Good news: the write is complete. Other news, we are now mid command with the M24M02E-F (the M24M02E-F has received and ACKed its device ID), so we must end the I2C transmission.
-      //digitalWrite(TestPoint7, LOW);  //  trigger scope at end of write
-      //digitalWrite(TestPoint7, HIGH);
-      //digitalWrite(TestPoint7, LOW);
-      Wire.endTransmission(false);  //  send a re-start and a stop per section 6.2.6 in the M24M02E-F data sheet
-      Wire.endTransmission(true);
-      if ((Now_ms - BeginTime_ms) <= M24M02E_WRITE_TIME_ms) {
-        return Now_ms - BeginTime_ms;  //  Success
-      } else {
-        return -2;  // Write complete but not within data sheet maximum
-      }
-    }
-    Now_ms = millis();
-  }
-  return -1;  //  Write failed, the M24M02E-F is in an unknown state.
-}
+// /**
+//  * @brief The function polls the M24M02E to see if the write cycle is complete
+//  *
+//  *
+//  * @return Write completed on time (milliseconds to complete), Write failed to complete (-1), Write completed late (-2)
+//  */
+// int8_t M24M02E_PollForWriteDone(uint32_t CurrentAddress) {
+//   unsigned long BeginTime_ms = millis();
+//   unsigned long GiveUpTime_ms = BeginTime_ms + M24M02E_WRITE_TIME_ms + 3U;  //  We give the M24M02E-F three extra milliseconds to finish because returning without an I2C acknoledge leaves the M24M02E-F I2C in an unknown state.
+//   unsigned long Now_ms = millis();
+//   while (GiveUpTime_ms >= Now_ms) {
+//     Wire.beginTransmission((uint8_t)M24M02E_DEVICE_ID(CurrentAddress, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
+//     if (Wire.endTransmission() == 0) {
+//       //  Good news: the write is complete. Other news, we are now mid command with the M24M02E-F (the M24M02E-F has received and ACKed its device ID), so we must end the I2C transmission.
+//       //digitalWrite(TestPoint7, LOW);  //  trigger scope at end of write
+//       //digitalWrite(TestPoint7, HIGH);
+//       //digitalWrite(TestPoint7, LOW);
+//       Wire.endTransmission(false);  //  send a re-start and a stop per section 6.2.6 in the M24M02E-F data sheet
+//       Wire.endTransmission(true);
+//       if ((Now_ms - BeginTime_ms) <= M24M02E_WRITE_TIME_ms) {
+//         return Now_ms - BeginTime_ms;  //  Success
+//       } else {
+//         return -2;  // Write complete but not within data sheet maximum
+//       }
+//     }
+//     Now_ms = millis();
+//   }
+//   return -1;  //  Write failed, the M24M02E-F is in an unknown state.
+// }
 
 
 /**
@@ -2359,15 +2371,17 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
   uint8_t ErrorReturn;
   uint8_t LoopCount;
   uint8_t ByteCountRemainingThisCycle;
-  ErrorReturn = 0;
+
   CurrentAddress = address;
+  // see if EEPROM available for write. We poll to see if the EEPROM has finished its last write.
+  Wire.beginTransmission((uint8_t)M24M02E_DEVICE_ID(CurrentAddress, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
+  while (Wire.endTransmission() != 0);
+
+  ErrorReturn = 0;
   ArrayPointer = 0;
   ByteCountRemaining = indexCount;
   LoopCount = (indexCount / EEPROMWriteMaximumChunkSize) + 1U;
   for (i = 0; i < LoopCount; i++) {
-
-    //Serial.print(">");
-    // Serial.println(ByteCountRemaining);
 
     if (ByteCountRemaining >= EEPROMWriteMaximumChunkSize) {
       ByteCountRemainingThisCycle = EEPROMWriteMaximumChunkSize;
@@ -2376,17 +2390,11 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
     }
     ByteCountRemaining = ByteCountRemaining - ByteCountRemainingThisCycle;
 
-    //Serial.print(">>");
-    //Serial.println(ByteCountRemainingThisCycle);
-
     //M24M02E_PollForWriteDone();  // See data sheet section 6.2.6
     Wire.beginTransmission((uint8_t)M24M02E_DEVICE_ID(CurrentAddress, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
     Wire.write((uint8_t)((CurrentAddress & 0x00FF00) >> 8U));  // Isolate A15..A8 for next I2C byte.
     Wire.write((uint8_t)(CurrentAddress & 0xFF));              // Isolate A7..A0 for last address I2C byte.
 
-    //digitalWrite(TestPoint7, LOW);    //  Debug/validation trigger scope at beginning of write.
-    //digitalWrite(TestPoint7, HIGH);
-    //digitalWrite(TestPoint7, LOW);
     uint8_t x;
     //Serial.print(".");
     for (x = 0; x < ByteCountRemainingThisCycle; x++) {
@@ -2395,18 +2403,16 @@ int8_t writeByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
         break;
       }
       Wire.write(data[ArrayPointer + x]);
-      //Serial.print(ArrayPointer + x);
-      //Serial.print(" ");
     }
     ErrorReturn = ErrorReturn + Wire.endTransmission(true);  //  Terminate the transfer and start the actual write cycle with a I2C STOP condition per section 6.1.2 in the data sheet.
     if (ErrorReturn != 0) {
       break;
     }
-    M24M02E_PollForWriteDone();  // See data sheet section 6.2.6    I tried moving this to the begining so the write but I couldn't get things to work.
     CurrentAddress = CurrentAddress + EEPROMWriteMaximumChunkSize;
     ArrayPointer = ArrayPointer + EEPROMWriteMaximumChunkSize;
   }
-  Serial.println("");
+  // The write is complete. We don't wait around to wait for the write to finish, that would be a waste of time. We will let the EEPROM write while we collect our next record of flight data.
+  //    Then when we are ready to write to the EEPROM again, we check that the last write is done before starting the current write.
   return ErrorReturn;
 }
 
