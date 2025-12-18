@@ -691,6 +691,7 @@
    <SourceLine>Serial1.Reset</SourceLine>
    <SourceLine>//Serial1.LeaveDTROnClose</SourceLine>
    <SourceLine>MiaUSBName = SerialPopup.RowTextAt(SelectedSerialPortIndex)</SourceLine>
+   <SourceLine>ConnectToMiaButton.Caption = "Connecting..."</SourceLine>
    <SourceLine>return True</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>Catch error As IOException</SourceLine>
@@ -714,6 +715,7 @@
    <SourceLine>Serial1.Reset</SourceLine>
    <SourceLine>//Serial1.LeaveDTROnClose</SourceLine>
    <SourceLine>//  ToDo   MBS library to get Mia USB name like in PocketFrog</SourceLine>
+   <SourceLine>ConnectToMiaButton.Caption = "Connecting..."</SourceLine>
    <SourceLine>return True</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>Catch error As IOException</SourceLine>
@@ -747,6 +749,7 @@
    <SourceLine>Serial1.RequestToSend=False   // Raise RTS to prepare for sending it true to reset the Mia</SourceLine>
    <SourceLine>Serial1.Reset</SourceLine>
    <SourceLine>//  ToDo   MBS library to get Mia USB name like in PocketFrog</SourceLine>
+   <SourceLine>ConnectToMiaButton.Caption = "Connecting..."</SourceLine>
    <SourceLine>return True</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>Catch error As IOException</SourceLine>
@@ -3334,7 +3337,7 @@
     <SourceLine>AutomaticLocationAvailable = False</SourceLine>
     <SourceLine>UseManualLocationCB.VisualState = DesktopCheckBox.VisualStates.Checked</SourceLine>
     <SourceLine>#EndIf</SourceLine>
-    <SourceLine>me.Caption = "Connecting..."</SourceLine>
+    <SourceLine></SourceLine>
     <SourceLine>DisconnectStatusLabel.Text = ""</SourceLine>
     <SourceLine></SourceLine>
     <SourceLine></SourceLine>
@@ -9188,8 +9191,9 @@
    <EditorCount>1</EditorCount>
    <Editor>
     <EditorIndex>0</EditorIndex>
-    <EditorLocation></EditorLocation>
+    <EditorLocation>MiaHost.ConnectToSerialPort</EditorLocation>
     <EditorPath></EditorPath>
+    <EditingPartID>1250136063</EditingPartID>
     <EditorPath></EditorPath>
    </Editor>
    <SelectedTab>0</SelectedTab>
