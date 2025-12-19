@@ -949,12 +949,12 @@ uint8_t LandingConditionCounter;
 //                Bit  7  For output digital 9, 0=Servo output, 1=buzzer output  <--OPTION, default buzzer, 1
 //                Bit  8  Memsic MXC3638AL Accelerometer
 uint32_t UserConfiguration;
-#define UserConfigurationRequiredFeatures 0x00000022UL             //Current production board build with defaults.
-#define UserConfigurationDefaultFeatures 0x00000072UL              //Current production board build with defaults.
-#define UserConfigurationHasRohmKX134Accelerometer 0x00000008UL    // KX134ACR mask
-#define UserConfigurationP3ThermistorNotVoltage_mask 0x00000010UL  // P3 temperature/voltage mask
-#define UserConfigurationSounderRequiresFrequency 0x00000040UL     // SounderRequiresFrequency mask
-#define UserConfigurationSounderNotServo_mask 0x00000080UL         // Servo mask
+#define UserConfigurationRequiredFeatures 0x00000022             //Current production board build with defaults.
+#define UserConfigurationDefaultFeatures 0x00000072              //Current production board build with defaults.
+#define UserConfigurationHasRohmKX134Accelerometer 0x00000008    // KX134ACR mask
+#define UserConfigurationP3ThermistorNotVoltage_mask 0x00000010  // P3 temperature/voltage mask
+#define UserConfigurationSounderRequiresFrequency 0x00000040     // SounderRequiresFrequency mask
+#define UserConfigurationSounderNotServo_mask 0x00000080         // Servo mask
 #define MCU_EEPROM_ADDR_AltitudeHighCurrentOut_ft 192              //  AltitudeHighCurrentOut is unique in that it is stored in feet.
 #define MCU_EEPROM_LAST_MAXIMUM_ALTITUDE 196                       // where the last flight's maximum altitude is stored. This value is already compensated for field altitude. In meters.
 #define MCU_EEPROM_SERVO_PRE_LAUNCH 200                            // MCU EEPROM address where the pre-launch servo position is stored (0 to 180 degrees)
@@ -2485,8 +2485,11 @@ void displayAltitude() {
       display.print(F("Alt  "));       //  takes 1ms plus 0.62ms per character
       AltitudeAGL = maxAltitude_m - fieldAltitude_m;
     display.print(AltitudeAGL);  //  takes 1ms plus 0.62ms per character
-    display.println(F(" m  "));  //  takes 1ms plus 0.62ms per character
-    display.print(F("       "));  //  takes 1ms plus 0.62ms per character
+    if (FlightModePhaseIndex == 5U) {
+      display.print(F(" m  \nL      "));  //  Include landed indication (L in bottom left of OLED display)
+    } else {
+      display.print(F(" m  \n        "));  //  takes 1ms plus 0.62ms per character
+    }
     display.print(AltitudeAGL * METERS_TO_FEET);
     display.print(F(" ft    "));
     LastDisplayedAltitude_m = maxAltitude_m;
@@ -3126,7 +3129,7 @@ void PrintCSVFile(uint32_t StartEEPROMAddress) {  // CSV format file dump, for '
    @retval boolean TRUE if on USB power, FALSE if not on USB power
 */
 bool USBPowered() {
-  //return false;  //   Uncomment this so flight code can send debug serial to the serial monitor in the IDE (host more will be unavailable).
+  //return false;  //   Uncomment this so flight code can send debug serial to the serial monitor in the IDE (host mode will be unavailable).
   uint16_t USBADRaw = analogRead(USBVbus);
   return (USBADRaw > USB_VOLTS_THRESHOLD_TO_ADCOUNTS);
 }
@@ -3582,19 +3585,6 @@ void ProcessCommand() {
 //   Mia Main Arduino Loop functions
 //**************************************************************************************************
 //**************************************************************************************************
-
-
-/**
-   @brief  Displays an 'L' in the upper right of the OLED
-
-   @param[in] none
-
-   @retval  none
-*/
-void DisplayLandedIndication() {
-  display.clearField(120, 0, 1);
-  display.print(F("L"));  //   landed indication in top right corner of display
-}
 
 
 /**
@@ -4329,6 +4319,9 @@ void loop() {
             if ((FlightModePhaseIndex >= 2U) && (FlightModePhaseIndex != 3U)) {
               if (((FlightLoopCounter) % 200U) == 0U) {  //  For every 200 samples recorded we update the end of log address. (We don't want to write this too often or we will wear out the MCU EEPROM)
                 if (LastLogAddressWritten != EepromAddress) {
+                  Serial.print(F("LC,"));
+                  Serial.println(millis());
+
                   EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);
                   LastLogAddressWritten = EepromAddress;
                   EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));  // Update MCU EEPROM for 'last maximum altitude'
@@ -4442,6 +4435,7 @@ void loop() {
               integratedAltitude = (integratedAltitude * 0.95) + deltaAltitude_m;       //  For now I am using 95% of previous samples sum to compensate for drift, wind, pressure change, and sensor noise.
             } else {
               integratedAltitude = 0.0;
+              displayAltitude();  //  Want to see the altitude while preping the rocket.
             }
             if ((integratedAltitude > START_LOGGING_INTEGRATING_THRESHOLD) || (newAltitude_m > (fieldAltitude_m + START_LOGGING_ALTITUDE_THRESHOLD))) {
               Serial.print(F("LD1,"));
@@ -4511,7 +4505,7 @@ void loop() {
               Serial.print(F("LD2,"));
               Serial.println(millis());              
             } else {
-              displayAltitude();  //  Want to see the altitude while preping the rocket.
+              //displayAltitude();  //  Want to see the altitude while preping the rocket.
             }
           }
 
@@ -4633,11 +4627,8 @@ void loop() {
 
                 digitalWrite(HighCurrentOut, LOW);  // High current output OFF.
 
-                // Update display
+                // Restore display from reset so landing information can be displayed
                 DisplayStart();
-
-                displayAltitude();
-                DisplayLandedIndication();
 
                 // servo update
                 if (ServoNotSounder) {
@@ -4686,7 +4677,7 @@ void loop() {
                 BuzzerSchedule[6] = (uint16_t)LowPowerSounderMultiplier;
               }
               FlightModePhaseIndex = 6U;
-              DetachServoForLowPowerTime_ms = millis() + 500;
+              DetachServoForLowPowerTime_ms = millis() + 500U;
 
               //Serial.println("FlightModePhaseIndex = 6");  // Debug1
             } else {
@@ -4708,8 +4699,9 @@ void loop() {
             //  something went wrong, not a valid flight phase.
           }
         }  //   end of "not USB powered" in flight mode
-        //Serial.print(F("FM2,"));
-        //Serial.println(millis());   
+        Serial.print(F("FM2,"));
+        Serial.print(millis());   
+        Serial.println(F(", ----"));
       }    // end of flight mode
 
       else if (OperationalMode == AllOperationalModes::BatteryChargeOnly) {
