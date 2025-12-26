@@ -1026,6 +1026,7 @@ uint16_t P3ADRaw;
 float P3Voltage_mV;                    // voltage on P3 connector
 uint8_t TemperatureNotVoltage;         // 1: Temperature, 0: Voltage
 float MinimumAltitudeForApogeeDetect;  // For apogee detection.
+#define APOGEE_MINIMUM_ALTITUDE_DETECT_THRESHOLD_AGL_m 15.0
 
 //unsigned long buzzTime;
 unsigned long landAltBuzzTime;
@@ -1064,6 +1065,14 @@ bool ThisIsALoggingCycle;  //  This indicates if a iteration through our main lo
 
 uint16_t FlightLoopCounter;
 uint16_t LastLogAddressWritten;
+
+uint8_t LoggingEEPROMFull;
+
+#define PRELAUNCH_QUEUE_SIZE 4
+float AltitudeQueue[PRELAUNCH_QUEUE_SIZE];
+uint32_t TimestampQueue[PRELAUNCH_QUEUE_SIZE];
+uint8_t LogCycleCounter;
+uint8_t QueueIndex;
 
 /**********************************************************************************************************************************************
    Arduino setup
@@ -1233,6 +1242,8 @@ void setup() {
   current_measurement.Record.Status = 0x0040;
 
   DoBuzzer(0);
+
+  LoggingEEPROMFull = 0;
 }
 
 
@@ -2163,10 +2174,10 @@ int8_t AccelKX134ACRReadXOnly() {
  */
 void WriteRecordAtSamplePeriod(uint8_t ForceWriteNow) {
 
-  if ((EepromAddress + (sizeof(current_measurement.Bytes) * 2U)) >= ExternalEEPROMSizeInBytes) {  // Check for room in the external EEPROM (Leaving room for a final record & summary record).
-    FlightModePhaseIndex = 3U;                                                                    // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode (monitor mode) and return.
-    return;
-  }
+  // if ((EepromAddress + (sizeof(current_measurement.Bytes) * 2U)) >= ExternalEEPROMSizeInBytes) {  // Check for room in the external EEPROM (Leaving room for a final record & summary record).
+  //   FlightModePhaseIndex = 3U;                                                                    // There is not enough room in the external EEPROM for the next record, so we switch to display altitude only mode (monitor mode) and return.
+  //   return;
+  // }
   if (ThisIsALoggingCycle || (ForceWriteNow == 1U)) {
     writeByteArray(EepromAddress, current_measurement.Bytes, sizeof(current_measurement.Record));  //  Writing out pre-populated measurement record.
 
@@ -2352,6 +2363,7 @@ int8_t writeByteArray(uint32_t CurrentAddress, uint8_t data[], uint8_t indexCoun
     if (millis() > GiveUpTime_ms) {
       EepromAddress = ExternalEEPROMSizeInBytes + (sizeof(current_measurement.Bytes) * 2U);  //  EEPROM has failed, just report altitude on OLED
       FlightModePhaseIndex = 3U;
+      LoggingEEPROMFull = 1;
       //   Should we have a hardware fault byte in the MCU EEPROM?
     }
   }
@@ -2478,10 +2490,14 @@ void displayAltitude() {
       display.print(F("Alt  "));       //  takes 1ms plus 0.62ms per character
       AltitudeAGL = maxAltitude_m - fieldAltitude_m;
       display.print(AltitudeAGL);  //  takes 1ms plus 0.62ms per character
-      if (FlightModePhaseIndex == 5U) {
-        display.print(F(" m  \nL      "));  //  Include landed indication (L in bottom left of OLED display)
+      if (LoggingEEPROMFull = 0) {
+        if (FlightModePhaseIndex == 5U) {
+          display.print(F(" m  \nL      "));  //  Include landed indication (L in bottom left of OLED display)
+        } else {
+          display.print(F(" m  \n        "));  //  takes 1ms plus 0.62ms per character
+        }
       } else {
-        display.print(F(" m  \n        "));  //  takes 1ms plus 0.62ms per character
+        display.print(F(" m  \nFUL  "));  //  takes 1ms plus 0.62ms per character
       }
       display.print(AltitudeAGL * METERS_TO_FEET);
       display.print(F(" ft    "));
@@ -3290,6 +3306,7 @@ void ProcessCommand() {
     if (CommandCharacter == 'c') {
       if (Argument1_i == 1234U) {
         EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)0);
+        LoggingEEPROMFull = 0;
         //Serial.println(F("Log cleared"));
       } else {
         PrintQuestionMarks();
@@ -3962,7 +3979,7 @@ void InitHighCurrentOutAltitude() {
   OperationalMode = AllOperationalModes::AltitudeForHighCurrentOutput;
   EEPROM.get(MCU_EEPROM_ADDR_AltitudeHighCurrentOut_ft, AltitudeHighCurrentOutSetting_ft);  // This altitude is unique in that it is in feet
   //display.set2X();
-  display.clear();                     // This takes 33ms to run @ 400 kHz I2C speed!
+  display.clear();                                 // This takes 33ms to run @ 400 kHz I2C speed!
   display.print(F("Set Altitude\nmode in feet"));  //  takes 1ms plus 0.62ms per character
   delay(1000U);
   display.clear();  // This takes 33ms to run @ 400 kHz I2C speed!
@@ -4276,7 +4293,8 @@ void loop() {
 
           
           
-          The V tick marks represent moments in time when we start a new Arduion loop and sample a new altitude, for simplicity, this is shown as a regular interval where in reality this varies.
+          The V tick marks represent moments in time when we start a new Arduion loop and sample a new altitude, for simplicity, this is shown as a regular interval where in reality this varies
+                     a little bit due to extra work during logging cycles, variations in floating point number calculations, and such.
           The A tick marks represent the sample events as requested by the user.
           The x tick marks are the resultant, actual sample events based on the when the getAltitude() call is made and the user period.
           This example below could represent a average Arduino loop time of 15ms, and a user period of 35ms.
@@ -4291,8 +4309,17 @@ void loop() {
           // Our loop period and our sample period are not the same, we must find out if this trip through our loop will be a logging event or not. If so, we will update both the old altitude queue and set a flag for the logging function.
 
           ThisIsALoggingCycle = (millis() >= (TimeStamp0Ago + SamplePeriod_ms));
+          ThisIsALoggingCycle = (millis() >= ((TimestampQueue[(QueueIndex - 1) % PRELAUNCH_QUEUE_SIZE]) + SamplePeriod_ms));
           if (ThisIsALoggingCycle) {  // We schedule the next logging cycle.
 
+
+            // new queue code
+            LogCycleCounter++;                                    // Counter for prelaunch queue
+            QueueIndex = LogCycleCounter % PRELAUNCH_QUEUE_SIZE;  // Update pointer to write latest sample.
+
+
+
+            // Old queue code
             CurrentAltitude3Ago_m = CurrentAltitude2Ago_m;  //  All above sea level measurements.
             CurrentAltitude2Ago_m = CurrentAltitude1Ago_m;
             CurrentAltitude1Ago_m = CurrentAltitude0Ago_m;  //  newAltitude_m is updated by getAltitude()
@@ -4302,7 +4329,7 @@ void loop() {
             TimeStamp1Ago = TimeStamp0Ago;
 
             // Make sure that, if our flight doesn't trigger apogee detect, or landing detect, that the end of log address is updated so we can recover most of our flight log anyway.
-            if ((FlightModePhaseIndex >= 2U) && (FlightModePhaseIndex != 3U)) {
+            if ((FlightModePhaseIndex == 2U) || (FlightModePhaseIndex == 4U)) {
               if (((FlightLoopCounter) % 200U) == 0U) {  //  For every 200 samples recorded we update the end of log address. (We don't want to write this too often or we will wear out the MCU EEPROM)
                 if (LastLogAddressWritten != EepromAddress) {
 
@@ -4319,6 +4346,14 @@ void loop() {
           MeasurementTimeStamp = millis();
           getAltitude();
           if (ThisIsALoggingCycle) {
+
+            // new queue code
+            TimestampQueue[QueueIndex] = MeasurementTimeStamp;
+            AltitudeQueue[QueueIndex] = newAltitude_m;
+
+
+
+            //old queue code
             TimeStamp0Ago = MeasurementTimeStamp;
             CurrentAltitude0Ago_m = newAltitude_m;
           }
@@ -4387,11 +4422,10 @@ void loop() {
 
             FlightLoopCounter = 1;
 
-            //TimeStamp1Ago = millis();
             startTime_ms = millis();  //  Current mission elapse time. Used to delay launch detect from startup time.
 
-            // Prepart thresholds for apogee detection below
-            MinimumAltitudeForApogeeDetect = fieldAltitude_m + 12.0;
+            // Prepare thresholds for apogee detection below.
+            MinimumAltitudeForApogeeDetect = fieldAltitude_m + APOGEE_MINIMUM_ALTITUDE_DETECT_THRESHOLD_AGL_m;
 
             FlightModePhaseIndex = 1U;  // Advance to wait for launch phase.
 
@@ -4430,6 +4464,37 @@ void loop() {
 
               FlightStatus = ServoAscent_index << 9;
 
+
+
+
+              //  new queue code
+              {
+                float TempAlt;
+                uint8_t QueueIndexDelta;
+
+                TempAlt = newAltitude_m;  // We have to save the current measurement since writing record 4 below will need it if this is a logging cycle.
+                if (ThisIsALoggingCycle) {
+                  QueueIndexDelta = 0U;
+                } else {
+                  QueueIndexDelta = 1U;
+                }
+                newAltitude_m = AltitudeQueue[QueueIndex + QueueIndexDelta - 2U];
+                PopulatePreLaunchQueueFlightRecord(2, TimestampQueue[(QueueIndex + QueueIndexDelta - 2U) % PRELAUNCH_QUEUE_SIZE]);
+                WriteRecordAtSamplePeriod(1U);  // Write immediatly without reguard to sample time.
+
+                newAltitude_m = AltitudeQueue[QueueIndex + QueueIndexDelta - 1U];
+                PopulatePreLaunchQueueFlightRecord(3, TimestampQueue[(QueueIndex + QueueIndexDelta - 1U) % PRELAUNCH_QUEUE_SIZE]);
+                WriteRecordAtSamplePeriod(1U);  // Write immediatly without reguard to sample schedule because this sample is from the past.
+
+                newAltitude_m = TempAlt;
+              }
+
+
+
+
+
+
+
               // 3) Now write the 2 queued up flight data records....
               // if (ThisIsALoggingCycle) {
               //   float TempAlt;
@@ -4454,6 +4519,11 @@ void loop() {
               //   WriteRecordAtSamplePeriod(1U);  // Write immediatly without reguard to sample schedule because this sample is from the past.
               // }
 
+
+
+
+
+              // old queue code
               {
                 float TempAlt;
                 float Record2Altitude;
@@ -4482,9 +4552,17 @@ void loop() {
                 newAltitude_m = Record3Altitude;
                 PopulatePreLaunchQueueFlightRecord(3, TimeStampRecord3);
                 WriteRecordAtSamplePeriod(1U);  // Write immediatly without reguard to sample schedule because this sample is from the past.
-                
+
                 newAltitude_m = TempAlt;
               }
+
+
+
+
+
+
+
+
 
               RecordNumber = 4U;
               PopulateFlightRecord(RecordNumber);  //  This function grabs the current time stamp itself (MeasurementTimeStamp).
@@ -4507,7 +4585,7 @@ void loop() {
 
             // Apogee Detection:
             //  We must be decending over the last four samples and we must be above 12 meters above launch level
-            if ((newAltitude_m > MinimumAltitudeForApogeeDetect) && ((CurrentAltitude1Ago_m - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_DIV_2_m) && ((CurrentAltitude2Ago_m - CurrentAltitude1Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_DIV_2_m) && ((CurrentAltitude3Ago_m - CurrentAltitude2Ago_m) > PRESURE_SENSOR_NOISE_THRESHOLD_DIV_2_m)) {
+            if ((newAltitude_m > MinimumAltitudeForApogeeDetect) && ((AltitudeQueue[(QueueIndex - 1) % PRELAUNCH_QUEUE_SIZE] - newAltitude_m) > PRESURE_SENSOR_NOISE_THRESHOLD_DIV_2_m) && ((AltitudeQueue[(QueueIndex - 2) % PRELAUNCH_QUEUE_SIZE] - AltitudeQueue[(QueueIndex - 1) % PRELAUNCH_QUEUE_SIZE]) > PRESURE_SENSOR_NOISE_THRESHOLD_DIV_2_m) && ((AltitudeQueue[(QueueIndex - 3) % PRELAUNCH_QUEUE_SIZE] - AltitudeQueue[(QueueIndex - 2) % PRELAUNCH_QUEUE_SIZE]) > PRESURE_SENSOR_NOISE_THRESHOLD_DIV_2_m)) {
               if ((ServoNotSounder)) {
                 MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
               }
@@ -4534,8 +4612,8 @@ void loop() {
             }
             if ((abs(AltitudeDelta) < 0.3) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
               DisplayStart();
-              display.clearField(100, 0, 3);
-              display.print(F("FUL"));  //   EEPROM FULL indication in top right corner of display.
+              //display.clearField(100, 0, 3);
+              //display.print(F("FUL"));  //   EEPROM FULL indication in top right corner of display.
 
               //  We don't update FlightStatus since nothing is getting recorded.
               FlightModePhaseIndex = 5U;
@@ -4581,12 +4659,12 @@ void loop() {
               }
               // Landing Detection:
               // All 3 must be true:
-              // The altitude from 3 sample times ago must be within 0.15 meters of now.
+              // The altitude from 3 sample times ago must be within 0.15 meters of the current altitude.
               // We must be within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m (40 meters) of our launch altitude (we could have landed up or down a hill, tree...).
               // We see sensor noise indicating any increase in altitude.
               // We have detected landed LANDING_CONDITION_COUNTER_THRESHOLD times.
 
-              if ((abs(AltitudeDelta) < 0.15) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m) && (LandingConditionCounter > LANDING_CONDITION_COUNTER_THRESHOLD)) {  // If we have not moved 0.2 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
+              if ((abs(AltitudeDelta) < 0.15) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m) && (LandingConditionCounter > LANDING_CONDITION_COUNTER_THRESHOLD)) {  // If we have not moved 0.15 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
                 // We have landed on a planet!  Save our last record.
                 FlightStatus = FlightStatus & 0xf1ff;
                 FlightStatus = FlightStatus | 0x8040 | (ServoLanded_index << 9);
