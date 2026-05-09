@@ -120,7 +120,7 @@
                     I) Remove the host mode help command.
                     J) If a buzzer on-off pattern is not required, you can eliminate the DoBuzzer() function.
                 3) Internaal EEPROM addresses 232 and up are unused (except for a debug location at the last 4 bytes).
-                4) Test Point 7 has a hole on the board large enough to easily solder to, it is connected to D3. It is currently unused and available for any purpose.
+                4) Test Point 7 has a hole on the board large enough to easily solder to, it is connected to D3. It is currently unused and available for any purpose. Has been used for SW debugging/performance validation.
                 5) Many different sensors, Memory, controllers are available with a QWIIC connector that can be used with the Mia.
                 6) There is no protection from mills() roll over as it period is 49.71 days.
                 7) The Mia is build with a muRata CSTNE8M00GH5L000R0 8.000MHz resonator. It has a 0.07% initial tolerance. This is a maximum error of 2.52 seconds per hour or 0.42 seconds over 10 minutes.
@@ -327,7 +327,7 @@
             ADDR - 1020: 4 byte debug location. Used to store in-flight data and read it back later.
 
 
-            Sketch uses 31492 bytes (97%) of program storage space.   This is a lot, see programmer tips above.
+            Sketch uses 31512 bytes (97%) of program storage space.   This is a lot, see programmer tips above.
     @endverbatim
 
     @author Rich Rau with additions by Bob Rau
@@ -748,10 +748,20 @@
   By: Robert Rau
   Changes: Removed diagnostic prints. 
 
+  Updated: 12/27/2025
+  Rev.: 4.6.57
+  By: Robert Rau
+  Changes: Fixed I2C addresses falling off screen in Diag loop display.
+
+  Updated: 5/7/2026
+  Rev.: 4.6.58
+  By: Robert Rau
+  Changes: Changed temperature confersion to SH formula.
+
 */
 // Version
-const char VersionString[] = "4.6.56\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1766843559  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.58\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1778166233  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -1087,6 +1097,7 @@ uint8_t QueueIndex;
 uint8_t ConsecutiveDescendingAltitudes;
 uint8_t ConsecutiveSimilarAltitudes;
 
+
 /**********************************************************************************************************************************************
    Arduino setup
  **********************************************************************************************************************************************/
@@ -1198,7 +1209,7 @@ void setup() {
     int SkipOLEDSplashInfo;
     int CharCount;
     SkipOLEDSplashInfo = 0;
-    delay(40);
+    delay(40U);
     CharCount = Serial.readBytes(receivedChars, numChars - 1);
     if (CharCount > 0) {
       SkipOLEDSplashInfo = 1;
@@ -1485,18 +1496,14 @@ void DoSensorDisplayLoop() {
     display.print(maxAltitude_m * METERS_TO_FEET, 1);
     display.print(F(" ft,  "));
     display.print(ReadBMP581LatestPressure(), 1);
-    display.println(F("mb\nTemp:"));
-    //display.print(F("Temp:"));
+    display.print(F("mb\nTemp:"));
     P3ADRaw = analogRead(AnalogInputP3);
     DisplayTemperature_F = getTemperatureP3(P3ADRaw);
-    display.print((int16_t)DisplayTemperature_F - 32 * 5 / 9);
+    display.print((int8_t) (DisplayTemperature_F - 32) * 5 / 9);
     display.print(F(" C  "));
-    display.print((int16_t)DisplayTemperature_F);
-    display.print(F(" F  "));
+    display.print((int8_t) DisplayTemperature_F);
+    display.print(F(" F   P3:"));
     display.print((int16_t)P3Voltage_mV);
-    display.println(F(" mV\nLight:"));
-    //display.print(F("Light: "));
-    display.print(((uint16_t)analogRead(LightSensor) * 3000) >> 10U);
     display.println(F(" mV"));
 
     if (AltCycle == 1U) {
@@ -1512,17 +1519,23 @@ void DoSensorDisplayLoop() {
     } else if (AltCycle == 2U) {
       //  from: https://playground.arduino.cc/Main/I2cScanner/
       display.print(F("I2C: "));
+      uint8_t PrintedAddressCounter = 0;
       for (I2CScanAddress = 1; I2CScanAddress <= 120; I2CScanAddress++) {
         // The i2c_scanner uses the return value of
         // the Write.endTransmisstion to see if
         // a device acknowledged the address.
         Wire.beginTransmission(I2CScanAddress);
         if (Wire.endTransmission() == 0) {
+          PrintedAddressCounter++;
           if (I2CScanAddress < 16U) {
             display.print(F("0"));
           }
           display.print(I2CScanAddress, HEX);
-          display.print(F(" "));
+          if (PrintedAddressCounter != 9U) {
+            display.print(F(" "));
+          } else {
+            display.println("");
+          }
         }
       }
     } else if (AltCycle == 3U) {
@@ -1550,6 +1563,20 @@ void DoSensorDisplayLoop() {
   }
 }
 
+
+/* I2CArrayToDevice aka I2C Blaster - Blast an array of bytes at an unsuspecting I2C device  */
+uint8_t I2CArrayToDevice(uint8_t I2CDeviceAddress, const uint8_t* I2CDeviceInitArray, uint8_t I2CDeviceInitArrayLength) {
+
+  for (uint8_t j = 0; j < I2CDeviceInitArrayLength; j = j + 2) {
+    Wire.beginTransmission(I2CDeviceAddress);   // The I2C device address passed into this init function
+    Wire.write(I2CDeviceInitArray[i]);
+    Wire.write(I2CDeviceInitArray[i + 1]);
+    if (Wire.endTransmission() != 0U) {
+      return 2;  //  We failed
+    }
+  }
+  return 0;
+}
 
 
 /**************************************************************************************************
@@ -1598,7 +1625,7 @@ void DoSensorDisplayLoop() {
 #define BMP581_OOR_RANGE_REGISTER_INDEX 0x34
 #define BMP581_OOR_CONFIG_REGISTER_INDEX 0x35
 #define BMP581_OSR_CONFIG_REGISTER_INDEX 0x36
-#define BMP581_ODR_CONFIG _REGISTER_INDEX 0x37
+#define BMP581_ODR_CONFIG_REGISTER_INDEX 0x37
 #define BMP581_OSR_EFF_REGISTER_INDEX 0x38  // read only
 
 #define BMP581_CMD_REGISTER_INDEX 0x7e
@@ -1641,25 +1668,34 @@ void DoSensorDisplayLoop() {
 
 #define BMP581_SOFT_RESET 0xb6  //  for register 0x7e  CMD register
 
-uint8_t SetupBMP581() {
-  delay(3);  // wait Tstartup, power up time
+// UNTESTED
+/* BMP581 register address, data array for new initialization loop. Maybe make a general I2C init loop? For M24M02E_Setup() and AccelKX134ACRInit()  */
+#define I2C_DEVICE_INIT_ARRAY_LENGTH 6  //
+const uint8_t I2CDeviceInitArray[I2C_DEVICE_INIT_ARRAY_LENGTH] = {  BMP581_INT_CONFIG_REGISTER_INDEX, BMP581_INT_CONFIG_int_en_ENABLED | BMP581_INT_CONFIG_int_od_PUSHPULL | BMP581_INT_CONFIG_pad_int_drv_xxxxxx,
+                         BMP581_DSP_CONFIG_REGISTER_INDEX, BMP581_PRESS_COMP_TEMP_COMP, 
+                         BMP581_DSP_CONFIG_REGISTER_INDEX + 1, BMP581_IIR_FILTER_BYPASS_ALL };
 
+
+uint8_t SetupBMP581() {
+  delay(3U);  // wait Tstartup, power up time
+
+  I2CArrayToDevice(I2C_BMP581_ADDRESS, &I2CDeviceInitArray[0], I2C_DEVICE_INIT_ARRAY_LENGTH);
 
   // HAVE TO SETUP INTERRUPT PER PAGE 46 OF DATA SHEET (after Bosch gets back to us about INT_CONFIG.pad_int_drv)
-  Wire.beginTransmission(I2C_BMP581_ADDRESS);
-  Wire.write(BMP581_INT_CONFIG_REGISTER_INDEX);                                                                             //  start at the interrupt configuration register, 0x14
-  Wire.write(BMP581_INT_CONFIG_int_en_ENABLED | BMP581_INT_CONFIG_int_od_PUSHPULL | BMP581_INT_CONFIG_pad_int_drv_xxxxxx);  //  0x14    interrupt configuration register, see data sheet sections 6.2 & 7.5
-  if (Wire.endTransmission() != 0U) {
-    return 2;  //
-  }
+//  Wire.beginTransmission(I2C_BMP581_ADDRESS);
+//  Wire.write(BMP581_INT_CONFIG_REGISTER_INDEX);                                                                             //  start at the interrupt configuration register, 0x14
+//  Wire.write(BMP581_INT_CONFIG_int_en_ENABLED | BMP581_INT_CONFIG_int_od_PUSHPULL | BMP581_INT_CONFIG_pad_int_drv_xxxxxx);  //  0x14    interrupt configuration register, see data sheet sections 6.2 & 7.5
+//  if (Wire.endTransmission() != 0U) {
+//    return 2;  //
+//  }
 
-  Wire.beginTransmission(I2C_BMP581_ADDRESS);
-  Wire.write(BMP581_DSP_CONFIG_REGISTER_INDEX);  //  start at the DSP configuration register
-  Wire.write(BMP581_PRESS_COMP_TEMP_COMP);       //  0x30    DSP configuration register, compensate both pressure and temperature
-  Wire.write(BMP581_IIR_FILTER_BYPASS_ALL);      //  0x31 IIR bypass
-  if (Wire.endTransmission() != 0U) {
-    return 2;  //
-  }
+//  Wire.beginTransmission(I2C_BMP581_ADDRESS);
+//  Wire.write(BMP581_DSP_CONFIG_REGISTER_INDEX);  //  start at the DSP configuration register
+//  Wire.write(BMP581_PRESS_COMP_TEMP_COMP);       //  0x30    DSP configuration register, compensate both pressure and temperature
+//  Wire.write(BMP581_IIR_FILTER_BYPASS_ALL);      //  0x31 IIR bypass
+ // if (Wire.endTransmission() != 0U) {
+//    return 2;  //
+//  }
 
   // Skipping out of range registers
   Wire.beginTransmission(I2C_BMP581_ADDRESS);
@@ -1706,7 +1742,7 @@ float ReadBMP581LatestPressure() {
    Calculates altitude in meters.
    Formula from Bosch BMP180 data sheet and also used in Adafruit's BMP3XX library.
 
-   @note This formula does not compensate for actual temperature. Noted on 11/9/2025. If more accuracy is needed the Mia can measure external temperature and that measurement could be used.
+   @note This formula does not compensate for actual temperature. Noted on 11/9/2025. If more accuracy is needed, the Mia can measure external temperature analog input and that measurement could be used.
        The temperature compensated version is:
         float PressureToAltitude_m(pressure_mb, temperature_celsius, sea_level_pressure_mb, sea_level_temperature_celsius) {
         L = 0.0065  # Temperature lapse rate in K/m
@@ -1749,14 +1785,14 @@ float PressureToAltitude_m(float Pressure_mb, float SeaLevelPressure_hPa) {
 void FindFieldAltitude_m() {
   //   prep for finding field altitude
   display.clear();  //  don't want OLED display noise on the power supply when we get field altitude
-  delay(50);
+  delay(50U);
   //  Find field ground level, average 30 readings
 
   float CurrentPressure;
   CurrentPressure = 0.0;
   for (i = 0; i < NUMBER_OF_READINGS_TO_AVERAGE; i++) {
     CurrentPressure = CurrentPressure + ReadBMP581LatestPressure();
-    delay(30);
+    delay(30U);
   }
   CurrentPressure = CurrentPressure / (float)NUMBER_OF_READINGS_TO_AVERAGE;  //  Find the average pressure.
   fieldAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
@@ -1985,7 +2021,7 @@ uint8_t DoBuzzer(uint8_t BuzzerEnable) {
 #define ACCEL_KX134ACR_WHO_AM_I_VALUE 0xCC
 
 uint8_t AccelKX134ACRCheck() {
-  delay(50);  // Wait Tpu, power up time.
+  delay(50U);  // Wait Tpu, power up time.
 
   Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
   Wire.write(0x7f);  // Undocumented register address per Rohm application note AN011E rev 001, KX134ACR-LBZ Power-on Procedure.
@@ -2001,7 +2037,7 @@ uint8_t AccelKX134ACRCheck() {
     return 2;  //  The accelerometer failed to ack the software reset request, needs power cycle
   }
 
-  delay(2);  //  Wait for software reset to complete.
+  delay(2U);  //  Wait for software reset to complete.
 
   Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
   Wire.write(ACCEL_KX134ACR_WHO_AM_I_ADDR);  // Read who am I register for chip operation detect.
@@ -2042,7 +2078,25 @@ uint8_t AccelKX134ACRCheck() {
 #define ACCEL_KX134ACR_32G 2
 #define ACCEL_KX134ACR_64G 3  // Selected range for Mia
 
+#define I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH 22
+const uint8_t I2CAccelKX134AInitArray[I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH] = {  ACCEL_KX134ACR_CNTL1_ADDR, 0,
+                         ACCEL_KX134ACR_CNTL1_ADDR + 1, 0, 
+                         ACCEL_KX134ACR_CNTL1_ADDR + 2, 0xa8 | ACCEL_KX134ACR_OWUF,
+                         ACCEL_KX134ACR_CNTL1_ADDR + 3, 0x40 | ACCEL_KX134ACR_OSA,
+                         ACCEL_KX134ACR_CNTL1_ADDR + 4, 0,
+                         ACCEL_KX134ACR_CNTL1_ADDR + 5, 0,
+                         ACCEL_KX134ACR_MAN_WAKE_ADDR, 2,
+                         ACCEL_KX134ACR_MAN_WAKE_ADDR + 1, 0x40 | ACCEL_KX134ACR_OBTS,
+                         ACCEL_KX134ACR_LP_CNTL_ADDR, 0x8b | (ACCEL_KX134ACR_AVC << 4U),
+                         ACCEL_KX134ACR_BUF_CNTL2_ADDR, 0x41,
+                         ACCEL_KX134ACR_CNTL1_ADDR, 0xc0 | (ACCEL_KX134ACR_64G << 3U)
+                          };
+
+
 uint8_t AccelKX134ACRInit() {
+
+I2CArrayToDevice(I2C_ACCELEROMETER_ADDRESS, &I2CAccelKX134AInitArray[0], I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH);
+/*
   Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
   Wire.write(ACCEL_KX134ACR_CNTL1_ADDR);   // CNTL1 register address for start register address
   Wire.write(0);                           //  CNTL1 standby mode for setup (This register should already be 0x00 from reset)
@@ -2083,6 +2137,7 @@ uint8_t AccelKX134ACRInit() {
   if (Wire.endTransmission() != 0U) {
     return 1;  //  The accelerometer failed to ack a write during configuration.
   }
+  */
   return 0;  // All good.
 }
 
@@ -2317,7 +2372,7 @@ int8_t readByteArray(uint32_t address, uint8_t data[], uint8_t indexCount) {
   uint8_t UIntTemp;  //  Temporary for I2C bytes.
   memset(data, 0, indexCount);
   //Wire.endTransmission(true);
-  //delay(1);
+  //delay(1U);
 
   Wire.beginTransmission((uint8_t)M24M02E_DEVICE_ID(address, M24M02E_DEVICE_SELECT_CODE_MEM_BASE));
   UIntTemp = (uint8_t)((address & 0xFFFF) >> 8U);
@@ -2437,7 +2492,7 @@ float getTemperatureP3(uint16_t ADRaw) {
   float Temperature;
   P3Voltage_mV = ADRaw * 3000.0 / 1023.0;  // Voltage, im millivolts, on connector P3.
   if (TemperatureNotVoltage) {
-    Temperature = ADToTemperature(ADRaw);  //  Return temperature on P3.
+    Temperature = ADToTemperatureF(ADRaw);  //  Return temperature on P3.
   } else {
     Temperature = ADRaw * 0.001;  //  Return volts on P3.
   }
@@ -2483,7 +2538,7 @@ void getAltitude() {
 
 void DisplayStart() {
   digitalWrite(N_OLEDReset, HIGH);
-  delay(10);
+  delay(10U);
   display.begin(&Adafruit128x32, I2C_OLED_ADDRESS, N_OLEDReset);
   display.setFont(Iain5x7);  // Proportional font to get more characters per line on the OLED.
   display.set2X();
@@ -2600,9 +2655,54 @@ void PopulatePreLaunchQueueFlightRecord(uint16_t RecordIndexValue, uint32_t Time
 }
 
 
+/**
+   @brief Convert A/D reading from thermistor to degrees F using Steinhart-Hart Formula.
+
+   @details
+             Thermistor part number: muRata NXFT15XH103FEAB050
+             Tool used to get the Steinhart-Hart Formula coefficients: https://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
+             Temperature points used: -20°C, 20°C, 50°C
+             This function takes from 540us to 600us to run.
+
+
+   @note https://arduinodiy.wordpress.com/2015/11/10/measuring-temperature-with-ntc-the-steinhart-hart-formula/
+
+
+   @param[in] uint16_t ADReading 10 bit value from A/D converter
+
+   @retval Float  Temperature in degrees F
+*/
+float ADToTemperatureF(uint16_t ADReading) {
+  if (ADReading > 1021) {    // If thermistor is disconnected, don't waste time doing calculations. Also, passing 1023 will make the Rtherm formula below blow up (division by zero))
+    return -153.0;          // ... but still return an accurate temperature for that A/D value..........as if the Mia could even operate at that temperature!
+  }
+  // A/D reading to thermistor resistance
+  //digitalWrite(TestPoint7, HIGH); //  DEBUG for measuring calculation time
+  float Rtherm;
+  Rtherm = ((uint32_t) ADReading * 10000) / (1023 - ADReading);
+
+  // thermistor resistance to degrees K using the Steinhart-Hart Formula
+    // Steinhart-Hart Coefficients
+    const double A = 0.0008627576282;
+    const double B = 0.0002555975408;
+    const double C = 1.758347028e-7;
+
+    float logR = log(Rtherm);
+    float logR3 = logR * logR * logR; // Faster than pow(logR, 3)
+
+    // Steinhart-Hart equation: 1/T = A + B*ln(R) + C*(ln(R))^3
+    //double kelvin = 1.0 / (A + (B * logR) + (C * logR3));
+    // with °F conversion:
+    float Temp_F = (1.8 / (A + (B * logR) + (C * logR3))) - 459.67;
+
+    //digitalWrite(TestPoint7, LOW); //  DEBUG
+    return Temp_F;
+}
+
+
 
 /**
-   @brief Convert A/D reading from thermistor to degrees F.
+   @brief Convert A/D reading from thermistor to degrees F using a table.
 
    @details
            To generate this table we used:
@@ -4000,7 +4100,7 @@ void InitSeaLevelPressureSetMode() {
   display.clear();                      // This takes 33ms to run @ 400 kHz I2C speed!
   display.println(F("Set sea level"));  //  Takes 1ms plus 0.62ms per character.
   display.print(F("pressure mode"));
-  delay(1000);
+  delay(1000U);
   display.clear();  // This takes 33ms to run @ 400 kHz I2C speed!
 
   //  See: https://github.com/greiman/SSD1306Ascii/tree/master/examples/SixAdcFieldsWire
@@ -4182,7 +4282,7 @@ void loop() {
         //display.set2X();
         display.clear();
         display.print(F("SAVED"));  //  takes 1ms plus 0.62ms per character
-        delay(600);
+        delay(600U);
         FindFieldAltitude_m();
         ReadDISPButton(-1);  //  reset button decode and start fresh
         if (USBPowered()) {
@@ -4199,7 +4299,7 @@ void loop() {
         display.set2X();
         display.clear();
         display.print(F("SAVED"));  //  takes 1ms plus 0.62ms per character
-        delay(600);
+        delay(600U);
         FindFieldAltitude_m();
         ReadDISPButton(-1);  //  reset button decode and start fresh
         if (USBPowered()) {
@@ -4281,7 +4381,7 @@ void loop() {
           //  display.print(F("DONE "));
           //}
           display.print(F("CHARGING"));  //  takes 1ms plus 0.62ms per character
-          //delay(60);
+          //delay(60U);
           OLEDBlankTime = millis() + 5000;  //  we blank the display after 5 seconds, this allows for proper charging of the battery without the extra current running the OLED.
           //LastDisplayedAltitude_m = InvalidAltitude;  //  Invalidate last displayed max altitude.
         } else {
@@ -4424,7 +4524,7 @@ void loop() {
              //Serial.print(F("FP0,"));
               //Serial.println(millis());
             //digitalWrite(N_OLEDReset, HIGH);
-            //delay(30);
+            //delay(30U);
             DisplayStart();
             digitalWrite(HighCurrentOut, LOW);
             //  Initialize for flight.  We get here from three places: power up, double click on USER 1 button after a flight, or USB power removal.
@@ -4887,7 +4987,7 @@ void loop() {
         //display.set2X();
         display.clear();
         display.print(F("SAVED"));  //  Takes 1ms plus 0.62ms per character.
-        delay(600);
+        delay(600U);
         FindFieldAltitude_m();
         ReadDISPButton(-1);  //  Reset "button decode" and start fresh.
         if (USBPowered()) {
