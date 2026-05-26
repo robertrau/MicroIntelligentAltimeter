@@ -327,7 +327,7 @@
             ADDR - 1020: 4 byte debug location. Used to store in-flight data and read it back later.
 
 
-            Sketch uses 31512 bytes (97%) of program storage space.   This is a lot, see programmer tips above.
+            Sketch uses 30766 bytes (95%) of program storage space.   This is a lot, see programmer tips above.
     @endverbatim
 
     @author Rich Rau with additions by Bob Rau
@@ -758,10 +758,25 @@
   By: Robert Rau
   Changes: Changed temperature confersion to SH formula.
 
+  Updated: 5/25/2026
+  Rev.: 4.6.59
+  By: Robert Rau
+  Changes: Changed launch threshold
+
+  Updated: 5/25/2026
+  Rev.: 4.6.60
+  By: Robert Rau
+  Changes: Changed launch threshold again.
+
+  Updated: 5/25/2026
+  Rev.: 4.6.61
+  By: Robert Rau
+  Changes: Changed launch threshold yet again. Fixed landedDetected.
+
 */
 // Version
-const char VersionString[] = "4.6.58\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1778166233  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.61\1";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1779748979  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -915,11 +930,11 @@ uint32_t startTime_ms = 0U;
 
 // Pressure Altimeter setup
 #define DEFAULT_SEALEVELPRESSURE_hPa (SEA_LEVEL_PRESSURE_AT_STP_mb)  //  The International Standard Atmosphere defines standard sealevel pressure as 1013.25 hectopascal (hPa) or millibars (mb).
-#define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)                         //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level.
+#define MINIMUM_SEA_LEVEL_PRESSURE_hPa (950)                         //  in hectopascal (hPa) (millibars). Minimum pressure allowed for sea level. No off planet flying!
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)                        //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
-#define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
-#define START_LOGGING_INTEGRATING_THRESHOLD 4.4        //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025
+//#define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
+#define START_LOGGING_INTEGRATING_THRESHOLD 12        //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025. 5/25/2026 to 20, then 14, then 12
 #define START_LOGGING_ALTITUDE_THRESHOLD 15.0          //  Threshold for new launch detect methode 11/9/2025. Set to 15m (49.2ft) 11/22/2025
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
@@ -3752,7 +3767,7 @@ void SerialPrint2DigitHex(uint8_t IntForOutput) {
 bool LandingDetected() {
   //float AltitudeDelta;
   //AltitudeDelta = fabs(AltitudeQueue[(QueueIndex - 2U) % PRELAUNCH_QUEUE_SIZE] - newAltitude_m);
-  if ((deltaAltitude_m < 0.2) && ((newAltitude_m - fieldAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
+  if ((fabs(deltaAltitude_m) < 0.15) && ((newAltitude_m - fieldAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
     if (ConsecutiveSimilarAltitudes != 255U) {    //  saturate ConsecutiveSimilarAltitudes at 255.
       ConsecutiveSimilarAltitudes++;
     }
