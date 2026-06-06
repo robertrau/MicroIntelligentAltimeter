@@ -773,10 +773,15 @@
   By: Robert Rau
   Changes: Changed launch threshold yet again. Fixed landedDetected.
 
+  Updated: 6/6/2026
+  Rev.: 4.6.62
+  By: Robert Rau
+  Changes: Changed launch threshold threshold and integrator leak. Fixed version string bug.
+
 */
 // Version
-const char VersionString[] = "4.6.61\1";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1779748979  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.62\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1780772745  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -934,8 +939,9 @@ uint32_t startTime_ms = 0U;
 #define MAXIMUM_SEA_LEVEL_PRESSURE_hPa (1060)                        //  in hectopascal (hPa) (millibars). Maximum pressure allowed for sea level.
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 //#define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
-#define START_LOGGING_INTEGRATING_THRESHOLD 12        //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025. 5/25/2026 to 20, then 14, then 12
-#define START_LOGGING_ALTITUDE_THRESHOLD 15.0          //  Threshold for new launch detect methode 11/9/2025. Set to 15m (49.2ft) 11/22/2025
+#define INGEGRATOR_LEAK_FACTOR 0.80
+#define START_LOGGING_INTEGRATING_THRESHOLD 9        //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025. 5/25/2026 to 20, then 14, then 12. 6/6/2026, now 9 with integrator leak at 0.8.
+#define START_LOGGING_ALTITUDE_THRESHOLD 14.0          //  Threshold for new launch detect methode 11/9/2025. Set to 15m (49.2ft) 11/22/2025. 6/6/2026 set to 14m (46 ft.).
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -4628,7 +4634,7 @@ void loop() {
               //Serial.println(millis());
 
             if (millis() - startTime_ms > FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms) {  // Make sure we have waited 1 minute since FlightModePhase was zero so payload can be assembled without causing a false launch event!
-              integratedAltitude = (integratedAltitude * 0.95) + deltaAltitude_m;       //  For now I am using 95% of previous samples sum to compensate for drift, wind, pressure change, and sensor noise.
+              integratedAltitude = (integratedAltitude * INGEGRATOR_LEAK_FACTOR) + deltaAltitude_m;       //  WE "LEAK" the integrator to compensate for drift, wind, pressure change, and sensor noise.
             } else {
               integratedAltitude = 0.0;
               displayAltitude();  //  Want to see the altitude while preping the rocket.
