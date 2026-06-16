@@ -778,10 +778,30 @@
   By: Robert Rau
   Changes: Changed launch threshold threshold and integrator leak. Fixed version string bug.
 
+  Updated: 6/6/2026
+  Rev.: 4.6.63
+  By: Robert Rau
+  Changes: added altitude measurement noise detect, output on TP7. Changed minimum apogee detect altitude.
+
+  Updated: 6/7/2026
+  Rev.: 4.6.64
+  By: Robert Rau
+  Changes: Changed launch detect
+
+  Updated: 6/7/2026
+  Rev.: 4.6.65
+  By: Robert Rau
+  Changes: Changed launch detect
+
+  Updated: 6/14/2026
+  Rev.: 4.6.66
+  By: Robert Rau
+  Changes: Added simple newAltitude filter. Updated jolt detector. Speeded up instruction button response.
+
 */
 // Version
-const char VersionString[] = "4.6.62\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1780772745  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.66\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1781481591  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -940,14 +960,20 @@ uint32_t startTime_ms = 0U;
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 //#define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
 #define INGEGRATOR_LEAK_FACTOR 0.80
-#define START_LOGGING_INTEGRATING_THRESHOLD 9        //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025. 5/25/2026 to 20, then 14, then 12. 6/6/2026, now 9 with integrator leak at 0.8.
+#define START_LOGGING_INTEGRATING_THRESHOLD 8        //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025. 5/25/2026 to 20, then 14, then 12. 6/6/2026, now 9 with integrator leak at 0.8.
 #define START_LOGGING_ALTITUDE_THRESHOLD 14.0          //  Threshold for new launch detect methode 11/9/2025. Set to 15m (49.2ft) 11/22/2025. 6/6/2026 set to 14m (46 ft.).
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
 float newAltitude_m = 0.0;                             //  Latest new altitude above sea level in sensor units (meters)
+float LastAltitudeRaw_m = 0.0;
 float LastAltitude_m = 0.0;                            //  Previous altitude above sea level measurement, updated in getAltitude() just before new measurement.
 float deltaAltitude_m = 0.0;                           //  Altitude change since last measurement (meters).
+float AbsDeltaAltitude_m = 0.0;
+float deltaAltitudeRaw_m = 0.0;
+float LastAbsDeltaAltitudeRaw_m = 0.0;
+float LastLastAbsDeltaAltitudeRaw_m = 0.0;
+float AbsDeltaAltitudeRaw_m = 0.0;
 float integratedAltitude = 0.0;                        //  Used for launch detect.
 float maxAltitude_m = 0.0;                             //  Latest new higher altitude above sea level in meters.
 float LastDisplayedAltitude_m;                         //  Used to avoid re-writing the same altitude to the OLED, (above sea level)
@@ -1067,7 +1093,7 @@ uint16_t P3ADRaw;
 float P3Voltage_mV;                    // voltage on P3 connector
 uint8_t TemperatureNotVoltage;         // 1: Temperature, 0: Voltage
 float MinimumAltitudeForApogeeDetect;  // For apogee detection.
-#define APOGEE_MINIMUM_ALTITUDE_DETECT_THRESHOLD_AGL_m 15.0
+#define APOGEE_MINIMUM_ALTITUDE_DETECT_THRESHOLD_AGL_m 9.0  // 6/6/2026  rsr  reduced from 15 to 9
 
 //unsigned long buzzTime;
 unsigned long landAltBuzzTime;
@@ -1117,6 +1143,7 @@ uint8_t QueueIndex;
 
 uint8_t ConsecutiveDescendingAltitudes;
 uint8_t ConsecutiveSimilarAltitudes;
+uint16_t UserDelay;
 
 
 /**********************************************************************************************************************************************
@@ -1250,9 +1277,11 @@ void setup() {
       display.clear();
       display.println(F("Hold USER1 Btn"));
       display.print(F("-> Instructions"));
-      delay(2500U);
-      if (!digitalRead(N_DispButton)) {
-        DisplayInstructions();
+      UserDelay = millis() + 2500;
+      while (UserDelay > millis()) {
+        if (!digitalRead(N_DispButton)) {
+          DisplayInstructions();
+        }
       }
     }
 
@@ -2523,7 +2552,9 @@ float getTemperatureP3(uint16_t ADRaw) {
 
 
 /**
-   @brief  getAltitude   Read of pressure from sensor then convert to altitude. Then update delta altitude and maxAltitude.
+   @brief  getAltitude   Read of pressure from sensor then convert to altitude.
+                           Then filter out measurements with noise (usually mechanical noise on the sensor diaphram from the ejection charge)
+                           Then update delta altitude and maxAltitude.
 
    @details
   Updates globals:
@@ -2537,12 +2568,35 @@ float getTemperatureP3(uint16_t ADRaw) {
 */
 void getAltitude() {
   //
+  float NewAltitudeRaw_m;
+  
   LastAltitude_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
-  newAltitude_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
+  NewAltitudeRaw_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
+  newAltitude_m = (LastAltitudeRaw_m + NewAltitudeRaw_m) / 2.0;    //  Altitude fliter
+  LastAltitudeRaw_m = NewAltitudeRaw_m;
   deltaAltitude_m =  newAltitude_m - LastAltitude_m;   //  deltaAltitude is positive for ascending and negitive for descending.
               //  Serial.print(F("dA,"));
               //Serial.println(deltaAltitude_m);
+  
+  //  Filter bad measurements (we require enough history to make this useful)
+  if (RecordNumber > 10) {
+    deltaAltitudeRaw_m = LastAbsDeltaAltitudeRaw_m - AbsDeltaAltitudeRaw_m;
+    AbsDeltaAltitudeRaw_m = fabs(deltaAltitudeRaw_m);
+    if (AbsDeltaAltitude_m > (LastAbsDeltaAltitudeRaw_m + LastLastAbsDeltaAltitudeRaw_m) / 2 * 20) {
+      // Wow, we just recorded a jolt
+      // for now I am just setting TP7 on these observations
+      digitalWrite(TestPoint7, HIGH);
+    }
+    else {
+      digitalWrite(TestPoint7, LOW);
+    }
+  }
+  LastLastAbsDeltaAltitudeRaw_m = LastAbsDeltaAltitudeRaw_m;
+  LastAbsDeltaAltitudeRaw_m = AbsDeltaAltitudeRaw_m;
+
+  //
+  // Then update maxAltitude.
   if (maxAltitude_m < newAltitude_m) {  // If new altitude is greater then max altitude...
     maxAltitude_m = newAltitude_m;      // ...move new altitude into max altitude
     maxAltitudeTimeStamp = millis();
