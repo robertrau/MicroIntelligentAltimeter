@@ -798,10 +798,15 @@
   By: Robert Rau
   Changes: Added simple newAltitude filter. Updated jolt detector. Speeded up instruction button response.
 
+  Updated: 7/17/2026
+  Rev.: 4.6.67
+  By: Robert Rau
+  Changes: Added flight log clear option on power up, also display log time left.
+
 */
 // Version
-const char VersionString[] = "4.6.66\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1781481591  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "4.6.67\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1784334012  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -837,8 +842,8 @@ const char VersionString[] = "4.6.66\0";       //  ToDo, put in flash  see: http
 #define COULOMB_ec 6.241509e+18                      //  1 Coulomb equals 6.241509e18 elementary charges (charge of one proton)
 #define SEA_LEVEL_PRESSURE_AT_STP_mb 1013.25
 #define StandardTemperatureLapseRate_Kpm -0.0065 #standard temperature lapse rate[K / m] = -0.0065 [K / m]
-#define Boltzmanns_Constant_jpK 1.380649e-23 #1.380649e−23 #joule per kelvin(K)
-#define SPECIFIC_GAS_CONSTANT_JpKkg 287.05287  # specific gas constant for dry air 287.05287 J/K*kg
+#define Boltzmanns_Constant_jpK 1.380649e-23 // 1.380649e−23 #joule per kelvin(K)
+#define SPECIFIC_GAS_CONSTANT_JpKkg 287.05287  //  specific gas constant for dry air 287.05287 J/K*kg
 #define PRESSURE_Pa_TO_mb 0.01
 #define CELSIUS_TO_KELVIN_OFFSET_K 273.15
 #define KELVIN_TO_CELSIUS_OFFSET_K -273.15
@@ -960,32 +965,32 @@ uint32_t startTime_ms = 0U;
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 //#define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
 #define INGEGRATOR_LEAK_FACTOR 0.80
-#define START_LOGGING_INTEGRATING_THRESHOLD 8        //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025. 5/25/2026 to 20, then 14, then 12. 6/6/2026, now 9 with integrator leak at 0.8.
+#define START_LOGGING_INTEGRATING_THRESHOLD 8          //  Threshold for new launch detect methode 9/27/2025 updated 11/9/2025 updated from 5 to 4.6 11/15/2025. 4.6->4.4 on 11/22/2025. 5/25/2026 to 20, then 14, then 12. 6/6/2026, now 9 with integrator leak at 0.8.
 #define START_LOGGING_ALTITUDE_THRESHOLD 14.0          //  Threshold for new launch detect methode 11/9/2025. Set to 15m (49.2ft) 11/22/2025. 6/6/2026 set to 14m (46 ft.).
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
 float newAltitude_m = 0.0;                             //  Latest new altitude above sea level in sensor units (meters)
 float LastAltitudeRaw_m = 0.0;
-float LastAltitude_m = 0.0;                            //  Previous altitude above sea level measurement, updated in getAltitude() just before new measurement.
-float deltaAltitude_m = 0.0;                           //  Altitude change since last measurement (meters).
+float LastAltitude_m = 0.0;   //  Previous altitude above sea level measurement, updated in getAltitude() just before new measurement.
+float deltaAltitude_m = 0.0;  //  Altitude change since last measurement (meters).
 float AbsDeltaAltitude_m = 0.0;
 float deltaAltitudeRaw_m = 0.0;
 float LastAbsDeltaAltitudeRaw_m = 0.0;
 float LastLastAbsDeltaAltitudeRaw_m = 0.0;
 float AbsDeltaAltitudeRaw_m = 0.0;
-float integratedAltitude = 0.0;                        //  Used for launch detect.
-float maxAltitude_m = 0.0;                             //  Latest new higher altitude above sea level in meters.
-float LastDisplayedAltitude_m;                         //  Used to avoid re-writing the same altitude to the OLED, (above sea level)
-bool SeaLevelPressureSetUpDirection = true;            //  Used for both setting sealevel pressure and altitude threshold for the high current output. True for UP and False for DOWN.
-uint8_t FlightModePhaseIndex;                          //  used in flight mode to keep track of the phase of the flight
+float integratedAltitude = 0.0;              //  Used for launch detect.
+float maxAltitude_m = 0.0;                   //  Latest new higher altitude above sea level in meters.
+float LastDisplayedAltitude_m;               //  Used to avoid re-writing the same altitude to the OLED, (above sea level)
+bool SeaLevelPressureSetUpDirection = true;  //  Used for both setting sealevel pressure and altitude threshold for the high current output. True for UP and False for DOWN.
+uint8_t FlightModePhaseIndex;                //  used in flight mode to keep track of the phase of the flight
 const float InvalidAltitude = -10000.0;
 //float CurrentAltitude4Ago_m;  // used for pre-launch queue, apogee detection
 //float CurrentAltitude0Ago_m;  // used for pre-launch queue
 //float CurrentAltitude1Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
 //float CurrentAltitude2Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
 //float CurrentAltitude3Ago_m;  // used for pre-launch queue, apogee detection, and landing detection
-uint32_t TimeStamp0Ago = 0;   // used for pre-launch queue
+uint32_t TimeStamp0Ago = 0;  // used for pre-launch queue
 //uint32_t TimeStamp1Ago;       // used for pre-launch queue
 //uint32_t TimeStamp2Ago;       // used for pre-launch queue
 //uint32_t TimeStamp3Ago;       // used for pre-launch queue
@@ -1054,7 +1059,7 @@ uint32_t DelayToLowPower_ms;
 #define MCU_EEPROM_DEBUG_LOCATION 1020      #  This is the address of the last 32 bit (long/float) of the MCU EEPROM. May be used for whatever the developer needs during debugging.
 
 //  External EEPROM stuff
-#define ExternalEEPROMSizeInBytes 262144U       //    262144 Bytes or 8192 flight records
+#define ExternalEEPROMSizeInBytes 262144UL       //    262144 Bytes or 8192 flight records
 #define MCU_EEPROM_EXT_EEPROM_ADDR_START 12     // Location in the MCU EEPROM where the next free address is in the external EEPROM
 uint32_t EepromAddress;                         // Address for the next flight record in the external EEPROM
 #define MCU_EEPROM_ADDR_LATITUDE_LONGITUDE 160  // Last known launch location. 24 byte text string <latitude>,<longitude>,0x00
@@ -1090,9 +1095,9 @@ Measurement current_measurement;  // This struct is populated for every pre-flig
 uint16_t FlightStatus;
 
 uint16_t P3ADRaw;
-float P3Voltage_mV;                    // voltage on P3 connector
-uint8_t TemperatureNotVoltage;         // 1: Temperature, 0: Voltage
-float MinimumAltitudeForApogeeDetect;  // For apogee detection.
+float P3Voltage_mV;                                         // voltage on P3 connector
+uint8_t TemperatureNotVoltage;                              // 1: Temperature, 0: Voltage
+float MinimumAltitudeForApogeeDetect;                       // For apogee detection.
 #define APOGEE_MINIMUM_ALTITUDE_DETECT_THRESHOLD_AGL_m 9.0  // 6/6/2026  rsr  reduced from 15 to 9
 
 //unsigned long buzzTime;
@@ -1283,6 +1288,32 @@ void setup() {
           DisplayInstructions();
         }
       }
+
+      //  Prepare the display for flight mode
+      display.set2X();  // Get display ready for flight mode, instructions may have reduced the size to 1x.
+
+      display.clear();
+      display.println(F("Clear Flight"));
+      display.print(F(" Log?"));
+      UserDelay = millis() + 2300;
+      while (UserDelay > millis()) {
+        if (!digitalRead(N_DispButton)) {
+          EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)0);
+          display.clear();
+          display.println(F(" CLEARED"));
+          delay(700U);
+        }
+      }
+
+      // Report seconds of logging space available
+      // time = (ExternalEEPROMSizeInBytes - EepromAddress)bytes / 32bytesPerSample * SamplePeriod_ms / 1000millisecondsInASecond
+      // time = (ExternalEEPROMSizeInBytes - EepromAddress) * SamplePeriod_ms / 32000
+      EEPROM.get(MCU_EEPROM_EXT_EEPROM_ADDR_START, EepromAddress);
+      display.clear();
+      display.println(F("Log Time:"));
+      display.print((ExternalEEPROMSizeInBytes - EepromAddress) * (long)SamplePeriod_ms / 32000UL);
+      display.print(" s");
+      delay(2000U);
     }
 
     //  Initialize our date-time system if needed.
@@ -1295,9 +1326,6 @@ void setup() {
     EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 2U, 0x00);
     EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 3U, 0x01);
     EEPROM.update(MCU_EEPROM_ADDR_LATITUDE_LONGITUDE + 31U, 0x0);  //  end of string
-
-    //  Prepare the display for flight mode
-    display.set2X();  // Get display ready for flight mode, instructions may have reduced the size to 1x.
 
     MCUEEPROMAltitudeCheck();  // Check the Altitude value for the high current output
 
@@ -1549,9 +1577,9 @@ void DoSensorDisplayLoop() {
     display.print(F("mb\nTemp:"));
     P3ADRaw = analogRead(AnalogInputP3);
     DisplayTemperature_F = getTemperatureP3(P3ADRaw);
-    display.print((int8_t) (DisplayTemperature_F - 32) * 5 / 9);
+    display.print((int8_t)(DisplayTemperature_F - 32) * 5 / 9);
     display.print(F(" C  "));
-    display.print((int8_t) DisplayTemperature_F);
+    display.print((int8_t)DisplayTemperature_F);
     display.print(F(" F   P3:"));
     display.print((int16_t)P3Voltage_mV);
     display.println(F(" mV"));
@@ -1618,7 +1646,7 @@ void DoSensorDisplayLoop() {
 uint8_t I2CArrayToDevice(uint8_t I2CDeviceAddress, const uint8_t* I2CDeviceInitArray, uint8_t I2CDeviceInitArrayLength) {
 
   for (uint8_t j = 0; j < I2CDeviceInitArrayLength; j = j + 2) {
-    Wire.beginTransmission(I2CDeviceAddress);   // The I2C device address passed into this init function
+    Wire.beginTransmission(I2CDeviceAddress);  // The I2C device address passed into this init function
     Wire.write(I2CDeviceInitArray[i]);
     Wire.write(I2CDeviceInitArray[i + 1]);
     if (Wire.endTransmission() != 0U) {
@@ -1721,9 +1749,9 @@ uint8_t I2CArrayToDevice(uint8_t I2CDeviceAddress, const uint8_t* I2CDeviceInitA
 // UNTESTED
 /* BMP581 register address, data array for new initialization loop. Maybe make a general I2C init loop? For M24M02E_Setup() and AccelKX134ACRInit()  */
 #define I2C_DEVICE_INIT_ARRAY_LENGTH 6  //
-const uint8_t I2CDeviceInitArray[I2C_DEVICE_INIT_ARRAY_LENGTH] = {  BMP581_INT_CONFIG_REGISTER_INDEX, BMP581_INT_CONFIG_int_en_ENABLED | BMP581_INT_CONFIG_int_od_PUSHPULL | BMP581_INT_CONFIG_pad_int_drv_xxxxxx,
-                         BMP581_DSP_CONFIG_REGISTER_INDEX, BMP581_PRESS_COMP_TEMP_COMP, 
-                         BMP581_DSP_CONFIG_REGISTER_INDEX + 1, BMP581_IIR_FILTER_BYPASS_ALL };
+const uint8_t I2CDeviceInitArray[I2C_DEVICE_INIT_ARRAY_LENGTH] = { BMP581_INT_CONFIG_REGISTER_INDEX, BMP581_INT_CONFIG_int_en_ENABLED | BMP581_INT_CONFIG_int_od_PUSHPULL | BMP581_INT_CONFIG_pad_int_drv_xxxxxx,
+                                                                   BMP581_DSP_CONFIG_REGISTER_INDEX, BMP581_PRESS_COMP_TEMP_COMP,
+                                                                   BMP581_DSP_CONFIG_REGISTER_INDEX + 1, BMP581_IIR_FILTER_BYPASS_ALL };
 
 
 uint8_t SetupBMP581() {
@@ -1732,20 +1760,20 @@ uint8_t SetupBMP581() {
   I2CArrayToDevice(I2C_BMP581_ADDRESS, &I2CDeviceInitArray[0], I2C_DEVICE_INIT_ARRAY_LENGTH);
 
   // HAVE TO SETUP INTERRUPT PER PAGE 46 OF DATA SHEET (after Bosch gets back to us about INT_CONFIG.pad_int_drv)
-//  Wire.beginTransmission(I2C_BMP581_ADDRESS);
-//  Wire.write(BMP581_INT_CONFIG_REGISTER_INDEX);                                                                             //  start at the interrupt configuration register, 0x14
-//  Wire.write(BMP581_INT_CONFIG_int_en_ENABLED | BMP581_INT_CONFIG_int_od_PUSHPULL | BMP581_INT_CONFIG_pad_int_drv_xxxxxx);  //  0x14    interrupt configuration register, see data sheet sections 6.2 & 7.5
-//  if (Wire.endTransmission() != 0U) {
-//    return 2;  //
-//  }
+  //  Wire.beginTransmission(I2C_BMP581_ADDRESS);
+  //  Wire.write(BMP581_INT_CONFIG_REGISTER_INDEX);                                                                             //  start at the interrupt configuration register, 0x14
+  //  Wire.write(BMP581_INT_CONFIG_int_en_ENABLED | BMP581_INT_CONFIG_int_od_PUSHPULL | BMP581_INT_CONFIG_pad_int_drv_xxxxxx);  //  0x14    interrupt configuration register, see data sheet sections 6.2 & 7.5
+  //  if (Wire.endTransmission() != 0U) {
+  //    return 2;  //
+  //  }
 
-//  Wire.beginTransmission(I2C_BMP581_ADDRESS);
-//  Wire.write(BMP581_DSP_CONFIG_REGISTER_INDEX);  //  start at the DSP configuration register
-//  Wire.write(BMP581_PRESS_COMP_TEMP_COMP);       //  0x30    DSP configuration register, compensate both pressure and temperature
-//  Wire.write(BMP581_IIR_FILTER_BYPASS_ALL);      //  0x31 IIR bypass
- // if (Wire.endTransmission() != 0U) {
-//    return 2;  //
-//  }
+  //  Wire.beginTransmission(I2C_BMP581_ADDRESS);
+  //  Wire.write(BMP581_DSP_CONFIG_REGISTER_INDEX);  //  start at the DSP configuration register
+  //  Wire.write(BMP581_PRESS_COMP_TEMP_COMP);       //  0x30    DSP configuration register, compensate both pressure and temperature
+  //  Wire.write(BMP581_IIR_FILTER_BYPASS_ALL);      //  0x31 IIR bypass
+  // if (Wire.endTransmission() != 0U) {
+  //    return 2;  //
+  //  }
 
   // Skipping out of range registers
   Wire.beginTransmission(I2C_BMP581_ADDRESS);
@@ -2129,24 +2157,23 @@ uint8_t AccelKX134ACRCheck() {
 #define ACCEL_KX134ACR_64G 3  // Selected range for Mia
 
 #define I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH 22
-const uint8_t I2CAccelKX134AInitArray[I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH] = {  ACCEL_KX134ACR_CNTL1_ADDR, 0,
-                         ACCEL_KX134ACR_CNTL1_ADDR + 1, 0, 
-                         ACCEL_KX134ACR_CNTL1_ADDR + 2, 0xa8 | ACCEL_KX134ACR_OWUF,
-                         ACCEL_KX134ACR_CNTL1_ADDR + 3, 0x40 | ACCEL_KX134ACR_OSA,
-                         ACCEL_KX134ACR_CNTL1_ADDR + 4, 0,
-                         ACCEL_KX134ACR_CNTL1_ADDR + 5, 0,
-                         ACCEL_KX134ACR_MAN_WAKE_ADDR, 2,
-                         ACCEL_KX134ACR_MAN_WAKE_ADDR + 1, 0x40 | ACCEL_KX134ACR_OBTS,
-                         ACCEL_KX134ACR_LP_CNTL_ADDR, 0x8b | (ACCEL_KX134ACR_AVC << 4U),
-                         ACCEL_KX134ACR_BUF_CNTL2_ADDR, 0x41,
-                         ACCEL_KX134ACR_CNTL1_ADDR, 0xc0 | (ACCEL_KX134ACR_64G << 3U)
-                          };
+const uint8_t I2CAccelKX134AInitArray[I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH] = { ACCEL_KX134ACR_CNTL1_ADDR, 0,
+                                                                              ACCEL_KX134ACR_CNTL1_ADDR + 1, 0,
+                                                                              ACCEL_KX134ACR_CNTL1_ADDR + 2, 0xa8 | ACCEL_KX134ACR_OWUF,
+                                                                              ACCEL_KX134ACR_CNTL1_ADDR + 3, 0x40 | ACCEL_KX134ACR_OSA,
+                                                                              ACCEL_KX134ACR_CNTL1_ADDR + 4, 0,
+                                                                              ACCEL_KX134ACR_CNTL1_ADDR + 5, 0,
+                                                                              ACCEL_KX134ACR_MAN_WAKE_ADDR, 2,
+                                                                              ACCEL_KX134ACR_MAN_WAKE_ADDR + 1, 0x40 | ACCEL_KX134ACR_OBTS,
+                                                                              ACCEL_KX134ACR_LP_CNTL_ADDR, 0x8b | (ACCEL_KX134ACR_AVC << 4U),
+                                                                              ACCEL_KX134ACR_BUF_CNTL2_ADDR, 0x41,
+                                                                              ACCEL_KX134ACR_CNTL1_ADDR, 0xc0 | (ACCEL_KX134ACR_64G << 3U) };
 
 
 uint8_t AccelKX134ACRInit() {
 
-I2CArrayToDevice(I2C_ACCELEROMETER_ADDRESS, &I2CAccelKX134AInitArray[0], I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH);
-/*
+  I2CArrayToDevice(I2C_ACCELEROMETER_ADDRESS, &I2CAccelKX134AInitArray[0], I2C_ACCEL_KX134A_INIT_ARRAY_LENGTH);
+  /*
   Wire.beginTransmission(I2C_ACCELEROMETER_ADDRESS);
   Wire.write(ACCEL_KX134ACR_CNTL1_ADDR);   // CNTL1 register address for start register address
   Wire.write(0);                           //  CNTL1 standby mode for setup (This register should already be 0x00 from reset)
@@ -2569,16 +2596,16 @@ float getTemperatureP3(uint16_t ADRaw) {
 void getAltitude() {
   //
   float NewAltitudeRaw_m;
-  
+
   LastAltitude_m = newAltitude_m;
   CurrentPressure = ReadBMP581LatestPressure();
   NewAltitudeRaw_m = PressureToAltitude_m(CurrentPressure, SeaLevelPressure_hPa);
-  newAltitude_m = (LastAltitudeRaw_m + NewAltitudeRaw_m) / 2.0;    //  Altitude fliter
+  newAltitude_m = (LastAltitudeRaw_m + NewAltitudeRaw_m) / 2.0;  //  Altitude fliter
   LastAltitudeRaw_m = NewAltitudeRaw_m;
-  deltaAltitude_m =  newAltitude_m - LastAltitude_m;   //  deltaAltitude is positive for ascending and negitive for descending.
-              //  Serial.print(F("dA,"));
-              //Serial.println(deltaAltitude_m);
-  
+  deltaAltitude_m = newAltitude_m - LastAltitude_m;  //  deltaAltitude is positive for ascending and negitive for descending.
+                                                     //  Serial.print(F("dA,"));
+                                                     //Serial.println(deltaAltitude_m);
+
   //  Filter bad measurements (we require enough history to make this useful)
   if (RecordNumber > 10) {
     deltaAltitudeRaw_m = LastAbsDeltaAltitudeRaw_m - AbsDeltaAltitudeRaw_m;
@@ -2587,8 +2614,7 @@ void getAltitude() {
       // Wow, we just recorded a jolt
       // for now I am just setting TP7 on these observations
       digitalWrite(TestPoint7, HIGH);
-    }
-    else {
+    } else {
       digitalWrite(TestPoint7, LOW);
     }
   }
@@ -2601,8 +2627,8 @@ void getAltitude() {
     maxAltitude_m = newAltitude_m;      // ...move new altitude into max altitude
     maxAltitudeTimeStamp = millis();
   }
-  if (deltaAltitude_m <= 0.0001 ) {
-    if (ConsecutiveDescendingAltitudes != 255U) {    //  saturate ConsecutiveDescendingAltitudes at 254.
+  if (deltaAltitude_m <= 0.0001) {
+    if (ConsecutiveDescendingAltitudes != 255U) {  //  saturate ConsecutiveDescendingAltitudes at 254.
       ConsecutiveDescendingAltitudes++;
     }
   } else {
@@ -2748,30 +2774,30 @@ void PopulatePreLaunchQueueFlightRecord(uint16_t RecordIndexValue, uint32_t Time
    @retval Float  Temperature in degrees F
 */
 float ADToTemperatureF(uint16_t ADReading) {
-  if (ADReading > 1021) {    // If thermistor is disconnected, don't waste time doing calculations. Also, passing 1023 will make the Rtherm formula below blow up (division by zero))
-    return -153.0;          // ... but still return an accurate temperature for that A/D value..........as if the Mia could even operate at that temperature!
+  if (ADReading > 1021) {  // If thermistor is disconnected, don't waste time doing calculations. Also, passing 1023 will make the Rtherm formula below blow up (division by zero))
+    return -153.0;         // ... but still return an accurate temperature for that A/D value..........as if the Mia could even operate at that temperature!
   }
   // A/D reading to thermistor resistance
   //digitalWrite(TestPoint7, HIGH); //  DEBUG for measuring calculation time
   float Rtherm;
-  Rtherm = ((uint32_t) ADReading * 10000) / (1023 - ADReading);
+  Rtherm = ((uint32_t)ADReading * 10000) / (1023 - ADReading);
 
   // thermistor resistance to degrees K using the Steinhart-Hart Formula
-    // Steinhart-Hart Coefficients
-    const double A = 0.0008627576282;
-    const double B = 0.0002555975408;
-    const double C = 1.758347028e-7;
+  // Steinhart-Hart Coefficients
+  const double A = 0.0008627576282;
+  const double B = 0.0002555975408;
+  const double C = 1.758347028e-7;
 
-    float logR = log(Rtherm);
-    float logR3 = logR * logR * logR; // Faster than pow(logR, 3)
+  float logR = log(Rtherm);
+  float logR3 = logR * logR * logR;  // Faster than pow(logR, 3)
 
-    // Steinhart-Hart equation: 1/T = A + B*ln(R) + C*(ln(R))^3
-    //double kelvin = 1.0 / (A + (B * logR) + (C * logR3));
-    // with °F conversion:
-    float Temp_F = (1.8 / (A + (B * logR) + (C * logR3))) - 459.67;
+  // Steinhart-Hart equation: 1/T = A + B*ln(R) + C*(ln(R))^3
+  //double kelvin = 1.0 / (A + (B * logR) + (C * logR3));
+  // with °F conversion:
+  float Temp_F = (1.8 / (A + (B * logR) + (C * logR3))) - 459.67;
 
-    //digitalWrite(TestPoint7, LOW); //  DEBUG
-    return Temp_F;
+  //digitalWrite(TestPoint7, LOW); //  DEBUG
+  return Temp_F;
 }
 
 
@@ -3828,7 +3854,7 @@ bool LandingDetected() {
   //float AltitudeDelta;
   //AltitudeDelta = fabs(AltitudeQueue[(QueueIndex - 2U) % PRELAUNCH_QUEUE_SIZE] - newAltitude_m);
   if ((fabs(deltaAltitude_m) < 0.15) && ((newAltitude_m - fieldAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m)) {
-    if (ConsecutiveSimilarAltitudes != 255U) {    //  saturate ConsecutiveSimilarAltitudes at 255.
+    if (ConsecutiveSimilarAltitudes != 255U) {  //  saturate ConsecutiveSimilarAltitudes at 255.
       ConsecutiveSimilarAltitudes++;
     }
   } else {
@@ -3838,25 +3864,23 @@ bool LandingDetected() {
   //Serial.println(ConsecutiveSimilarAltitudes);
   return ConsecutiveSimilarAltitudes > 32U;
 
-              // AltitudeDelta = fabs(AltitudeQueue[(QueueIndex - 3U) % PRELAUNCH_QUEUE_SIZE] - newAltitude_m);
-              // LandingAltitude_m = newAltitude_m - fieldAltitude_m;
+  // AltitudeDelta = fabs(AltitudeQueue[(QueueIndex - 3U) % PRELAUNCH_QUEUE_SIZE] - newAltitude_m);
+  // LandingAltitude_m = newAltitude_m - fieldAltitude_m;
 
-              // if (AltitudeDelta < 0.2) {
-              //   LandingConditionCounter = LandingConditionCounter + 1;
-              // } else {
-              //   LandingConditionCounter = 0U;
-              // }
-              // // Landing Detection:
-              // // All 3 must be true:
-              // // The altitude from 3 sample times ago must be within 0.15 meters of the current altitude.
-              // // We must be within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m (40 meters) of our launch altitude (we could have landed up or down a hill, tree...).
-              // // We see sensor noise indicating any increase in altitude.
-              // // We have detected landed LANDING_CONDITION_COUNTER_THRESHOLD times.
+  // if (AltitudeDelta < 0.2) {
+  //   LandingConditionCounter = LandingConditionCounter + 1;
+  // } else {
+  //   LandingConditionCounter = 0U;
+  // }
+  // // Landing Detection:
+  // // All 3 must be true:
+  // // The altitude from 3 sample times ago must be within 0.15 meters of the current altitude.
+  // // We must be within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m (40 meters) of our launch altitude (we could have landed up or down a hill, tree...).
+  // // We see sensor noise indicating any increase in altitude.
+  // // We have detected landed LANDING_CONDITION_COUNTER_THRESHOLD times.
 
-              // if ((fabs(AltitudeDelta) < 0.15) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m) && (LandingConditionCounter > LANDING_CONDITION_COUNTER_THRESHOLD)) {  // If we have not moved 0.15 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
-              //   // We have landed on a planet!  Save our last record.
-
-
+  // if ((fabs(AltitudeDelta) < 0.15) && (abs(LandingAltitude_m) < MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m) && (CurrentAltitude2Ago_m < newAltitude_m) && (LandingConditionCounter > LANDING_CONDITION_COUNTER_THRESHOLD)) {  // If we have not moved 0.15 meters in the last 3 samples, we are within MAXIMUM_LAUNCH_LANDING_DIFFERENCE_m meters of field launch altitude, and still sensor noise indicated increased altitude, we have landed.
+  //   // We have landed on a planet!  Save our last record.
 }
 
 
@@ -4526,7 +4550,7 @@ void loop() {
                      a little bit due to extra work during logging cycles, variations in floating point number calculations, and such.
           The A tick marks represent the sample events as requested by the user.
           The x tick marks are the resultant, actual sample events based on the when the getAltitude() call is made and the user period.
-          This example below could represent a average Arduino loop time of 15ms, and a user period of 35ms.
+          This example below could represent a average Arduino loop time of 9ms, and a user period of 20ms.
              Arduino Loop period: V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V    V
                Ideal user period:A          A          A          A          A          A          A          A          A          A          A          A          A          A          A          A
             Actual logged period: x         x              x         x         x         x         x              x         x         x         x         x              x         x         x         x
@@ -4591,13 +4615,13 @@ void loop() {
           }
           P3ADRaw = analogRead(AnalogInputP3);
 
-               //Serial.print(F("FP?,"));
-                //Serial.println(FlightModePhaseIndex);
+          //Serial.print(F("FP?,"));
+          //Serial.println(FlightModePhaseIndex);
 
 
           if (FlightModePhaseIndex == 0U) {
-             //Serial.print(F("FP0,"));
-              //Serial.println(millis());
+            //Serial.print(F("FP0,"));
+            //Serial.println(millis());
             //digitalWrite(N_OLEDReset, HIGH);
             //delay(30U);
             DisplayStart();
@@ -4684,11 +4708,11 @@ void loop() {
 
             //  Integrate altitude change with compensation for local pressure change, wind asperation over rocket's pressure port, sensor drift.
             //  Our time period through the launch detect loop is pretty constant, so delta t can be dropped from the math.
-              //Serial.print(F("FP1,"));
-              //Serial.println(millis());
+            //Serial.print(F("FP1,"));
+            //Serial.println(millis());
 
-            if (millis() - startTime_ms > FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms) {  // Make sure we have waited 1 minute since FlightModePhase was zero so payload can be assembled without causing a false launch event!
-              integratedAltitude = (integratedAltitude * INGEGRATOR_LEAK_FACTOR) + deltaAltitude_m;       //  WE "LEAK" the integrator to compensate for drift, wind, pressure change, and sensor noise.
+            if (millis() - startTime_ms > FLIGHT_MODE_0_TO_LAUNCH_DETECT_MINIMUM_ms) {               // Make sure we have waited 1 minute since FlightModePhase was zero so payload can be assembled without causing a false launch event!
+              integratedAltitude = (integratedAltitude * INGEGRATOR_LEAK_FACTOR) + deltaAltitude_m;  //  WE "LEAK" the integrator to compensate for drift, wind, pressure change, and sensor noise.
             } else {
               integratedAltitude = 0.0;
               displayAltitude();  //  Want to see the altitude while preping the rocket.
@@ -4831,7 +4855,7 @@ void loop() {
             // Apogee Detection:
             //  We must be decending over the last six samples (about 70ms) and we must be above APOGEE_MINIMUM_ALTITUDE_DETECT_THRESHOLD_AGL_m meters above launch level.
             //Serial.print(F("FP2,"));
-              //Serial.println(millis());
+            //Serial.println(millis());
             if ((newAltitude_m > MinimumAltitudeForApogeeDetect) && (ConsecutiveDescendingAltitudes > 6U)) {
               if ((ServoNotSounder)) {
                 MiaServo.write(ServoFlightStateArray[ServoApogee_index]);
@@ -4878,7 +4902,7 @@ void loop() {
 
             // High current output altitude threshold check.
             //Serial.print(F("FP4,"));
-              //Serial.println(millis());
+            //Serial.println(millis());
             if (AltitudeHighCurrentOutSetting_m > (newAltitude_m - fieldAltitude_m)) {
               digitalWrite(HighCurrentOut, HIGH);  // High current output ON.
               FlightStatus = FlightStatus & 0xf1ff;
@@ -4902,42 +4926,42 @@ void loop() {
               }
             }
 
-               // Landing Detection:
+            // Landing Detection:
 
-              if (LandingDetected()) {
-                // We have landed on a planet!  Save our last record.
-                FlightStatus = FlightStatus & 0xf1ff;
-                FlightStatus = FlightStatus | 0x8040 | (ServoLanded_index << 9);
-                PopulateFlightRecord(RecordNumber);
-                WriteRecordAtSamplePeriod(1);
+            if (LandingDetected()) {
+              // We have landed on a planet!  Save our last record.
+              FlightStatus = FlightStatus & 0xf1ff;
+              FlightStatus = FlightStatus | 0x8040 | (ServoLanded_index << 9);
+              PopulateFlightRecord(RecordNumber);
+              WriteRecordAtSamplePeriod(1);
 
-                // Write summary record (max altitude)
-                FlightStatus = 0x1000;
-                newAltitude_m = maxAltitude_m;
-                PopulatePreLaunchQueueFlightRecord(RecordNumber, maxAltitudeTimeStamp);
-                WriteRecordAtSamplePeriod(1);
+              // Write summary record (max altitude)
+              FlightStatus = 0x1000;
+              newAltitude_m = maxAltitude_m;
+              PopulatePreLaunchQueueFlightRecord(RecordNumber, maxAltitudeTimeStamp);
+              WriteRecordAtSamplePeriod(1);
 
-                EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);  //  Update external EEPROM next address in MCU EEPROM.
+              EEPROM.put(MCU_EEPROM_EXT_EEPROM_ADDR_START, (uint32_t)EepromAddress);  //  Update external EEPROM next address in MCU EEPROM.
 
-                digitalWrite(HighCurrentOut, LOW);  // High current output OFF.
+              digitalWrite(HighCurrentOut, LOW);  // High current output OFF.
 
 
-                // Restore display from reset so landing information can be displayed
-                DisplayStart();
+              // Restore display from reset so landing information can be displayed
+              DisplayStart();
 
-                // servo update
-                if (ServoNotSounder) {
-                  MiaServo.write(ServoFlightStateArray[ServoLanded_index]);
-                }
-                OurFlightTimeStamps.LandingTime_ms = millis();
-                EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));  // Update MCU EEPROM for 'last maximum altitude'
-                FlightModePhaseIndex = 5U;
-
-              } else {
-                // We have not landed yet.
-                PopulateFlightRecord(RecordNumber);
-                WriteRecordAtSamplePeriod(0);
+              // servo update
+              if (ServoNotSounder) {
+                MiaServo.write(ServoFlightStateArray[ServoLanded_index]);
               }
+              OurFlightTimeStamps.LandingTime_ms = millis();
+              EEPROM.put(MCU_EEPROM_LAST_MAXIMUM_ALTITUDE, (maxAltitude_m - fieldAltitude_m));  // Update MCU EEPROM for 'last maximum altitude'
+              FlightModePhaseIndex = 5U;
+
+            } else {
+              // We have not landed yet.
+              PopulateFlightRecord(RecordNumber);
+              WriteRecordAtSamplePeriod(0);
+            }
           }
 
 
@@ -4945,7 +4969,7 @@ void loop() {
             //  ^^^^^^^^^^^^^^^^^^^^^^^   Landed, start buzzer or position servo and wait for transition to low power mode.
             //  Check and see if we go to low power flight mode yet
             //Serial.print(F("FP5,"));
-              //Serial.println(millis());
+            //Serial.println(millis());
             displayAltitude();
             DoBuzzer(1);
 
