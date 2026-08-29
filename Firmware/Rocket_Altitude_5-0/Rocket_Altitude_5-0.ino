@@ -247,7 +247,7 @@
 
             ADDR = 8: The last Known air pressure at sea level. This is a float.
 
-            ADDR = 12: The next available address in the external EEPROM. uint32_t
+            ADDR = 12: The next available logging address in the external EEPROM. uint32_t
 
             ADDR = 16: This field is a personalization field. The user can put any thing they want here but the intent is for name and contact information.
                 This field is 63 characters long with the last byte as a end of string byte.   NOT IMPLEMENTED
@@ -265,6 +265,7 @@
                 Bit  6  For output digital 9: SounderRequiresFrequency.
                 Bit  7  For output digital 9: 0=Servo output, 1=Sounder output.
                 Bit  8  Memsic MXC3638AL Accelerometer.
+                Bit  9  Memsic MXC3600AL Accelerometer. Mounted at 45° gives us 32g of acceleration maximum measurement.
 
             ADDR = 148: The sensor specific block has the following:   NOT IMPLEMENTED
                 (Should we put the BMP581 sample rate, IIR filter coeff & oversampling stuff here? No, not yet.)
@@ -277,6 +278,8 @@
                 The host application will keep this updated if location services are available, if not, manual entry is available.
 
             ADDR = 192: Altitude setting for high current output. This is a float.
+                In decent mode, this is the altitude thresnold the rocket must be "lower than" after apogee.
+                In second stage ignition mode, this is the minimum altitude that must be attained before ignition (other parameters are required too)
 
             ADDR = 196: Last maximum altitude reached in meters. This altitude is already be corrected for field altitude. This is a float.
                 Read with "a" command.
@@ -308,6 +311,9 @@
             ADDR - 208: Servo position, When the high current output goes below its altitude setting. This is a byte. Any value > 180 is invalid.
                 Read and set with "p" command.
             
+            ADDR - 209: High current output mode. This is a byte. Values 0 and 1 are valid. 0=activate on descent. 1=second stage ignition.
+                Read and set with "p" command.
+            
             (Space left for more byte parameters that the "p" command can set. p command writes 16 values from 200 through 215)
 
             ADDR - 216: Frequency 1 for the buzzer. Maximum frequency allowed is 12000 Hz.
@@ -320,6 +326,12 @@
                 Read and set with "w" command
 
             ADDR - 222: Milliseconds between samples after [apogee plus 'ServoApogeeDuration_ms'] through landing
+                Read and set with "w" command
+
+            ADDR - 224: For second stage ignition, Milliseconds between launch detect and open window for second stage ignition
+                Read and set with "w" command
+
+            ADDR - 226: For second stage ignition, Milliseconds between launch detect and the close of the second stage ignition (must be larger than time at addr 226)
                 Read and set with "w" command
 
             (Space left for more word parameters that the "w" command can set. w command writes eight 16 bit values from 216 through 231)
@@ -824,11 +836,26 @@
   By: Robert Rau
   Changes: Reduced APOGEE_MINIMUM_ALTITUDE_DETECT_THRESHOLD_AGL_m down to 6 meters.
 
+  Updated: 8/24/2026
+  Rev.: 5.0.0
+  By: Robert Rau
+  Changes: This version is dedicated to the Mia board version 0.1.0 and the validation of the 2nd stage ignition feature.
+  This version supportes a little different pinout for board version 0.1.0.
+  There is a new battery voltage pin and the high current output moved. The board has a different charger/LDO and accelerometer.
+  The high current output add new functionallity. There is a new output mode to support second state ignition.
+  The EEPROM will support which high current output mode is active, and all the required parameters. See EEPROM addresses 209, 224, 226.
+  The log initial record and summary record will now include battery voltage.
+
+  Updated: 8/26/2026
+  Rev.: 5.0.1
+  By: Robert Rau
+  Changes: To validate the 2nd stage ignition algorithm we added a #define TargetNewBoard. This allows us to use the old 0.0.1 board version for initial validation until we get 0.1.0 boards.
+
 
 */
 // Version
-const char VersionString[] = "4.6.71\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
-#define BIRTH_TIME_OF_THIS_VERSION 1786555851  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
+const char VersionString[] = "5.0.1\0";       //  ToDo, put in flash  see: https://arduino.stackexchange.com/questions/54891/best-practice-to-declare-a-static-text-and-save-memory
+#define BIRTH_TIME_OF_THIS_VERSION 1787567624  //  Seconds from Linux Epoch. Used as default time in MCU EEPROM.
 //                                                 I get this from https://www.unixtimestamp.com/  click on Copy, and paste it here. Used in MCUEEPROMTimeCheck() and host application.
 
 
@@ -872,6 +899,12 @@ const char VersionString[] = "4.6.71\0";       //  ToDo, put in flash  see: http
 
 
 /**************************************************************************************************
+   Compatibility setup for testing on Mia 0.0.1
+ **************************************************************************************************/
+#define TargetNewBoard false  //  True for Mia board 0.10 and later. False for Mia board 0.01
+
+
+/**************************************************************************************************
    Arduino pinout
  **************************************************************************************************/
 /* DIGITAL PINS */
@@ -881,19 +914,28 @@ const char VersionString[] = "4.6.71\0";       //  ToDo, put in flash  see: http
 #define N_DispButton 2        //  Active low USER1 button input, must enable pull up resistor.
 #define TestPoint7 3          //  Just a solder pad.  Must enable pull up resistor or make an output.
 #define UnusedD4 4
-#define N_OLEDReset 5        //  Active low reset pulse to OLED display, minimum reset pulse width 3 microseconds.
-#define N_BatteryCharging 6  //  Connected to the -CHG signal on Mia board version 0.0.1. Not used in this firmware.
-#define HighCurrentOut 7     //  Active high enable to high current pull down MOSFET on connector P4.
+#define N_OLEDReset 5         //  Active low reset pulse to OLED display, minimum reset pulse width 3 microseconds.
+#define N_BatteryCharging 6   //  Connected to the -CHG signal on Mia board version 0.10.
 #define UnusedD8 8
-#define BuzzerOut 9  //  Pin for square wave signal to Pizo sounder or servo PWM. Nominal resonant frequency is 4100 Hz for the CMT-1102-SMT Piezo.
+#define BuzzerOut 9           //  Pin for square wave signal to pizo sounder or servo PWM. Nominal resonant frequency for pizo is 4100 Hz for the CMT-1102-SMT Piezo.
 #define UnusedD10 10
-#define UnusedD11 11        //  Used for bootloader programming.
-#define UnusedD12 12        //  Used for bootloader programming.
-#define UnusedD13 13        //  Used for bootloader programming.
-#define MiaPCBVersion23 23  //  328PB port E bit 0, input pulled high. Will read as a 1 for first version of Mia, read as a 0 for the second version (with accelerometer). This bit, 23, is a MiniCore feature.
-#define UnusedD24 24        //  328PB port E bit 1, unused, input pulled high so it won't float. This bit is a MiniCore feature.
-#define UnusedD25 25        //  328PB port E bit 2, unused, input pulled high so it won't float. This bit is a MiniCore feature.
-#define UnusedD26 26        //  328PB port E bit 3, unused, input pulled high so it won't float. This bit is a MiniCore feature.
+#define UnusedD11 11          //  Used for bootloader programming.
+#define UnusedD12 12          //  Used for bootloader programming.
+#define UnusedD13 13          //  Used for bootloader programming.
+
+#if TargetNewBoard == true
+#define HighCurrentOut 25     //  328PB port E bit 2. Active high enable to high current pull down MOSFET on connector P4.
+#define ChargerEnable 24      //  328PB port E bit 1. Used for Enabling and restarting the LiPo charger. This bit is a MiniCore feature.
+#define MiaPCBVersion23 23    //  328PB port E bit 0, input pulled high. Will read as a 0 for Mia version 0.01 & 0.10 (with accelerometer). This bit, 23, is a MiniCore feature.
+#define MiaPCBVersion26 26    //  328PB port E bit 3, input pulled high. Will read as a 0 for Mia version 0.10 (with 45° accelerometer). This bit, 26, is a MiniCore feature.
+#define ChargeControl 7       //  Analog input for battery voltage.
+#else
+#define HighCurrentOut 7      //  Active high enable to high current pull down MOSFET on connector P4.
+#define UnusedD24 24          //  328PB port E bit 1. unused, input pulled high so it won't float. This bit is a MiniCore feature.
+#define MiaPCBVersion23 23    //  328PB port E bit 0, input pulled high. Will read as a 0 for Mia version 0.01 & 0.10 (with accelerometer). This bit, 23, is a MiniCore feature.
+#define UnusedD25 25          //  328PB port E bit 2, unused, input pulled high so it won't float. This bit is a MiniCore feature.
+#define MiaPCBVersion26 26    //  328PB port E bit 3, input pulled high. Will read as a 0 for Mia version 0.10 (with 45° accelerometer). This bit, 26, is a MiniCore feature.
+#endif
 
 /* ANALOG PINS */
 #define AnalogInputP3 A0  // Analog input on connector P3. Direct connection from P3 to the A/D input with optional R14 10k ohm 0.1% pull up for a 10k ohm thermistor on P3.
@@ -964,14 +1006,16 @@ uint8_t ServoState;
 #define I2C_MXC3500AL_ADDRESS 0x4C  // 0x4C address for accelerometer (Memsic MXC3500AL) on version 0.05. Device is mounted at 45° so vertical acceleration can be measured up to 33.94g.
 
 //  Accelerometer selection
-#define ACCELEROMETER_DEVICE KX134ACR  //  options are MC3416, KX134ACR or MXC3500AL
+#define ACCELEROMETER_DEVICE KX134ACR  // MXC3500AL  //  options are MC3416, KX134ACR (for testing with revision 0.01 boards) or MXC3500AL (for revision 0.05 boards)
 
 #if ACCELEROMETER_DEVICE == MC3416
 #define I2C_ACCELEROMETER_ADDRESS I2C_MC3416_ADDRESS  // Address for selected accelerometer
 #elif ACCELEROMETER_DEVICE == KX134ACR
 #define I2C_ACCELEROMETER_ADDRESS I2C_KX134_ADDRESS  // Address for selected accelerometer
+#define UserConfigurationHasRohmKX134Accelerometer 0x00000008    // KX134ACR mask for user configuration
 #elif ACCELEROMETER_DEVICE == MXC3500AL
 #define I2C_ACCELEROMETER_ADDRESS I2C_MXC3500AL_ADDRESS  // Address for selected accelerometer
+#define UserConfigurationHasMemsicMXC3500ALAccelerometer 0x00000020    // MXC3500AL mask for user configuration
 #else
 #define I2C_ACCELEROMETER_ADDRESS 0
 #endif
@@ -1000,8 +1044,8 @@ uint32_t startTime_ms = 0U;
 //#define APOGEE_DESCENT_THRESHOLD 2.0                   //  We must be below maximum altitude by this value to detect we have passed apogee.
 //#define START_LOGGING_ALTITUDE_m 0.8                   //  Altitude threshold (in meters) that we must exceed before detecting launch and starting logging to EEPROM.
 #define INGEGRATOR_LEAK_FACTOR 0.80
-#define START_LOGGING_INTEGRATING_THRESHOLD 7.4        //  Threshold for new launch detect methode 9/27/2025  5/25/2026 to 20, then 14, then 12. 6/6/2026, now 9 with integrator leak at 0.8. Now 7.4 with leak 0.8.
-#define START_LOGGING_ALTITUDE_THRESHOLD 13.0          //  Threshold for new launch detect methode 11/9/2025. 6/6/2026 set to 14m (46 ft.).
+#define START_LOGGING_INTEGRATING_THRESHOLD 7.0        //  Threshold for new launch detect methode 9/27/2025  5/25/2026 to 20, then 14, then 12. 6/6/2026, now 9 with integrator leak at 0.8. Now 7.4 with leak 0.8.
+#define START_LOGGING_ALTITUDE_THRESHOLD 12.0          //  Threshold for new launch detect methode 11/9/2025. 6/6/2026 set to 14m (46 ft.).
 #define MCU_EEPROM_ADDR_DEFAULT_SEALEVELPRESSURE_HP 8  //  MCU EEPROM address where sealevel pressure is stored.
 float SeaLevelPressure_hPa;                            //  user adjusted sea level pressure in hectopascal (hPa) (millibars).
 float fieldAltitude_m = 0.0;                           //  Launch field altitude above sea level in sensor units (meters)
@@ -1067,7 +1111,7 @@ uint8_t LandingConditionCounter;
 uint32_t UserConfiguration;
 #define UserConfigurationRequiredFeatures 0x00000022             //Current production board build with defaults.
 #define UserConfigurationDefaultFeatures 0x00000072              //Current production board build with defaults.
-#define UserConfigurationHasRohmKX134Accelerometer 0x00000008    // KX134ACR mask
+//#define UserConfigurationHasRohmKX134Accelerometer 0x00000008    // KX134ACR mask
 #define UserConfigurationP3ThermistorNotVoltage_mask 0x00000010  // P3 temperature/voltage mask
 #define UserConfigurationSounderRequiresFrequency 0x00000040     // SounderRequiresFrequency mask
 #define UserConfigurationSounderNotServo_mask 0x00000080         // Servo mask
@@ -1110,19 +1154,20 @@ typedef union {
     uint32_t current_time_ms;  // This is time from when the Mia is turned on, mission elapsed time. In milliseconds. This is not related to the Linux time stamp at MCU EEPROM addr 0.
     float Altitude;            //  Altitude above Field altitude in meters.
     float Temperature;         //  Using analog connector P3.
-    uint32_t LightVoltage;     // In millivolts.
-    float AccelerationX_g;     //  Not on first version of Mia.
-    float AccelerationY_g;     //  Not on first version of Mia.
-    float AccelerationZ_g;     //  Not on first version of Mia.
+    uint32_t LightVoltage;     //  In millivolts. Lower voltage is more light measured. The amount of light is perportional to the current, not the voltage.
+                               //      So the amount of light is perportional to V / R, or   (3.00V - (LightVoltage / 1000)) / 1000Ω
+    float AccelerationX_g;     //  Acceleration in rocket frame of reference (not sensor frame of reference).
+    float AccelerationY_g;     //  Acceleration in rocket frame of reference (not sensor frame of reference).
+    float AccelerationZ_g;     //  Acceleration in rocket frame of reference (not sensor frame of reference).
   } Record;
-  byte Bytes[sizeof(Record)];      // *** This structure is for writing the records to the external EEPROM
-  struct {                         // *** This structure is for the initial record before each flight.
-    uint16_t RecordIndex;          // This is a index of each record per flight, for this initial record format it will be 0
-    uint16_t Status;               // See the bottom of this file for format details.
-    uint32_t current_time_ms;      // This is time from when the Mia is turned on, mission elapsed time. In milliseconds. This is not related to the Linux time stamp at MCU EEPROM addr 0.
-    float Altitude;                //  Field altitude in meters.
+  byte Bytes[sizeof(Record)];      //  *** This structure is for writing the records to the external EEPROM
+  struct {                         //  *** This structure is for the initial record before each flight.
+    uint16_t RecordIndex;          //  This is a index of each record per flight, for this initial record format it will be 0
+    uint16_t Status;               //  See the bottom of this file for Status word format details.
+    uint32_t current_time_ms;      //  This is time from when the Mia is turned on, mission elapsed time. In milliseconds. This is not related to the Linux time stamp at MCU EEPROM addr 0.
+    float Altitude;                //  Field altitude in meters above sea level.
     float Temperature;             //  Using analog connector P3.
-    float SeaLevelPressure_float;  //  11/19/2025 changed to float
+    float SeaLevelPressure_float;  //  Sea level pressure at launch site in hPa (millibars)
     int64_t LinuxDateTime;
     uint32_t spare;
   } InitRecord;
@@ -5193,6 +5238,7 @@ void loop() {
 
                 //EEPROM.put(MCU_EEPROM_DEBUG_LOCATION, integratedAltitude);    //  for debug, so we know "which" term made launch detect.
                 digitalWrite(N_OLEDReset, LOW);  //  No need to draw power with the OLED since we are flying, and we want to keep the 3.0V bus clean. Setting OLED reset low is much faster than display clear.
+                      //  Should we just send the 0xae command OLED display off (maintained memory)
 
                 FlightStatus = ServoAscent_index << 9;
 
@@ -5625,10 +5671,10 @@ void loop() {
            │  │                Unix/Linux Date-Time. Seconds since Jan 01 1970 (UTC). Second half.                 │
            │  │ -------------------------------------------------------------------------------------------------> │
            │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                               Spare.                                               │
-           │  │ <--------------------------------------------- N/A ----------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────┐┌──────────────────────┐
+           │  │                                   Spare.                                   ││      f(Bat. Volt)    │
+           │  │ <------------------------------- 24 bits --------------------------------> ││ <-------uint8------> │
+           │  └────────────────────────────────────────────────────────────────────────────┘└──────────────────────┘
             \
 
 
@@ -5741,10 +5787,10 @@ void loop() {
            │  │                                         Invalid                                                    │
            │  │ <------------------------------------------- uint32_t -------------------------------------------> │
            │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
-           │  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┐
-           │  │                                         Invalid                                                    │
-           │  │ <------------------------------------------- uint32_t -------------------------------------------> │
-           │  └────────────────────────────────────────────────────────────────────────────────────────────────────┘
+           │  ┌────────────────────────────────────────────────────────────────────────────┐┌──────────────────────┐
+           │  │                                   Spare.                                   ││      f(Bat. Volt)    │
+           │  │ <------------------------------- 24 bits --------------------------------> ││ <-------uint8------> │
+           │  └────────────────────────────────────────────────────────────────────────────┘└──────────────────────┘
            \
 
 
